@@ -1,0 +1,7 @@
+* Virtual Indent
+
+Second try at indentation-correcting ligatures through concept of
+virtual-indentation, name taken from org-indent.el.
+
+Exploratory REPO as I try out ideas I've had to get around needing to modify
+Emacs C source code.
