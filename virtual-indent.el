@@ -48,12 +48,13 @@ The RX, if given, should set the first group for the match to replace."
         )
   "Collection of `virtual-indent-make-spec' specifying ligature replacements.")
 
-;;;; Constants
+;;;; Managed
+;;;;; Constants
 
 (defconst virtual-indent--lig-subexp 1
   "Alias the SUBEXP for ligatures in `match-data'.")
 
-;;;; Managed
+;;;;; Variable
 
 (defconst virtual-indent-lig-ovs nil
   "List of ligature overlays currently managed.")
@@ -238,15 +239,34 @@ Currently:
 
 ;;; Interactive
 
-(defun virtual-indent-disable ()
+(defun virtual-indent-log-switch-to ()
   (interactive)
+  (switch-to-buffer-other-window (virtual-indent-get-or-create-log-buffer)))
+
+(defun virtual-indent-disable ()
+  "Disable and cleanup virtual-indent."
+  (interactive)
+  (virtual-indent-log-maybe "Disabling virtual-indent...")
+
   (remove-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
   (virtual-indent-cleanup-ovs)
   (virtual-indent-cleanup-logs))
 
 (defun virtual-indent-enable ()
+  "Enable virtual-indent and cleanup previous instance if running."
   (interactive)
   (virtual-indent-disable)
   (setq font-lock-keywords nil)
+
+  (Virtual-indent-log-maybe "Enabling virtual-indent...")
+
   (add-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
   (lisp-mode))
+
+;;; Development Shortcuts
+
+(when eric?
+  (spacemacs/declare-prefix "d" "dev")
+  (spacemacs/set-leader-keys "de" #'virtual-indent-enable)
+  (spacemacs/set-leader-keys "dd" #'virtual-indent-disable)
+  (spacemacs/set-leader-keys "dl" #'virtual-indent-log-switch-to))
