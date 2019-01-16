@@ -61,8 +61,30 @@ The RX, if given, should set the first group for the match to replace."
         )
   "Collection of `virtual-indent-make-spec' specifying ligature replacements.")
 
+;;; Logging
+
+(defconst virtual-indent-logging-buffer-name "*virtual-indent-log*"
+  "The buffer name for virtual-indent-logs.")
+
+(defun virtual-indent-get-or-create-log-buffer ()
+  "Get or create the logging buffer for virtual-indent."
+  (setq virtual-indent-logging-buffer
+        (get-buffer-create virtual-indent-logging-buffer-name)))
+
+(defun virtual-indent-format-log (msg)
+  "Format MSG for virtual-indent logs."
+  msg)
+
+(defun virtual-indent-log (msg)
+  "Log MSG in virtual-indent's log."
+  (with-current-buffer (virtual-indent-get-or-create-log-buffer)
+    (goto-char (point-max))
+    (-> msg virtual-indent-format-log insert)
+    (newline)))
+
 ;;; Overlays
 ;;;; Fundamentals
+;;;;; General
 
 (defun virtual-indent--make-ov (subexp)
   "`make-overlay' with start and end taking `match-data' at SUBEXP."
@@ -80,30 +102,37 @@ The RX, if given, should set the first group for the match to replace."
      virtual-indent--ovs-in
      (-contains? ov)))
 
+;;;;; Specialized
+
 (defun virtual-indent--lig-ov-in? (ov)
   "Specialize `virtual-indent--ov-in?' for ligatures."
   (virtual-indent--ov-in? ov virtual-indent--lig-subexp))
 
 (defun virtual-indent--lig-ov-present? ()
+  "Is a ligature overlay present for current match?"
   (-any #'virtual-indent--lig-ov-in?
         (virtual-indent--ovs-in virtual-indent--lig-subexp)))
+
+(defun virtual-indent--make-lig-ov ()
+  "Make a ligature overlay."
+  (virtual-indent--make-ov virtual-indent--lig-subexp))
 
 ;;;; Management
 
 (defun virtual-indent-cleanup-lig-ovs ()
-  "Delete all `virtual-indent-lig-ovs'."
+  "Delete and cleanup all `virtual-indent-lig-ovs'."
   (-doto virtual-indent-lig-ovs
     (-each #'delete-overlay)
     (setq nil)))
 
 (defun virtual-indent-cleanup-indent-ovs ()
-  "Delete all `virtual-indent-indent-ovs'."
+  "Delete and cleanup all `virtual-indent-indent-ovs'."
   (-doto virtual-indent-indent-ovs
     (-each #'delete-overlay)
     (setq nil)))
 
 (defun virtual-indent-cleanup-ovs ()
-  "Delete all overlays managed by virtual-indent."
+  "Delete and cleanup all overlays managed by virtual-indent."
   (virtual-indent-cleanup-lig-ovs)
   (virtual-indent-cleanup-indent-ovs))
 
@@ -120,10 +149,11 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun virtual-indent-build-lig-ov ()
   "Build ligature overlay for current `match-data'."
-  (-doto (virtual-indent--make-ov virtual-indent--lig-subexp)
+  (-doto (virtual-indent--make-lig-ov)
     (overlay-put 'display string)
     (overlay-put 'evaporate t)
     (overlay-put 'modification-hooks '(lig-mod-hook))
+
     (add-to-list 'virtual-indent-lig-ovs)))
 
 (defun virtual-indent--build-kwd (rgx string)
