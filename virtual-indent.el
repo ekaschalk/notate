@@ -22,7 +22,8 @@
 (require 'dash-functional)
 (require 's)
 
-;;; Spec
+;;; Configuration
+;;;; Utilities
 
 (defun virtual-indent-make-spec (name string replacement &optional rx)
   "Create spec plist NAME for STRING to REPLACEMENT optionally with custom RX.
@@ -39,6 +40,21 @@ The RX, if given, should set the first group for the match to replace."
     :width       ,(- (length string)
                      (length replacement))))
 
+;;;; Constants
+
+(defconst virtual-indent--lig-subexp 1
+  "Alias the SUBEXP for ligatures in `match-data'.")
+
+;;;; Managed
+
+(defconst virtual-indent-lig-ovs nil
+  "List of ligature overlays currently managed.")
+
+(defconst virtual-indent-indent-ovs nil
+  "List of indent overlays currently managed.")
+
+;;;; Setup
+
 (defconst virtual-indent-spec
   (list (virtual-indent-make-spec "Test Ligature" "hello" "")
         ;; more ligatures...
@@ -46,22 +62,52 @@ The RX, if given, should set the first group for the match to replace."
   "Collection of `virtual-indent-make-spec' specifying ligature replacements.")
 
 ;;; Overlays
-;;;; Basics
+;;;; Fundamentals
 
 (defun virtual-indent--make-ov (subexp)
   "`make-overlay' with start and end taking `match-data' at SUBEXP."
-  (make-overlay (match-beginning subexp)
-                (match-end       subexp)))
+  (apply #'make-overlay
+         (match-data subexp)))
 
 (defun virtual-indent--ovs-in (subexp)
   "`overlays-in' with start and end taking `match-data' at SUBEXP."
-  (overlays-in (match-beginning subexp)
-               (match-end       subexp)))
+  (apply #'overlays-in
+         (match-data subexp)))
 
-(defun virtual-indent--ov-in (ov subexp)
+(defun virtual-indent--ov-in? (ov subexp)
   "Is overlay OV contained in overlays for `match-data' at SUBEXP?"
-  (-> subexp virtual-indent--ovs-in (-contains? ov)))
+  (-> subexp
+     virtual-indent--ovs-in
+     (-contains? ov)))
 
+(defun virtual-indent--lig-ov-in? (ov)
+  "Specialize `virtual-indent--ov-in?' for ligatures."
+  (virtual-indent--ov-in? ov virtual-indent--lig-subexp))
+
+(defun virtual-indent--lig-ov-present? ()
+  (-any #'virtual-indent--lig-ov-in?
+        (virtual-indent--ovs-in virtual-indent--lig-subexp)))
+
+;;;; Management
+
+(defun virtual-indent-cleanup-lig-ovs ()
+  "Delete all `virtual-indent-lig-ovs'."
+  (-doto virtual-indent-lig-ovs
+    (-each #'delete-overlay)
+    (setq nil)))
+
+(defun virtual-indent-cleanup-indent-ovs ()
+  "Delete all `virtual-indent-indent-ovs'."
+  (-doto virtual-indent-indent-ovs
+    (-each #'delete-overlay)
+    (setq nil)))
+
+(defun virtual-indent-cleanup-ovs ()
+  "Delete all overlays managed by virtual-indent."
+  (virtual-indent-cleanup-lig-ovs)
+  (virtual-indent-cleanup-indent-ovs))
+
+;;;; Other
 
 (defun virtual-indent--ov-mod-hook (ov post-modification? start end &optional _)
   "Overlay modification hook to force evaporation upon modification within ov."
@@ -72,38 +118,45 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;; Font-Locks
 
+(defun virtual-indent-build-lig-ov ()
+  "Build ligature overlay for current `match-data'."
+  (-doto (virtual-indent--make-ov virtual-indent--lig-subexp)
+    (overlay-put 'display string)
+    (overlay-put 'evaporate t)
+    (overlay-put 'modification-hooks '(lig-mod-hook))
+    (add-to-list 'virtual-indent-lig-ovs)))
+
 (defun virtual-indent--build-kwd (rgx string)
   `(,rgx (0 (prog1 nil
-              ;; (print "found")
-
-              (unless (-contains?)
-                (overlays-at))
-
-              (setq ov (virtual-indent--make-ov 1))
-              (-doto
-                  (overlay-put 'display string)
-                (overlay-put 'evaporate t)
-                (overlay-put 'modification-hooks '(lig-mod-hook)))
-              ;; run in the indent recalculations
+              (unless virtual-indent--lig-ov-present?
+                (virtual-indent-build-lig-ov))
+              ;; indent-stuff
               ))))
 
 (defun virtual-indent-add-kwds (rgx-string-alist)
+  "Translate spec into and add to `font-lock-keywords'."
   (->> rgx-string-alist
      (-map (-applify #'virtual-indent--build-kwd))
      (font-lock-add-keywords nil)))
 
 (defun virtual-indent-hook-fn ()
+  "Add as hook to (currently just `lisp-mode') to enable virtual-indent."
   (virtual-indent-add-kwds virtual-indent-rgx-string-alist))
+
+;;; Indentation
+
+;; todo
+
+;;; Interactive
 
 (defun virtual-indent-disable ()
   (interactive)
-  (remove-hook 'lisp-mode-hook #'virtual-indent-hook-fn))
+  (remove-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
+  (virtual-indent-cleanup-ovs))
 
 (defun virtual-indent-enable ()
   (interactive)
   (virtual-indent-disable)
   (setq font-lock-keywords nil)
-  (add-hook    'lisp-mode-hook #'virtual-indent-hook-fn)
+  (add-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
   (lisp-mode))
-
-;;; Indentation
