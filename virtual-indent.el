@@ -61,7 +61,19 @@ The RX, if given, should set the first group for the match to replace."
         )
   "Collection of `virtual-indent-make-spec' specifying ligature replacements.")
 
+;;;; Development and Debugging
+
+(defconst virtual-indent-enable-logs? t
+  "Enable virtual-indent logging facilities?")
+
+(defconst virtual-indent-log-verbose? t
+  "Enable verbose logging?")
+
+(defconst virtual-indent-cleanup-logs? nil
+  "Whether to cleanup logs when restarting virtual-indent.")
+
 ;;; Logging
+;;;; Management
 
 (defconst virtual-indent-logging-buffer-name "*virtual-indent-log*"
   "The buffer name for virtual-indent-logs.")
@@ -71,6 +83,19 @@ The RX, if given, should set the first group for the match to replace."
   (setq virtual-indent-logging-buffer
         (get-buffer-create virtual-indent-logging-buffer-name)))
 
+(defun virtual-indent-cleanup-logs ()
+  "Kill virtual-indent's logging buffer."
+  (kill-buffer (virtual-indent-get-or-create-log-buffer)))
+
+(defun virtual-indent-cleanup-logs-maybe ()
+  "Cleanup logs if configured to with `virtual-indent-cleanup-logs?'."
+  (if virtual-indent-cleanup-logs?
+      (virtual-indent-cleanup-logs)
+    (virtual-indent-log-maybe "...Reset virtual-indent ...")))
+
+;;;; Messaging
+;;;;; General
+
 (defun virtual-indent-format-log (msg)
   "Format MSG for virtual-indent logs."
   msg)
@@ -79,8 +104,23 @@ The RX, if given, should set the first group for the match to replace."
   "Log MSG in virtual-indent's log."
   (with-current-buffer (virtual-indent-get-or-create-log-buffer)
     (goto-char (point-max))
-    (-> msg virtual-indent-format-log insert)
+    (insert (virtual-indent-format-log msg))
     (newline)))
+
+(defun virtual-indent-log-maybe (msg)
+  "Run `virtual-indent-log' only when logs enabled."
+  (when virtual-indent-enable-logs?
+    (virtual-indent-log msg)))
+
+;;;;; Specialized
+
+(defun virtual-indent-log-lig-ov-creation-maybe (ov)
+  "Log ligature overlay creation."
+  (virtual-indent-log-maybe (format "Created overlay %s" ov)))
+
+(defun virtual-indent-log-lig-ov-evaporation-maybe (ov)
+  "Log ligature overlay creation."
+  (virtual-indent-log-maybe (format "Evaporating overlay %s" ov)))
 
 ;;; Overlays
 ;;;; Fundamentals
@@ -143,7 +183,9 @@ The RX, if given, should set the first group for the match to replace."
   (when post-modification?
     (-doto ov
       (overlay-put 'display nil)
-      (overlay-put 'modification-hooks nil))))
+      (overlay-put 'modification-hooks nil)
+
+      (virtual-indent-log-lig-ov-evaporation-maybe))))
 
 ;;; Font-Locks
 
@@ -153,18 +195,18 @@ The RX, if given, should set the first group for the match to replace."
     (overlay-put 'display string)
     (overlay-put 'evaporate t)
     (overlay-put 'modification-hooks '(lig-mod-hook))
+    (add-to-list 'virtual-indent-lig-ovs)
 
-    (add-to-list 'virtual-indent-lig-ovs)))
+    (virtual-indent-log-lig-ov-creation-maybe)))
 
 (defun virtual-indent--build-kwd (rgx string)
   `(,rgx (0 (prog1 nil
               (unless virtual-indent--lig-ov-present?
                 (virtual-indent-build-lig-ov))
-              ;; indent-stuff
               ))))
 
 (defun virtual-indent-add-kwds (rgx-string-alist)
-  "Translate spec into and add to `font-lock-keywords'."
+  "Translate spec into keywords and add to `font-lock-keywords'."
   (->> rgx-string-alist
      (-map (-applify #'virtual-indent--build-kwd))
      (font-lock-add-keywords nil)))
@@ -182,7 +224,8 @@ The RX, if given, should set the first group for the match to replace."
 (defun virtual-indent-disable ()
   (interactive)
   (remove-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
-  (virtual-indent-cleanup-ovs))
+  (virtual-indent-cleanup-ovs)
+  (virtual-indent-cleanup-logs))
 
 (defun virtual-indent-enable ()
   (interactive)
