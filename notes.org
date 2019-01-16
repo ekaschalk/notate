@@ -1,0 +1,12 @@
+#+TITLE: Virtual-Indent Implementation Notes
+
+* Useful Functions
+
+`indent-sexp' - lisp-mode only
+`indent-region' - all-modes (start end)
+
+* Text Property Documentation
+
+[[https://www.gnu.org/software/emacs/manual/html_node/elisp/Truncation.html#Truncation][`line-prefix' and `wrap-prefix' used by org-indent]]
+[[https://www.gnu.org/software/emacs/manual/html_node/elisp/Special-Properties.html#Special-Properties][All other special properties]]
+[[https://www.gnu.org/software/emacs/manual/html_node/elisp/Display-Property.html#Display-Property][Details on the display property]]
