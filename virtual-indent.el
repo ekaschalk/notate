@@ -2,10 +2,17 @@
 
 ;;; Commentary:
 
-;; Trying to resolve key issues with ligature adoption, namely indentation.
-;; A general implementation has interesting applications elsewhere, like
-;; opening a 2-indent Python file and seeing it as if it was 4-indent, and
-;; making the `:nameless' emacs-lisp library more valuable.
+;; Exploring generalized concept of "personalized indentation": virtual-indent.
+
+;; Several use-cases:
+;; 1. Rendering and editing a 2-indent python file as if it was a 4-indent,
+;;    and the reverse.
+;; 2. Multi-character ligature replacements, like lambda -> lambda-symbol will
+;;    not modify indentation in programming modes.
+;; 3. The `nameless-mode' library will not require a choice of which
+;;    indentation to keep correct, the true or your view of the file.
+
+;; Exciting stuff if an implementation can be successful.
 
 ;;; Code:
 ;;;; Requires
@@ -15,10 +22,13 @@
 (require 'dash-functional)
 (require 's)
 
-;;; Configuration
+;;; Spec
 
 (defun virtual-indent-make-spec (name string replacement &optional rx)
-  "Create spec plist NAME for STRING to REPLACEMENT optionally with custom RX."
+  "Create spec plist NAME for STRING to REPLACEMENT optionally with custom RX.
+
+Without a RX given, default to matching entire STRING.
+The RX, if given, should set the first group for the match to replace."
   `(:name
     ,name
     :string      ,string
@@ -36,17 +46,22 @@
   "Collection of `virtual-indent-make-spec' specifying ligature replacements.")
 
 ;;; Overlays
+;;;; Basics
 
 (defun virtual-indent--make-ov (subexp)
-  "Create overlay with start and end taking `match-data' at SUBEXP."
+  "`make-overlay' with start and end taking `match-data' at SUBEXP."
   (make-overlay (match-beginning subexp)
                 (match-end       subexp)))
 
-(defun virtual-indent--ov-in (subexp)
-  (-when-let* ((overlays (overlays-in (match-beginning subexp)
-                                      (match-end       subexp)))
-               (-contains? overlays)
-               )))
+(defun virtual-indent--ovs-in (subexp)
+  "`overlays-in' with start and end taking `match-data' at SUBEXP."
+  (overlays-in (match-beginning subexp)
+               (match-end       subexp)))
+
+(defun virtual-indent--ov-in (ov subexp)
+  "Is overlay OV contained in overlays for `match-data' at SUBEXP?"
+  (-> subexp virtual-indent--ovs-in (-contains? ov)))
+
 
 (defun virtual-indent--ov-mod-hook (ov post-modification? start end &optional _)
   "Overlay modification hook to force evaporation upon modification within ov."
@@ -62,11 +77,11 @@
               ;; (print "found")
 
               (unless (-contains?)
-                (overlays-at)
-                )
+                (overlays-at))
 
-              (-doto (virtual-indent--make-ov 1)
-                (overlay-put 'display string)
+              (setq ov (virtual-indent--make-ov 1))
+              (-doto
+                  (overlay-put 'display string)
                 (overlay-put 'evaporate t)
                 (overlay-put 'modification-hooks '(lig-mod-hook)))
               ;; run in the indent recalculations
