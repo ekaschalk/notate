@@ -2,7 +2,7 @@
 
 ;;; Commentary:
 
-;; Exploring generalized concept of "personalized indentation": virtual-indent.
+;; Exploring concept of "personalized indentation"
 
 ;; Several use-cases:
 ;; 1. Rendering and editing a 2-indent python file as if it was a 4-indent,
@@ -43,7 +43,7 @@ The RX, if given, should set the first group for the match to replace."
 ;;;; Setup
 
 (defconst virtual-indent-specs
-  (list (virtual-indent-make-spec "Test Ligature" "hello" "")
+  (list (virtual-indent-make-spec "Hello Lig" "hello" "")
         ;; more ligatures...
         )
   "Collection of `virtual-indent-make-spec' specifying ligature replacements.")
@@ -117,13 +117,13 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun virtual-indent--make-ov (subexp)
   "`make-overlay' with start and end taking `match-data' at SUBEXP."
-  (apply #'make-overlay
-         (match-data subexp)))
+  (make-overlay (match-beginning subexp)
+                (match-end subexp)))
 
 (defun virtual-indent--ovs-in (subexp)
   "`overlays-in' with start and end taking `match-data' at SUBEXP."
-  (apply #'overlays-in
-         (match-data subexp)))
+  (overlays-in (match-beginning subexp)
+               (match-end subexp)))
 
 (defun virtual-indent--ov-in? (ov subexp)
   "Is overlay OV contained in overlays for `match-data' at SUBEXP?"
@@ -133,9 +133,14 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;;;; Specialized
 
+(defun virtual-indent--ov-lig? (ov)
+  "Is OV a ligature overlay?"
+  (-contains? virtual-indent-lig-ovs ov))
+
 (defun virtual-indent--lig-ov-in? (ov)
   "Specialize `virtual-indent--ov-in?' for ligatures."
-  (virtual-indent--ov-in? ov virtual-indent--lig-subexp))
+  (and (virtual-indent--ov-lig? ov)
+       (virtual-indent--ov-in? ov virtual-indent--lig-subexp)))
 
 (defun virtual-indent--lig-ov-present? ()
   "Is a ligature overlay present for current match?"
@@ -146,15 +151,28 @@ The RX, if given, should set the first group for the match to replace."
   "Make a ligature overlay."
   (virtual-indent--make-ov virtual-indent--lig-subexp))
 
+(defun virtual-indent--trim-lig-ovs ()
+  "Remove deleted lig overlauys from `virtual-indent-lig-ovs'"
+  (setq virtual-indent-lig-ovs
+        (-filter #'overlay-buffer virtual-indent-lig-ovs)))
+
+(defun virtual-indent--delete-lig-ov (ov)
+  "Delete a ligature overlay."
+  (-doto ov
+    (virtual-indent-log-lig-ov-deletion-maybe)
+
+    (delete-overlay))
+  (virtual-indent--trim-lig-ovs))
+
 ;;;; Logs
 
 (defun virtual-indent-log-lig-ov-creation-maybe (ov)
   "Log ligature overlay creation."
   (virtual-indent-log-maybe (format "Created lig overlay %s" ov)))
 
-(defun virtual-indent-log-lig-ov-evaporation-maybe (ov)
+(defun virtual-indent-log-lig-ov-deletion-maybe (ov)
   "Log ligature overlay creation."
-  (virtual-indent-log-maybe (format "Evaporating lig overlay %s" ov)))
+  (virtual-indent-log-maybe (format "Deleting lig overlay %s" ov)))
 
 ;;;; Management
 ;;;;; Cleanup
@@ -185,38 +203,35 @@ The RX, if given, should set the first group for the match to replace."
 (defun virtual-indent--ov-mod-hook (ov post-modification? start end &optional _)
   "Overlay modification hook to force evaporation upon modification within ov."
   (when post-modification?
-    (-doto ov
-      (virtual-indent-log-lig-ov-evaporation-maybe)
-
-      (overlay-put 'display nil)
-      (overlay-put 'modification-hooks nil))))
+    (virtual-indent--delete-lig-ov ov)))
 
 ;;; Font-Locks
 
 (defun virtual-indent-build-lig-ov (replacement)
   "Build ligature overlay for current `match-data'."
-  (-doto (virtual-indent--make-lig-ov)
-    (overlay-put 'display replacement)
-    (overlay-put 'evaporate t)
-    (overlay-put 'modification-hooks '(virtual-indent--ov-mod-hook))
-    (add-to-list 'virtual-indent-lig-ovs)
+  (let ((ov (virtual-indent--make-lig-ov)))
+    (-doto ov
+      (overlay-put 'display replacement)
+      (overlay-put 'modification-hooks '(virtual-indent--ov-mod-hook)))
+    (add-to-list 'virtual-indent-lig-ovs ov)
 
-    (virtual-indent-log-lig-ov-creation-maybe)))
+    (virtual-indent-log-lig-ov-creation-maybe ov)))
 
 (defun virtual-indent-match (replacement)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
-  (unless virtual-indent--lig-ov-present?
+  (unless (virtual-indent--lig-ov-present?)
     (virtual-indent-build-lig-ov replacement)))
 
 (defun virtual-indent--build-kwd (spec)
   "Compose the font-lock-keyword for SPEC in `virtual-indent-specs'."
-  (-let (((&plist :replacement string
-                  :rx rx
-                  :name name)
+  (-let (((&plist :name name
+                  :replacement replacement
+                  :rx rx)
           spec))
     (virtual-indent-log-maybe (format "Building kwd %s" name))
 
-    `(,rx (0 (prog1 nil (virtual-indent-match ,string))))))
+    `(,rx (0 (prog1 virtual-indent-lig-face
+               (virtual-indent-match ,replacement))))))
 
 (defun virtual-indent-add-kwds ()
   "Translate spec into keywords and add to `font-lock-keywords'."
@@ -248,6 +263,7 @@ Currently:
   (interactive)
   (virtual-indent-log-maybe "Disabling virtual-indent...")
 
+  (setq font-lock-keywords nil)
   (remove-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
   (virtual-indent-cleanup-ovs)
   (virtual-indent-cleanup-logs))
@@ -256,17 +272,21 @@ Currently:
   "Enable virtual-indent and cleanup previous instance if running."
   (interactive)
   (virtual-indent-disable)
-  (setq font-lock-keywords nil)
 
-  (Virtual-indent-log-maybe "Enabling virtual-indent...")
+  (virtual-indent-log-maybe "Enabling virtual-indent...")
 
   (add-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
   (lisp-mode))
 
-;;; Development Shortcuts
+;;; Development Stuff
 
 (when eric?
   (spacemacs/declare-prefix "d" "dev")
   (spacemacs/set-leader-keys "de" #'virtual-indent-enable)
   (spacemacs/set-leader-keys "dd" #'virtual-indent-disable)
   (spacemacs/set-leader-keys "dl" #'virtual-indent-log-switch-to))
+
+(defconst virtual-indent-lig-face (if virtual-indent-log-verbose?
+                                      font-lock-function-name-face
+                                    nil)
+  "Make it easier to tell when a ligature is found.")

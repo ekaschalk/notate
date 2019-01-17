@@ -1,16 +1,16 @@
-* Virtual Indent - Personalized indentation
+* Virtual Indent - Personalizing indentation
 
-Exploring generalized concept of "personalized indentation": virtual-indent.
+Exploring concept of "personalized indentation".
 
 Several use-cases:
+
 1. Rendering and editing a 2-indent python file as if it was a 4-indent, and the
    reverse.
 
 2. Multi-character ligature replacements, like lambda -> lambda-symbol will not
-   modify indentation in programming modes.
+   modify (ie. break) indentation in programming modes.
 
 3. The `nameless-mode' library will not require a choice of which indentation to
-   keep correct, the true or your view of the file.
+   keep correct, your view or the true indent of the file.
 
-Exciting stuff, and entirely unique to Emacs, if an implementation can be
-successful.
+Exciting stuff if an implementation can be successful.
