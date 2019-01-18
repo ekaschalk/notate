@@ -43,8 +43,11 @@ The RX, if given, should set the first group for the match to replace."
 ;;;; Setup
 
 (defconst virtual-indent-specs
-  (list (virtual-indent-make-spec "Hello Lig" "hello" "")
-        ;; more ligatures...
+  (list (virtual-indent-make-spec "Hello Lig"   "hello"     "")
+        (virtual-indent-make-spec "0-space Lig" "0-space"   "")
+        (virtual-indent-make-spec "1-space Lig" "1-space"   " ")
+        (virtual-indent-make-spec "2-space Lig" "2-space"   "  ")
+        (virtual-indent-make-spec "tab Lig"     "tab-space" "	")
         )
   "Collection of `virtual-indent-make-spec' specifying ligature replacements.")
 
@@ -164,6 +167,19 @@ The RX, if given, should set the first group for the match to replace."
     (delete-overlay))
   (virtual-indent--trim-lig-ovs))
 
+;; indenters
+(defun virtual-indent--trim-indent-ovs ()
+  (setq virtual-indent-indent-ovs
+        (-filter #'overlay-buffer virtual-indent-indent-ovs)))
+
+(defun virtual-indent--delete-indent-ov (ov)
+  "Delete a ligature overlay."
+  (-doto ov
+    (virtual-indent-log-indent-ov-deletion-maybe)
+
+    (delete-overlay))
+  (virtual-indent--trim-indent-ovs))
+
 ;;;; Logs
 
 (defun virtual-indent-log-lig-ov-creation-maybe (ov)
@@ -205,33 +221,68 @@ The RX, if given, should set the first group for the match to replace."
   (when post-modification?
     (virtual-indent--delete-lig-ov ov)))
 
-;;; Font-Locks
-
 (defun virtual-indent-build-lig-ov (replacement)
   "Build ligature overlay for current `match-data'."
   (let ((ov (virtual-indent--make-lig-ov)))
     (-doto ov
+      (virtual-indent-log-lig-ov-creation-maybe)
+
       (overlay-put 'display replacement)
       (overlay-put 'modification-hooks '(virtual-indent--ov-mod-hook)))
-    (add-to-list 'virtual-indent-lig-ovs ov)
+    (add-to-list 'virtual-indent-lig-ovs ov)))
 
-    (virtual-indent-log-lig-ov-creation-maybe ov)))
+;;; Indent
 
-(defun virtual-indent-match (replacement)
+(defun virtual-indent-log-indent-ov-creation-maybe (ov)
+  "Log indent overlay creation."
+  (virtual-indent-log-maybe (format "Created indent overlay %s" ov)))
+
+(defun virtual-indent-log-indent-ov-deletion-maybe (ov)
+  "Log indent overlay deletion."
+  (virtual-indent-log-maybe (format "Deleting indent overlay %s" ov)))
+
+(defun virtual-indent--delete-indent-ov (ov)
+  "Delete an indent overlay."
+  (-doto ov
+    (virtual-indent-log-indent-ov-deletion-maybe)
+
+    (delete-overlay))
+  (virtual-indent--trim-lig-ovs))
+
+(defun virtual-indent-build-indent-ov (width)
+  (let* ((start (line-beginning-position 2))
+         (end (+ start width))
+         (ov (make-overlay start end)))
+    (-doto ov
+      (virtual-indent-log-indent-ov-creation-maybe)
+
+      ;; (overlay-put 'line-prefix "---")
+      ;; (overlay-put 'display `(space . (:align-to 2)))
+
+      (overlay-put 'display (number-to-string width))
+      (overlay-put 'face underline)
+      ))
+  (add-to-list 'virtual-indent-indent-ovs ov))
+
+;;; Font-Locks
+
+(defun virtual-indent-match (replacement width)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
   (unless (virtual-indent--lig-ov-present?)
-    (virtual-indent-build-lig-ov replacement)))
+    (virtual-indent-build-lig-ov replacement)
+    (virtual-indent-build-indent-ov width)))
 
 (defun virtual-indent--build-kwd (spec)
   "Compose the font-lock-keyword for SPEC in `virtual-indent-specs'."
   (-let (((&plist :name name
                   :replacement replacement
-                  :rx rx)
+                  :rx rx
+                  :width width)
           spec))
     (virtual-indent-log-maybe (format "Building kwd %s" name))
 
     `(,rx (0 (prog1 virtual-indent-lig-face
-               (virtual-indent-match ,replacement))))))
+               (virtual-indent-match ,replacement ,width))))))
 
 (defun virtual-indent-add-kwds ()
   "Translate spec into keywords and add to `font-lock-keywords'."
@@ -247,10 +298,6 @@ Currently:
 1. Just an alias on `virtual-indent-add-kwds'.
 2. Works for just `lisp-mode'."
   (virtual-indent-add-kwds))
-
-;;; Indentation
-
-;; todo
 
 ;;; Interactive
 

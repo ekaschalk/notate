@@ -7,6 +7,18 @@
 
 * Text Property Documentation
 
-[[https://www.gnu.org/software/emacs/manual/html_node/elisp/Truncation.html#Truncation][`line-prefix' and `wrap-prefix' used by org-indent]]
-[[https://www.gnu.org/software/emacs/manual/html_node/elisp/Special-Properties.html#Special-Properties][All other special properties]]
-[[https://www.gnu.org/software/emacs/manual/html_node/elisp/Display-Property.html#Display-Property][Details on the display property]]
+- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Truncation.html#Truncation][`line-prefix' and `wrap-prefix' used by org-indent]]
+
+- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Special-Properties.html#Special-Properties][All other special properties]]
+
+- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Display-Property.html#Display-Property][Details on the display property]]
+
+- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Other-Display-Specs.html#Other-Display-Specs][display spec]]
+
+- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Glyphs.html][glyphs]]
+
+- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Character-Display.html#Character-Display][how chars are displayed]]
+
+* Thoughts
+
+What if I modify the space following the composed ligature?

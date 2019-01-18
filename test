@@ -1,7 +1,5 @@
 ;; Test-bed for virtual-indent
 
-(hello foo
-       bar)
 
-(foo hello
-     bar)
+(hello bar
+       foo)
