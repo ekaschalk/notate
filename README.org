@@ -1,16 +1,28 @@
-* Virtual Indent - Personalizing indentation
+* Virtual Indent - Personalizing indentation (Exploratory Repo)
 
-Exploring concept of "personalized indentation".
+  Exploring concept of "personalized indentation".
 
-Several use-cases:
+  Several use-cases:
 
-1. Rendering and editing a 2-indent python file as if it was a 4-indent, and the
-   reverse.
+  1. Rendering and editing a 2-indent python file as if it was a 4-indent, and the
+     reverse.
 
-2. Multi-character ligature replacements, like lambda -> lambda-symbol will not
-   modify (ie. break) indentation in programming modes.
+  2. Multi-character ligature replacements, like lambda -> lambda-symbol will not
+     modify (ie. break) indentation in programming modes.
 
-3. The `nameless-mode' library will not require a choice of which indentation to
-   keep correct, your view or the true indent of the file.
+  3. The `nameless-mode' library will not require a choice of which indentation to
+     keep correct, your view or the true indent of the file.
 
-Exciting stuff if an implementation can be successful.
+  Exciting stuff if an implementation can be successful.
+
+** Current State and Goals
+
+   In the case that the string and its replacement are the same size (eg. all
+   fira-code ligatures by design like ->>), a display-property based
+   implementation solves the indentation issues, which I believe I've already
+   successfully implemented.
+
+   I'm attempting the case that the ligature is not the same size as its
+   replacement (like lambda/alpha -> latin letter symbols). It is almost certain
+   there will be limitations on *something* in a functional implementation,
+   whether its cursor size, performance, major-mode-agnosticity, etc...
