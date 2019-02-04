@@ -207,25 +207,22 @@ The RX, if given, should set the first group for the match to replace."
       (overlay-put 'virtual-indent? t)
       (overlay-put 'virtual-indent-prefix? t)
 
-      ;; prefix stuff
-
-      ;; (overlay-put 'line-prefix "---")
-      ;; (overlay-put 'display `(space . (:align-to 2)))
-      (overlay-put 'display (number-to-string width))
+      (overlay-put 'line-prefix (format "%02d|%02d|"
+                                        (virtual-indent-indent-col 2)
+                                        width))
 
       (push virtual-indent-prefix-ovs))))
 
-;; (defun virtual-indent-build-indent-ov (width)
-;;   (let* ((start )
-;;          (end )
-;;          (ov (make-overlay start end)))
-;;     (-doto ov
-;;       (overlay-put 'virtual-indent? t)
-;;       (overlay-put 'virtual-indent-indent? t)
+
 
-;;       ;; indent stuff
+;;; Indentation
 
-;;       (push virtual-indent-indent-ovs))))
+(defun virtual-indent-indent-col (&optional n)
+  "Get indentation col, of line forward N-1 times if given."
+  (save-excursion
+    (end-of-line n)
+    (back-to-indentation)
+    (current-column)))
 
 
 
@@ -291,7 +288,3 @@ The RX, if given, should set the first group for the match to replace."
 (provide 'virtual-indent)
 
 ;;; virtual-indent.el ends here
-
-;; (let ((prefix "hi"))
-;;   (when (and (overlay-get ov 'virtual-indent-prefix?))
-;;     ))
