@@ -137,60 +137,43 @@ The RX, if given, should set the first group for the match to replace."
 (defun virtual-indent--ov-delete-on-edit-hook (ov post-mod? start end &optional _)
   "Overlay modification hook to force evaporation upon modification within ov."
   (when post-mod?
-    (virtual-indent--delete-lig-ov ov)))
+    ;; (virtual-indent--delete-lig-ov ov)
+
+    ;; Quick way to enable modifying the prefix/indent overlays on lig edit
+    (virtual-indent-delete-ovs)
+    ))
 
 ;;;; Deletion
 ;;;;; Specific Overlay
 
 (defun virtual-indent--delete-lig-ov (ov)
   "Delete a ligature overlay."
-  (delete-overlay ov)
-  (virtual-indent--refresh-lig-ovs))
+  (setq virtual-indent-lig-ovs (delq ov virtual-indent-lig-ovs))
+  (delete-overlay ov))
 
 (defun virtual-indent--delete-indent-ov (ov)
   "Delete an indent overlay."
-  (delete-overlay ov)
-  (virtual-indent--refresh-indent-ovs))
+  (setq virtual-indent-indent-ovs (delq ov virtual-indent-indent-ovs))
+  (delete-overlay ov))
 
 (defun virtual-indent--delete-prefix-ov (ov)
   "Delete a prefix overlay."
-  (delete-overlay ov)
-  (virtual-indent--refresh-prefix-ovs))
+  (setq virtual-indent-prefix-ovs (delq ov virtual-indent-prefix-ovs))
+  (delete-overlay ov))
 
 ;;;;; Collections
 
-(defun virtual-indent--delete-ovs (ovs)
-  "Delete all overlays OVS and clear the overlay list."
-  (-doto ovs
-    (-each #'delete-overlay)
-    (setq nil)))
-
-(defun virtual-indent--refresh-lig-ovs ()
-  "Remove deleted overlays from `virtual-indent-lig-ovs'"
-  (setq virtual-indent-lig-ovs
-        (-filter #'overlay-buffer virtual-indent-lig-ovs)))
-
-(defun virtual-indent--refresh-indent-ovs ()
-  "Remove deleted overlays from `virtual-indent-indent-ovs'"
-  (setq virtual-indent-indent-ovs
-        (-filter #'overlay-buffer virtual-indent-indent-ovs)))
-
-(defun virtual-indent--refresh-prefix-ovs ()
-  "Remove deleted overlays from `virtual-indent-prefix-ovs'"
-  (setq virtual-indent-prefix-ovs
-        (-filter #'overlay-buffer virtual-indent-prefix-ovs)))
-
 (defun virtual-indent-delete-lig-ovs ()
   "Delete ligature overlays."
-  (virtual-indent--delete-ovs virtual-indent-lig-ovs))
+  (-each virtual-indent-lig-ovs #'virtual-indent--delete-lig-ov))
 
 (defun virtual-indent-delete-indent-ovs ()
   "Delete indent overlays."
-  (virtual-indent--delete-ovs virtual-indent-indent-ovs))
+  (-each virtual-indent-indent-ovs #'virtual-indent--delete-indent-ov))
 
 (defun virtual-indent-delete-prefix-ovs ()
   "Delete prefix overlays."
-  (virtual-indent--delete-ovs virtual-indent-prefix-ovs))
+  (-each virtual-indent-prefix-ovs #'virtual-indent--delete-prefix-ov))
 
 (defun virtual-indent-delete-ovs ()
   "Delete overlays managed by virtual-indent."
