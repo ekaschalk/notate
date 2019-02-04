@@ -1,5 +1,29 @@
 ;;; virtual-indent.el --- Personal Indentation -*- lexical-binding: t; -*-
 
+;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
+;;
+;; Authors: Eric Kaschalk <ekaschalk@gmail.com>
+;; URL: http://github.com/ekaschalk/virtual-indent
+;; Version: 1.0
+;; Keywords: indentation, display, ligatures, major-modes
+;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (s "1.12.0") (emacs "26.1"))
+
+;; virtual-indent is free software; you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; virtual-indent is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+;; License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with virtual-indent.  If not, see <http://www.gnu.org/licenses/>.
+
+;; This file is not part of GNU Emacs.
+
+
 ;;; Commentary:
 
 ;; Exploring concept of "personalized indentation"
@@ -12,6 +36,7 @@
 ;; 3. The `nameless-mode' library will not require a choice of which
 ;;    indentation to keep correct, the true or your view of the file.
 
+
 ;;; Code:
 ;;;; Requires
 
@@ -20,6 +45,7 @@
 (require 'dash-functional)
 (require 's)
 
+
 ;;; Configuration
 ;;;; Utilities
 
@@ -38,16 +64,19 @@ The RX, if given, should set the first group for the match to replace."
     :width       ,(- (length string)
                      (length replacement))))
 
+(defun virtual-indent-make-specs (specs)
+  "Apply `virtual-indent-make-spec' to each SPEC."
+  (-map (-applify #'virtual-indent-make-spec) specs))
+
 ;;;; Setup
 
 (defconst virtual-indent-specs
-  (list (virtual-indent-make-spec "Hello Lig"   "hello"     "")
-        (virtual-indent-make-spec "0-space Lig" "0-space"   "")
-        (virtual-indent-make-spec "1-space Lig" "1-space"   " ")
-        (virtual-indent-make-spec "2-space Lig" "2-space"   "  ")
-        (virtual-indent-make-spec "tab Lig"     "tab-space" "	")
-        )
-  "Collection of `virtual-indent-make-spec' specifying ligature replacements.")
+  (virtual-indent-make-specs '(("Hello Lig"   "hello"     "")
+                               ("0-space Lig" "0-space"   "")
+                               ("1-space Lig" "1-space"   " ")
+                               ("2-space Lig" "2-space"   "  ")
+                               ("tab Lig"     "tab-space" "	")))
+  "Collection of specs from `virtual-indent-make-spec'.")
 
 ;;;; Managed
 ;;;;; Constants
@@ -63,6 +92,7 @@ The RX, if given, should set the first group for the match to replace."
 (defconst virtual-indent-indent-ovs nil
   "List of indent overlays currently managed.")
 
+
 ;;; Overlays
 ;;;; Fundamentals
 ;;;;; General
@@ -79,9 +109,7 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun virtual-indent--ov-in? (ov subexp)
   "Is overlay OV contained in overlays for `match-data' at SUBEXP?"
-  (-> subexp
-     virtual-indent--ovs-in
-     (-contains? ov)))
+  (-contains? (virtual-indent--ovs-in subexp) ov))
 
 ;;;;; Specialized
 
@@ -114,8 +142,9 @@ The RX, if given, should set the first group for the match to replace."
   (virtual-indent--trim-lig-ovs))
 
 ;; indenters
-(defun virtual-indent--make-indent-ov ()
-  "Make an indent overlay.")
+(defun virtual-indent--make-indent-ov (start end)
+  "Make an indent overlay."
+  (make-overlay start end))
 
 (defun virtual-indent--trim-indent-ovs ()
   (setq virtual-indent-indent-ovs
@@ -161,12 +190,8 @@ The RX, if given, should set the first group for the match to replace."
       (overlay-put 'modification-hooks '(virtual-indent--ov-mod-hook)))
     (add-to-list 'virtual-indent-lig-ovs ov)))
 
+
 ;;; Indent
-
-(defun virtual-indent--delete-indent-ov (ov)
-  "Delete an indent overlay."
-  (delete-overlay ov)
-  (virtual-indent--trim-lig-ovs))
 
 (defun virtual-indent-build-indent-ov (width)
   (let* ((start (line-beginning-position 2))
@@ -181,6 +206,7 @@ The RX, if given, should set the first group for the match to replace."
       ))
   (add-to-list 'virtual-indent-indent-ovs ov))
 
+
 ;;; Font-Locks
 
 (defun virtual-indent-match (replacement width)
@@ -213,6 +239,7 @@ Currently:
 2. Works for just `lisp-mode'."
   (virtual-indent-add-kwds))
 
+
 ;;; Interactive
 
 (defun virtual-indent-disable ()
@@ -226,17 +253,24 @@ Currently:
 (defun virtual-indent-enable ()
   "Enable virtual-indent and cleanup previous instance if running."
   (interactive)
-  (virtual-indent-disable)
 
+  (virtual-indent-disable)
   (add-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
   (lisp-mode))
 
+
 ;;; Development Stuff
 
-(when eric?
+(when nil
   (spacemacs/declare-prefix "d" "dev")
   (spacemacs/set-leader-keys "de" #'virtual-indent-enable)
   (spacemacs/set-leader-keys "dd" #'virtual-indent-disable))
 
 (defconst virtual-indent-lig-face font-lock-function-name-face
   "Make it easier to tell when a ligature is found.")
+
+
+
+(provide 'virtual-indent)
+
+;;; virtual-indent.el ends here
