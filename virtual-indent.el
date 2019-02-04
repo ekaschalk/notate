@@ -100,12 +100,8 @@ The RX, if given, should set the first group for the match to replace."
 
 
 ;;; Overlays
-;;;; General
-
-(defun virtual-indent--ov-in-bound? (ov start end)
-  "Is overlay OV contained within START and END?"
-  (and ov start end
-       (<= start (overlay-start ov) (overlay-end ov) end)))
+;;;; Utils
+;;;;; General
 
 (defun virtual-indent--make-ov-for-match (subexp)
   "Specialized `make-overlay' with start and end taking `match-data' at SUBEXP."
@@ -115,80 +111,138 @@ The RX, if given, should set the first group for the match to replace."
   "Specialized `overlays-in' with start and end taking `match-data' at SUBEXP."
   (overlays-in (match-beginning subexp) (match-end subexp)))
 
+(defun virtual-indent--ov-in-bound? (ov start end)
+  "Is overlay OV contained within START and END?"
+  (and ov start end
+       (<= start (overlay-start ov) (overlay-end ov) end)))
+
 (defun virtual-indent--ov-in-match? (ov subexp)
   "Is overlay OV contained in the SUBEXP'th matching group?"
   (virtual-indent--ov-in-bound? ov (match-beginning subexp) (match-end subexp)))
 
-;;;; Ligs
-
-(defun virtual-indent--ov-is-lig? (ov)
-  "Is OV a ligature overlay?"
-  (-contains? virtual-indent-lig-ovs ov))
+;;;;; Specialized
 
 (defun virtual-indent--lig-ov-in-match? (ov)
   "Specialize `virtual-indent--ov-in?' for ligatures."
-  (and (virtual-indent--ov-is-lig? ov)
-       (virtual-indent--ov-in-bound? ov virtual-indent--lig-subexp)))
+  (and (overlay-get ov 'virtual-indent-lig?)
+       (virtual-indent--ov-in-match? ov virtual-indent--lig-subexp)))
 
 (defun virtual-indent--any-lig-ov-in-match? ()
   "Is any ligature overlay in the current match?"
   (-any #'virtual-indent--lig-ov-in-match?
         (virtual-indent--ovs-in-match virtual-indent--lig-subexp)))
 
-(defun virtual-indent--trim-lig-ovs ()
-  "Remove deleted lig overlays from `virtual-indent-lig-ovs'"
-  (setq virtual-indent-lig-ovs
-        (-filter #'overlay-buffer virtual-indent-lig-ovs)))
+;;;; Components
+
+(defun virtual-indent--ov-delete-on-edit-hook (ov post-mod? start end &optional _)
+  "Overlay modification hook to force evaporation upon modification within ov."
+  (when post-mod?
+    (virtual-indent--delete-lig-ov ov)))
+
+;;;; Deletion
+;;;;; Specific Overlay
 
 (defun virtual-indent--delete-lig-ov (ov)
   "Delete a ligature overlay."
   (delete-overlay ov)
-  (virtual-indent--trim-lig-ovs))
+  (virtual-indent--refresh-lig-ovs))
 
-(defun virtual-indent-clear-ovs (ovs)
+(defun virtual-indent--delete-indent-ov (ov)
+  "Delete an indent overlay."
+  (delete-overlay ov)
+  (virtual-indent--refresh-indent-ovs))
+
+(defun virtual-indent--delete-prefix-ov (ov)
+  "Delete a prefix overlay."
+  (delete-overlay ov)
+  (virtual-indent--refresh-prefix-ovs))
+
+;;;;; Collections
+
+(defun virtual-indent--delete-ovs (ovs)
   "Delete all overlays OVS and clear the overlay list."
   (-doto ovs
     (-each #'delete-overlay)
     (setq nil)))
 
-(defun virtual-indent--ov-evap-hook (ov post-modification? start end &optional _)
-  "Overlay modification hook to force evaporation upon modification within ov."
-  (when post-modification?
-    (virtual-indent--delete-lig-ov ov)))
+(defun virtual-indent--refresh-lig-ovs ()
+  "Remove deleted overlays from `virtual-indent-lig-ovs'"
+  (setq virtual-indent-lig-ovs
+        (-filter #'overlay-buffer virtual-indent-lig-ovs)))
 
-;;;; Indent
-
-(defun virtual-indent--trim-indent-ovs ()
+(defun virtual-indent--refresh-indent-ovs ()
+  "Remove deleted overlays from `virtual-indent-indent-ovs'"
   (setq virtual-indent-indent-ovs
         (-filter #'overlay-buffer virtual-indent-indent-ovs)))
 
-(defun virtual-indent--delete-indent-ov (ov)
-  "Delete a ligature overlay."
-  (delete-overlay ov)
-  (virtual-indent--trim-indent-ovs))
+(defun virtual-indent--refresh-prefix-ovs ()
+  "Remove deleted overlays from `virtual-indent-prefix-ovs'"
+  (setq virtual-indent-prefix-ovs
+        (-filter #'overlay-buffer virtual-indent-prefix-ovs)))
 
-;;;; Functions
+(defun virtual-indent-delete-lig-ovs ()
+  "Delete ligature overlays."
+  (virtual-indent--delete-ovs virtual-indent-lig-ovs))
+
+(defun virtual-indent-delete-indent-ovs ()
+  "Delete indent overlays."
+  (virtual-indent--delete-ovs virtual-indent-indent-ovs))
+
+(defun virtual-indent-delete-prefix-ovs ()
+  "Delete prefix overlays."
+  (virtual-indent--delete-ovs virtual-indent-prefix-ovs))
+
+(defun virtual-indent-delete-ovs ()
+  "Delete overlays managed by virtual-indent."
+  (interactive)
+
+  (virtual-indent-delete-lig-ovs)
+  (virtual-indent-delete-indent-ovs)
+  (virtual-indent-delete-prefix-ovs))
+
+;;;; Builders
 
 (defun virtual-indent-build-lig-ov (replacement)
   "Build ligature overlay for current `match-data'."
   (let ((ov (virtual-indent--make-ov-for-match virtual-indent--lig-subexp)))
     (-doto ov
-      (overlay-put 'display replacement)
-      (overlay-put 'modification-hooks '(virtual-indent--ov-evap-hook)))
-    (add-to-list 'virtual-indent-lig-ovs ov)))
+      (overlay-put 'virtual-indent? t)
+      (overlay-put 'virtual-indent-lig? t)
 
-(defun virtual-indent-build-indent-ov (width)
+      ;; ligature stuff
+
+      (overlay-put 'display replacement)
+      (overlay-put 'modification-hooks '(virtual-indent--ov-delete-on-edit-hook))
+
+      (push virtual-indent-lig-ovs))))
+
+(defun virtual-indent-build-prefix-ov (width)
   (let* ((start (line-beginning-position 2))
          (end (+ start width))
          (ov (make-overlay start end)))
     (-doto ov
+      (overlay-put 'virtual-indent? t)
+      (overlay-put 'virtual-indent-prefix? t)
+
+      ;; prefix stuff
+
       ;; (overlay-put 'line-prefix "---")
       ;; (overlay-put 'display `(space . (:align-to 2)))
-
       (overlay-put 'display (number-to-string width))
-      ;; (overlay-put 'face underline)
-      ))
-  (add-to-list 'virtual-indent-indent-ovs ov))
+
+      (push virtual-indent-prefix-ovs))))
+
+;; (defun virtual-indent-build-indent-ov (width)
+;;   (let* ((start )
+;;          (end )
+;;          (ov (make-overlay start end)))
+;;     (-doto ov
+;;       (overlay-put 'virtual-indent? t)
+;;       (overlay-put 'virtual-indent-indent? t)
+
+;;       ;; indent stuff
+
+;;       (push virtual-indent-indent-ovs))))
 
 
 
@@ -198,19 +252,18 @@ The RX, if given, should set the first group for the match to replace."
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
   (unless (virtual-indent--any-lig-ov-in-match?)
     (virtual-indent-build-lig-ov replacement)
-    (virtual-indent-build-indent-ov width)))
+    ;; (virtual-indent-build-indent-ov width)
+    (virtual-indent-build-prefix-ov width)))
 
 (defun virtual-indent--build-kwd (spec)
   "Compose the font-lock-keyword for SPEC in `virtual-indent-specs'."
-  (-let ((0 font-lock-kwd-match-highlight-subexp)
-         ((&plist :name name
+  (-let (((&plist :name name
                   :replacement replacement
                   :rx rx
                   :width width)
           spec))
-    `(,rx (,font-lock-kwd-match-highlight-subexp
-           (prog1 virtual-indent-lig-face
-             (virtual-indent-match ,replacement ,width))))))
+    `(,rx (0 (prog1 virtual-indent-lig-face
+               (virtual-indent-match ,replacement ,width))))))
 
 (defun virtual-indent-add-kwds ()
   "Translate spec into keywords and add to `font-lock-keywords'."
@@ -228,8 +281,7 @@ The RX, if given, should set the first group for the match to replace."
 
   (setq font-lock-keywords nil)
   (remove-hook 'lisp-mode-hook #'virtual-indent-add-kwds)
-  (virtual-indent-clear-ovs virtual-indent-lig-ovs)
-  (virtual-indent-clear-ovs virtual-indent-indent-ovs))
+  (virtual-indent-delete-ovs))
 
 (defun virtual-indent-enable ()
   "Enable virtual-indent and cleanup previous instance if running."
@@ -256,3 +308,7 @@ The RX, if given, should set the first group for the match to replace."
 (provide 'virtual-indent)
 
 ;;; virtual-indent.el ends here
+
+;; (let ((prefix "hi"))
+;;   (when (and (overlay-get ov 'virtual-indent-prefix?))
+;;     ))

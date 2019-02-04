@@ -9,4 +9,4 @@
 
 
 (ert-deftest test::scratch ()
-  (should (= 1 2)))
+  (should (= 1 1)))
