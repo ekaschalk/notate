@@ -202,20 +202,23 @@ The RX, if given, should set the first group for the match to replace."
 (defun virtual-indent-build-prefix-ov (width)
   (let* ((start (line-beginning-position 2))
          (end (+ start width))
+         (contributing-ligs 1)
          (ov (make-overlay start end)))
     (-doto ov
       (overlay-put 'virtual-indent? t)
       (overlay-put 'virtual-indent-prefix? t)
 
-      (overlay-put 'line-prefix (format "%02d|%02d|"
+      (overlay-put 'face 'underline)
+      (overlay-put 'line-prefix (format "%02d|%02d|+%d:"
                                         (virtual-indent-indent-col 2)
-                                        width))
+                                        width
+                                        contributing-ligs))
 
       (push virtual-indent-prefix-ovs))))
 
 
 
-;;; Indentation
+;;; Prefixes
 
 (defun virtual-indent-indent-col (&optional n)
   "Get indentation col, of line forward N-1 times if given."
@@ -223,6 +226,9 @@ The RX, if given, should set the first group for the match to replace."
     (end-of-line n)
     (back-to-indentation)
     (current-column)))
+
+(defun virtual-indent-prefix-ov-at (line))
+(defun virtual-indent-prefix-ovs-in (lines))
 
 
 
