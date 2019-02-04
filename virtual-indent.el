@@ -4,7 +4,7 @@
 ;;
 ;; Authors: Eric Kaschalk <ekaschalk@gmail.com>
 ;; URL: http://github.com/ekaschalk/virtual-indent
-;; Version: 1.0
+;; Version: 0.1
 ;; Keywords: indentation, display, ligatures, major-modes
 ;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (s "1.12.0") (emacs "26.1"))
 
@@ -24,6 +24,7 @@
 ;; This file is not part of GNU Emacs.
 
 
+
 ;;; Commentary:
 
 ;; Exploring concept of "personalized indentation"
@@ -37,6 +38,7 @@
 ;;    indentation to keep correct, the true or your view of the file.
 
 
+
 ;;; Code:
 ;;;; Requires
 
@@ -46,8 +48,9 @@
 (require 's)
 
 
+
 ;;; Configuration
-;;;; Utilities
+;;;; Utils
 
 (defun virtual-indent-make-spec (name string replacement &optional rx)
   "Create spec plist NAME for STRING to REPLACEMENT optionally with custom RX.
@@ -68,7 +71,7 @@ The RX, if given, should set the first group for the match to replace."
   "Apply `virtual-indent-make-spec' to each SPEC."
   (-map (-applify #'virtual-indent-make-spec) specs))
 
-;;;; Setup
+;;;; Configured
 
 (defconst virtual-indent-specs
   (virtual-indent-make-specs '(("Hello Lig"   "hello"     "")
@@ -93,9 +96,9 @@ The RX, if given, should set the first group for the match to replace."
   "List of indent overlays currently managed.")
 
 
+
 ;;; Overlays
-;;;; Fundamentals
-;;;;; General
+;;;; General
 
 (defun virtual-indent--make-ov (subexp)
   "`make-overlay' with start and end taking `match-data' at SUBEXP."
@@ -111,7 +114,13 @@ The RX, if given, should set the first group for the match to replace."
   "Is overlay OV contained in overlays for `match-data' at SUBEXP?"
   (-contains? (virtual-indent--ovs-in subexp) ov))
 
-;;;;; Specialized
+(defun virtual-indent-clear-ovs (ovs)
+  "Delete all overlays OVS and clear the overlay list."
+  (-doto ovs
+    (-each #'delete-overlay)
+    (setq nil)))
+
+;;;; Ligs
 
 (defun virtual-indent--ov-lig? (ov)
   "Is OV a ligature overlay?"
@@ -141,7 +150,13 @@ The RX, if given, should set the first group for the match to replace."
   (delete-overlay ov)
   (virtual-indent--trim-lig-ovs))
 
-;; indenters
+(defun virtual-indent--ov-evap-hook (ov post-modification? start end &optional _)
+  "Overlay modification hook to force evaporation upon modification within ov."
+  (when post-modification?
+    (virtual-indent--delete-lig-ov ov)))
+
+;;;; Indent
+
 (defun virtual-indent--make-indent-ov (start end)
   "Make an indent overlay."
   (make-overlay start end))
@@ -155,43 +170,15 @@ The RX, if given, should set the first group for the match to replace."
   (delete-overlay ov)
   (virtual-indent--trim-indent-ovs))
 
-;;;; Management
-;;;;; Cleanup
-
-(defun virtual-indent-cleanup-lig-ovs ()
-  "Delete and cleanup all `virtual-indent-lig-ovs'."
-  (-doto virtual-indent-lig-ovs
-    (-each #'delete-overlay)
-    (setq nil)))
-
-(defun virtual-indent-cleanup-indent-ovs ()
-  "Delete and cleanup all `virtual-indent-indent-ovs'."
-  (-doto virtual-indent-indent-ovs
-    (-each #'delete-overlay)
-    (setq nil)))
-
-(defun virtual-indent-cleanup-ovs ()
-  "Delete and cleanup all overlays managed by virtual-indent."
-  (virtual-indent-cleanup-lig-ovs)
-  (virtual-indent-cleanup-indent-ovs))
-
 ;;;; Functions
-
-(defun virtual-indent--ov-mod-hook (ov post-modification? start end &optional _)
-  "Overlay modification hook to force evaporation upon modification within ov."
-  (when post-modification?
-    (virtual-indent--delete-lig-ov ov)))
 
 (defun virtual-indent-build-lig-ov (replacement)
   "Build ligature overlay for current `match-data'."
   (let ((ov (virtual-indent--make-lig-ov)))
     (-doto ov
       (overlay-put 'display replacement)
-      (overlay-put 'modification-hooks '(virtual-indent--ov-mod-hook)))
+      (overlay-put 'modification-hooks '(virtual-indent--ov-evap-hook)))
     (add-to-list 'virtual-indent-lig-ovs ov)))
-
-
-;;; Indent
 
 (defun virtual-indent-build-indent-ov (width)
   (let* ((start (line-beginning-position 2))
@@ -202,11 +189,12 @@ The RX, if given, should set the first group for the match to replace."
       ;; (overlay-put 'display `(space . (:align-to 2)))
 
       (overlay-put 'display (number-to-string width))
-      (overlay-put 'face underline)
+      ;; (overlay-put 'face underline)
       ))
   (add-to-list 'virtual-indent-indent-ovs ov))
 
 
+
 ;;; Font-Locks
 
 (defun virtual-indent-match (replacement width)
@@ -217,13 +205,15 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun virtual-indent--build-kwd (spec)
   "Compose the font-lock-keyword for SPEC in `virtual-indent-specs'."
-  (-let (((&plist :name name
+  (-let ((0 font-lock-kwd-match-highlight-subexp)
+         ((&plist :name name
                   :replacement replacement
                   :rx rx
                   :width width)
           spec))
-    `(,rx (0 (prog1 virtual-indent-lig-face
-               (virtual-indent-match ,replacement ,width))))))
+    `(,rx (,font-lock-kwd-match-highlight-subexp
+           (prog1 virtual-indent-lig-face
+             (virtual-indent-match ,replacement ,width))))))
 
 (defun virtual-indent-add-kwds ()
   "Translate spec into keywords and add to `font-lock-keywords'."
@@ -231,15 +221,8 @@ The RX, if given, should set the first group for the match to replace."
      (-map #'virtual-indent--build-kwd)
      (font-lock-add-keywords nil)))
 
-(defun virtual-indent-hook-fn ()
-  "Add as hook to enable virtual-indent.
-
-Currently:
-1. Just an alias on `virtual-indent-add-kwds'.
-2. Works for just `lisp-mode'."
-  (virtual-indent-add-kwds))
-
 
+
 ;;; Interactive
 
 (defun virtual-indent-disable ()
@@ -247,18 +230,20 @@ Currently:
   (interactive)
 
   (setq font-lock-keywords nil)
-  (remove-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
-  (virtual-indent-cleanup-ovs))
+  (remove-hook 'lisp-mode-hook #'virtual-indent-add-kwds)
+  (virtual-indent-clear-ovs virtual-indent-lig-ovs)
+  (virtual-indent-clear-ovs virtual-indent-indent-ovs))
 
 (defun virtual-indent-enable ()
   "Enable virtual-indent and cleanup previous instance if running."
   (interactive)
 
   (virtual-indent-disable)
-  (add-hook 'lisp-mode-hook #'virtual-indent-hook-fn)
+  (add-hook 'lisp-mode-hook #'virtual-indent-add-kwds)
   (lisp-mode))
 
 
+
 ;;; Development Stuff
 
 (when nil
