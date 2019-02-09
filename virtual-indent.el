@@ -186,18 +186,19 @@ The RX, if given, should set the first group for the match to replace."
   "Overlay modification hook to delete indent ov upon modification within it."
   (when post-mod?
     (let* ((inhibit-modification-hooks t)
-           (width                      (overlay-get mask 'width))
+           (width                      (virtual-indent-mask->width mask))
            (invis-spaces-to-delete     (1+ width)))
       (virtual-indent--delete-mask mask)
-      (delete-char (- invis-spaces-to-delete)))))
+      (evil-with-single-undo
+        (delete-char (- invis-spaces-to-delete))))))
 
 (defun virtual-indent--format-prefix (width num-parents)
   "Format the `line-prefix' overlay text property."
-  (let ((sep "|")
-        (true-indent (virtual-indent-indent-col))
-        (sections (list (-> "%02d"  (format true-indent))
-                        (-> "%02d" (format width))
-                        (-> "#%d:"  (format num-parents)))))
+  (let* ((sep "|")
+         (true-indent (virtual-indent-indent-col))
+         (sections (list (-> "%02d"  (format true-indent))
+                         (-> "%02d" (format width))
+                         (-> "#%d:"  (format num-parents)))))
     (->> sections (-interpose sep) (apply #'s-concat))))
 
 
@@ -271,10 +272,12 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;;; Management
 
+(defun virtual-indent-mask->width (mask)
+  (-> mask (overlay-get 'virtual-indent-parents) virtual-indent-parents-width ))
+
 (defun virtual-indent-refresh-mask (mask)
   "Recalculate and set bounds and properties of MASK."
-  (let* ((parents     (overlay-get mask 'virtual-indent-parents))
-         (width       (virtual-indent-parents-width parents))
+  (let* ((parents     (virtual-indent-mask->width mask))
          (line-prefix (virtual-indent--format-prefix width (length parents))))
     (overlay-put mask 'line-prefix line-prefix)
     (move-overlay mask (overlay-start mask) width)))
@@ -413,3 +416,7 @@ Identify a ligature has been found and dispatch ov builders as required."
 (provide 'virtual-indent)
 
 ;;; virtual-indent.el ends here
+
+;; Notes
+;; 1. evaporate means start=end -> delete the ov
+;; 2. It's collapsing newlines atm
