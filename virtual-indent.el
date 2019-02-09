@@ -134,9 +134,6 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;;; Deletion
 
-;; These should only be used in disabling virtual-indent atm
-;; otherwise will break line management and ov assumptions
-
 (defun virtual-indent--delete-lig (ov)
   "Delete a ligature overlay."
   (setq virtual-indent-ovs (delq ov virtual-indent-ovs))
@@ -183,6 +180,15 @@ The RX, if given, should set the first group for the match to replace."
   (when post-mod?
     (virtual-indent-remove-lig-as-parent)
     (virtual-indent--delete-lig lig)))
+
+(defun virtual-indent--mask-decompose-hook (mask post-mod? start end &optional _)
+  "Overlay modification hook to delete indent ov upon modification within it."
+  (when post-mod?
+    (let* ((inhibit-modification-hooks t)
+           (width                      (overlay-get mask 'width))
+           (invis-spaces-to-delete     (1+ width)))
+      (virtual-indent--delete-mask mask)
+      (delete-char (- invis-spaces-to-delete)))))
 
 (defun virtual-indent--format-prefix (width num-parents)
   "Format the `line-prefix' overlay text property."
@@ -246,6 +252,12 @@ The RX, if given, should set the first group for the match to replace."
   "Indent masks in slice."
   (-slice virtual-indent-masks start-line end-line))
 
+(defun virtual-indent-masks-with (lig)
+  "Retrieve masks that (should) have LIG as a parent."
+  (-let (((start-line . end-line)
+          (virtual-indent-lig-indent-interval lig)))
+    (virtual-indent-masks-in start-line end-line)))
+
 ;;;; Construction
 
 (defun virtual-indent--init-mask ()
@@ -261,10 +273,7 @@ The RX, if given, should set the first group for the match to replace."
       (overlay-put 'face 'underline)
       (overlay-put 'display " ")
       (overlay-put 'line-prefix (virtual-indent--format-prefix 1 0))
-
-      ;; NOTE I *think* this produces desired behavior for masks
-      ;; that is, equivalence to deleting the newline to the left
-      (overlay-put 'modification-hooks '(virtual-indent--lig-decompose-hook)))
+      (overlay-put 'modification-hooks '(virtual-indent--mask-decompose-hook)))
 
     (-insert-at line ov virtual-indent-masks)))
 
@@ -302,9 +311,8 @@ The RX, if given, should set the first group for the match to replace."
   "Find the limiting lines cons for ov LIG's affect on indentation."
   (save-excursion
     (goto-char (overlay-start lig))
-    (let ((start-line (1+ (line-number-at-pos)))
-          (end-line   (progn (sp-end-of-sexp) (line-number-at-pos))))
-      (cons start-line end-line))))
+    (cons (1+ (line-number-at-pos))
+          (progn (sp-end-of-sexp) (line-number-at-pos)))))
 
 (defun virtual-indent-add-parent (lig)
   "Add LIG ov to the appropriate masks and refresh them."
@@ -327,12 +335,6 @@ The RX, if given, should set the first group for the match to replace."
 (defun virtual-indent-parents-width (parents)
   "Sum PARENTS's lig ovs widths."
   (->> parents (--map (overlay-get it 'virtual-indent-width)) -sum))
-
-(defun virtual-indent-masks-with (lig)
-  "Retrieve masks that (should) have LIG as a parent."
-  (-let (((start-line . end-line)
-          (virtual-indent-lig-indent-interval lig)))
-    (virtual-indent-masks-in start-line end-line)))
 
 
 
