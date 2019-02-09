@@ -167,7 +167,7 @@ The RX, if given, should set the first group for the match to replace."
     ;; NOTE Quick solution reset all overlays upon editing a ligature
     (virtual-indent-delete-ovs)))
 
-(defun virtual-indent-format-prefix (width parents)
+(defun virtual-indent--format-prefix (width num-parents)
   "Format the `line-prefix' overlay text property."
   (let ((sep "|")
         (sections (list (format "%02d"
@@ -175,63 +175,107 @@ The RX, if given, should set the first group for the match to replace."
                         (format "%02d"
                                 width)
                         (format "+%d:"
-                                parents))))
+                                num-parents))))
     (->> sections (-interpose sep) (apply #'s-concat))))
 
 ;;;; Builders
 
-(defun virtual-indent-build-lig (replacement)
+(defun virtual-indent-build-lig (replacement width)
   "Build ligature overlay for current `match-data'."
   (let ((ov (virtual-indent--make-ov-for-match virtual-indent--lig-subexp)))
     (-doto ov
-      (overlay-put 'virtual-indent? t)
-      (overlay-put 'virtual-indent-lig? t)
-
-      ;; ligature stuff
+      (overlay-put 'virtual-indent?      t)
+      (overlay-put 'virtual-indent-lig?  t)
+      (overlay-put 'virtual-indent-width width)
 
       (overlay-put 'display replacement)
       (overlay-put 'modification-hooks '(virtual-indent--lig-decompose-hook))
 
       (push virtual-indent-ovs))))
 
-(defun virtual-indent-build-mask (width)
-  (let* ((start (line-beginning-position 2))
-         (end (+ start width))
-         (parents 1)
-         (ov (make-overlay start end)))
+(defun virtual-indent--init-mask ()
+  "Create initial mask, without parents, for current line."
+  (let* ((start (line-beginning-position))
+         (ov (make-overlay start (1+ start))))
     (-doto ov
-      (overlay-put 'virtual-indent? t)
-      (overlay-put 'virtual-indent-mask? t)
+      (overlay-put 'virtual-indent?        t)
+      (overlay-put 'virtual-indent-mask?   t)
+      (overlay-put 'virtual-indent-parents nil)
 
       (overlay-put 'face 'underline)
       (overlay-put 'display " ")
-      (overlay-put 'line-prefix (virtual-indent-format-prefix width parents))
+      (overlay-put 'line-prefix (virtual-indent--format-prefix width 0))
 
       (push virtual-indent-masks))))
 
+(defun virtual-indent-init-masks ()
+  "Line-by-line buildup empty `virtual-indent-masks'."
+  (save-excursion
+    (goto-char (point-min))
+    (while (not eobp)
+      (virtual-indent--init-mask)
+      (forward-line))))
+
 
 
-;;; Prefixes
+;;; Masks
+;;;; Utils
 
 (defun virtual-indent-indent-col (&optional n)
   "Get indentation col, of line forward N-1 times if given."
-  (save-excursion
-    (end-of-line n)
-    (back-to-indentation)
-    (current-column)))
+  (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
 
-(defun virtual-indent-prefix-ov-at (line))
-(defun virtual-indent-masks-in (lines))
+(defun virtual-indent-line-begin-pos (line)
+  "Return point at start of LINE."
+  (save-excursion (goto-line line) (line-beginning-position)))
+
+(defun virtual-indent-line-end-pos (line)
+  "Return point at end of LINE."
+  (save-excursion (goto-line line) (line-end-position)))
+
+;;;; Aliases
+
+(defun virtual-indent-mask-at  (line)
+  "Indent mask at line."
+  (nth line virtual-indent-masks))
+
+(defun virtual-indent-masks-at (lines)
+  "Indent masks at lines."
+  (-select-by-indices lines virtual-indent-masks))
+
+(defun virtual-indent-masks-in (start end)
+  "Indent masks in slice."
+  (-slice virtual-indent-masks start end))
+
+;;;; Funcs
+
+(defun virtual-indent-update-mask-prefix-at (line)
+  (let* ((ov          (virtual-indent-mask-at line))
+         (parents     (overlay-get mask 'virtual-indent-parents)))
+    (-doto ov
+      (overlay-put 'virtual-indent-parents parents)
+      (overlay-put 'line-prefix (virtual-indent--format-prefix width 0)))))
+
+
+
+;;; Ligs
+
+(defun virtual-indent-parents-width (parents)
+  "Sum PARENTS's lig ovs widths."
+  (->> parents (--map (overlay-get it 'virtual-indent-width)) -sum))
 
 
 
 ;;; Font-Locks
 
 (defun virtual-indent-match (replacement width)
-  "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
+  "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT.
+
+Identify a ligature has been found and dispatch ov builders as required."
   (unless (virtual-indent--any-lig-in-match?)
-    (virtual-indent-build-lig replacement)
-    (virtual-indent-build-mask width)))
+    (-> )
+    (virtual-indent-build-lig   replacement width)
+    (virtual-indent-update-mask replacement)))
 
 (defun virtual-indent--build-kwd (spec)
   "Compose the font-lock-keyword for SPEC in `virtual-indent-specs'."
@@ -251,6 +295,14 @@ The RX, if given, should set the first group for the match to replace."
 
 
 
+;;; Setup
+
+(defun virtual-indent-setup ()
+  "Handle virtual-indent instantiation to take place before font-locks turn on."
+  (virtual-indent-init-masks))
+
+
+
 ;;; Interactive
 
 (defun virtual-indent-disable ()
@@ -266,7 +318,8 @@ The RX, if given, should set the first group for the match to replace."
   (interactive)
 
   (virtual-indent-disable)
-  (add-hook 'lisp-mode-hook #'virtual-indent-add-kwds)
+  (virtual-indent-setup)
+  (add-hook 'lisp-mode-hook #'virtual-indent-add-kwds nil 'local)
   (lisp-mode))
 
 
@@ -286,3 +339,19 @@ The RX, if given, should set the first group for the match to replace."
 (provide 'virtual-indent)
 
 ;;; virtual-indent.el ends here
+
+
+;; (defun virtual-indent-build-mask (width)
+;;   (let* ((start (line-beginning-position 2))
+;;          (end (+ start width))
+;;          (parents 1)
+;;          (ov (make-overlay start end)))
+;;     (-doto ov
+;;       (overlay-put 'virtual-indent? t)
+;;       (overlay-put 'virtual-indent-mask? t)
+
+;;       (overlay-put 'face 'underline)
+;;       (overlay-put 'display " ")
+;;       (overlay-put 'line-prefix (virtual-indent--format-prefix width 0))
+
+;;       (push virtual-indent-masks))))
