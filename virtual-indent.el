@@ -256,7 +256,7 @@ The RX, if given, should set the first group for the match to replace."
       (overlay-put 'virtual-indent-parents nil)
 
       (overlay-put 'face 'underline)
-      (overlay-put 'display " ")
+      ;; (overlay-put 'display " ")
       (overlay-put 'line-prefix (virtual-indent--format-prefix 1 0))
       (overlay-put 'modification-hooks '(virtual-indent--mask-decompose-hook)))
 
@@ -418,5 +418,9 @@ Identify a ligature has been found and dispatch ov builders as required."
 ;;; virtual-indent.el ends here
 
 ;; Notes
-;; 1. evaporate means start=end -> delete the ov
-;; 2. It's collapsing newlines atm
+;; 1. It's collapsing newlines atm
+;; 2. Cant lead with a mask on left-margin text as zero-size outline will
+;;    not yield the line-prefix.
+;;    - Can either not set the display on such a mask and manage displays now when
+;;    using hooks and stuff
+;;    - Or dont build overlays for non-indented areas (probably do 1st option)
