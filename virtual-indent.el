@@ -46,6 +46,7 @@
 (require 'dash)
 (require 'dash-functional)
 (require 's)
+(require 'smartparens)
 
 
 
@@ -199,23 +200,6 @@ The RX, if given, should set the first group for the match to replace."
                         (-> "#%d:"  (format num-parents)))))
     (->> sections (-interpose sep) (apply #'s-concat))))
 
-;;;; Builders
-
-(defun virtual-indent-build-lig (replacement width)
-  "Build ligature overlay for current `match-data'."
-  (let ((ov (virtual-indent--make-ov-for-match virtual-indent--lig-subexp)))
-    (-doto ov
-      (overlay-put 'virtual-indent?      t)
-      (overlay-put 'virtual-indent-lig?  t)
-      (overlay-put 'virtual-indent-width width)
-
-      (overlay-put 'display replacement)
-      (overlay-put 'modification-hooks '(virtual-indent--lig-decompose-hook))
-
-      (push virtual-indent-ovs))
-
-    (virtual-indent-add-parent-maybe ov)))
-
 
 
 ;;; Masks
@@ -281,7 +265,7 @@ The RX, if given, should set the first group for the match to replace."
   "Line-by-line buildup empty `virtual-indent-masks'."
   (save-excursion
     (goto-char (point-min))
-    (while (not eobp)
+    (while (not (eobp))
       (virtual-indent--init-mask)
       (forward-line))))
 
@@ -298,7 +282,24 @@ The RX, if given, should set the first group for the match to replace."
 
 
 ;;; Ligs
-;;;; Objects
+;;;; Construction
+
+(defun virtual-indent-build-lig (replacement width)
+  "Build ligature overlay for current `match-data'."
+  (let ((ov (virtual-indent--make-ov-for-match virtual-indent--lig-subexp)))
+    (-doto ov
+      (overlay-put 'virtual-indent?      t)
+      (overlay-put 'virtual-indent-lig?  t)
+      (overlay-put 'virtual-indent-width width)
+
+      (overlay-put 'display replacement)
+      (overlay-put 'modification-hooks '(virtual-indent--lig-decompose-hook))
+
+      (push virtual-indent-ovs))
+
+    (virtual-indent-add-parent-maybe ov)))
+
+;;;; Methods
 
 (defun virtual-indent-lig-modifies-indent? (lig)
   "Does the ov LIG modify following lines' indentations?" ; TODO
@@ -330,11 +331,9 @@ The RX, if given, should set the first group for the match to replace."
   (when (virtual-indent-lig-modifies-indent? lig)
     (virtual-indent-add-parent)))
 
-;;;; Collections
-
-(defun virtual-indent-parents-width (parents)
-  "Sum PARENTS's lig ovs widths."
-  (->> parents (--map (overlay-get it 'virtual-indent-width)) -sum))
+(defun virtual-indent-parents-width (ligs)
+  "Sum LIGS ovs widths."
+  (->> ligs (--map (overlay-get it 'virtual-indent-width)) -sum))
 
 
 

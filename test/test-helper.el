@@ -2,6 +2,7 @@
 (require 'dash)
 (require 'dash-functional)
 (require 's)
+(require 'smartparens)
 
 (require 'ert)
 (require 'faceup)

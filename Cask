@@ -7,6 +7,7 @@
 (depends-on "dash")
 (depends-on "dash-functional")
 (depends-on "s")
+(depends-on "smartparens")
 
 (development
  (depends-on "ert-runner")
