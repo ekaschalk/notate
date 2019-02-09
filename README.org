@@ -13,16 +13,20 @@
   3. The `nameless-mode' library will not require a choice of which indentation to
      keep correct, your view or the true indent of the file.
 
-  Exciting stuff if an implementation can be successful.
+  Exciting stuff if an implementation can be successful (ie. performant and
+  editing behavior is unobtrusive).
 
 ** Current State and Goals
 
    In the case that the string and its replacement are the same size (eg. all
    fira-code ligatures by design like ->>), a display-property based
-   implementation solves the indentation issues, which I believe I've already
-   successfully implemented.
+   implementation solves the indentation issues, which is already implemented
+   here more-or-less.
 
    I'm attempting the case that the ligature is not the same size as its
    replacement (like lambda/alpha -> latin letter symbols). It is almost certain
    there will be limitations on *something* in a functional implementation,
    whether its cursor size, performance, major-mode-agnosticity, etc...
+
+   Groundwork has been laid but assumptions regarding the major-mode and
+   editing paths are present.
