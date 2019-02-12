@@ -1,4 +1,4 @@
-;;; virtual-indent.el --- Personal Indentation -*- lexical-binding: t; -*-
+;;; apl.el --- Always Program in Ligatures -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 ;;
@@ -273,7 +273,7 @@ The RX, if given, should set the first group for the match to replace."
 ;;;; Management
 
 (defun virtual-indent-mask->width (mask)
-  (-> mask (overlay-get 'virtual-indent-parents) virtual-indent-parents-width ))
+  (-> mask (overlay-get 'virtual-indent-parents) virtual-indent-parents-width))
 
 (defun virtual-indent-refresh-mask (mask)
   "Recalculate and set bounds and properties of MASK."
@@ -333,6 +333,7 @@ The RX, if given, should set the first group for the match to replace."
   "Determine whether LIG effects indentation before adding it as a parent."
   (when (virtual-indent-lig-modifies-indent? lig)
     (virtual-indent-add-parent)))
+
 
 (defun virtual-indent-parents-width (ligs)
   "Sum LIGS ovs widths."
