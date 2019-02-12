@@ -1,32 +1,10 @@
-* Virtual Indent - Personalizing indentation (Exploratory Repo)
+* APL - Always Program in Ligatures
 
-  Exploring concept of "personalized indentation".
+(In-progress)
 
-  Several use-cases:
+Indentation correcting visual replacements of symbols with other symbols.
 
-  1. Rendering and editing a 2-indent python file as if it was a 4-indent, and the
-     reverse.
+** Goal
 
-  2. Multi-character ligature replacements, like lambda -> lambda-symbol will not
-     modify (ie. break) indentation in programming modes.
-
-  3. The `nameless-mode' library will not require a choice of which indentation to
-     keep correct, your view or the true indent of the file.
-
-  Exciting stuff if an implementation can be successful (ie. performant and
-  editing behavior is unobtrusive).
-
-** Current State and Goals
-
-   In the case that the string and its replacement are the same size (eg. all
-   fira-code ligatures by design like ->>), a display-property based
-   implementation solves the indentation issues, which is already implemented
-   here more-or-less.
-
-   I'm attempting the case that the ligature is not the same size as its
-   replacement (like lambda/alpha -> latin letter symbols). It is almost certain
-   there will be limitations on *something* in a functional implementation,
-   whether its cursor size, performance, major-mode-agnosticity, etc...
-
-   Groundwork has been laid but assumptions regarding the major-mode and
-   editing paths are present.
+Centralize ligature/prettify/etc. packages under an optional, major-mode
+agnostic indentation-aligning framework.
