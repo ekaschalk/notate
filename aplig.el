@@ -64,8 +64,8 @@ The RX, if given, should set the first group for the match to replace."
 (defconst aplig-display-prefixes? t
   "Whether to add the `line-prefix' property to indentation overlays.")
 
-(defconst aplig-lig--boundary-fn #'aplig-lig--boundary-fn--lisps
-  "A function that should return a cons of line boundaries given a LIG.")
+(defconst aplig-lig--boundary-fn #'aplig-lig--boundary--lisps
+  "A function that should return line boundaries given a LIG.")
 
 ;; Below fn not used yet
 (defconst aplig-lig--boundary?-fn #'aplig-lig--boundary?--lisps
@@ -106,19 +106,20 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;;; Utils
 
-(defun aplig-ovs--map (ovs prop fn)
-  "Map FN over OVS PROP."
-  (->> ovs (--map (overlay-get it prop)) (funcall fn)))
+(defun aplig-ovs--prop (ovs prop)
+  "Return list of each OVS PROP."
+  (--map (overlay-get it prop) ovs))
 
 
 
 ;;; Ligs
 ;;;; Boundary Functions
 
-(defun aplig-lig--boundary-fn--lisps (lig)
-  "Calculate line boundary cons for LIG's masks."
-  (let ((lig-line (-> ov overlay-start line-number-at-pos)))
-    (cons (1+ lig-line)
+(defun aplig-lig--boundary--lisps (lig)
+  "Calculate line boundary for LIG's masks."
+  (let ((lig-line (-> lig overlay-start line-number-at-pos)))
+    (list (min (line-number-at-pos (point-max))
+               (1+ lig-line))
           (save-excursion
             (goto-line lig-line)
             (sp-end-of-sexp)
@@ -166,16 +167,21 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-ligs->width (ligs)
   "Sum widths of LIGS."
-  (aplig-ovs--map ligs 'aplig-width #'-sum))
+  (-> ligs (aplig-ovs--prop 'aplig-width) -sum))
 
-(defun aplig-lig--init-lig (replacement width)
-  "Build ligature overlay for current `match-data'."
-  (let* ((start (match-beginning 1))
-         (end   (match-end 1))
+(defun aplig-lig--init-lig (replacement width &optional start end)
+  "Build ligature overlay, defaulting to `match-data' for START and END."
+  (unless (or (or start (match-beginning 1))
+              (or end   (match-end 1)))
+    (error "Initiatializing ligature without match-data set."))
+
+  (let* ((start (or start (match-beginning 1)))
+         (end   (or end (match-end 1)))
          (ov    (make-overlay start end))
          (lig   (aplig-lig--init-lig-ov ov replacement width)))
     (push lig aplig-lig-list)
-    (aplig-lig-mask--add-lig-to-masks lig)))
+    (aplig-lig-mask--add-lig-to-masks lig)
+    lig))
 
 
 
@@ -228,7 +234,7 @@ The RX, if given, should set the first group for the match to replace."
   "Format the `line-prefix' overlay text property for MASK."
   (let* ((sep         "|")
          (true-indent (aplig-mask--indent-col))
-         (width       (aplig-mask->width))
+         (width       (aplig-mask->width mask))
          (num-parents (length (overlay-get mask 'aplig-ligs)))
          (sections    (list (-> "%02d" (format true-indent))
                             (-> "%02d" (format width))
@@ -275,8 +281,6 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-mask->width (mask)
   "Calculate width of MASK's ligs."
-  ;; (aplig-ligs->width (overlay-get mask 'aplig-ligs))
-
   (-> mask (overlay-get 'aplig-ligs) aplig-ligs->width))
 
 (defun aplig-mask--init (&optional line)
@@ -288,7 +292,6 @@ The RX, if given, should set the first group for the match to replace."
            (start (line-beginning-position))
            (end   (1+ start))
            (mask  (aplig-mask--init-ov (make-overlay start end))))
-      (message (format "%s" mask))
       (aplig-mask--insert-at mask line))))
 
 (defun aplig-masks--init ()
@@ -306,7 +309,10 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-lig-mask--masks-for (lig)
   "Return all masks LIG contributes to."
-  (->> lig (funcall #'aplig-lig--boundary-fn) (apply #'aplig-masks--in)))
+  (when (funcall (symbol-value #'aplig-lig--boundary?-fn) lig)
+    (->> lig
+       (funcall (symbol-value #'aplig-lig--boundary-fn))
+       (apply #'aplig-masks--in))))
 
 (defun aplig-lig-mask--add-lig-to-mask (lig mask)
   (push lig (overlay-get mask 'aplig-ligs))
@@ -354,6 +360,11 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;; Interactive
 
+(defun aplig-setup--agnostic ()
+  "Setup all *major-mode-agnostic* components."
+  (aplig-masks--init)
+  (aplig-masks--refresh aplig-mask-list))
+
 (defun aplig-disable ()
   "Delete overlays managed by apl."
   (interactive)
@@ -368,8 +379,7 @@ The RX, if given, should set the first group for the match to replace."
   (interactive)
 
   (aplig-disable)
-  (aplig-masks--init)
-  (aplig-masks--refresh aplig-mask-list)
+  (aplig-setup--agnostic)
   (add-hook 'lisp-mode-hook #'aplig-kwds--add nil 'local)
   (lisp-mode))
 

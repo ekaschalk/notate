@@ -23,15 +23,37 @@
 
 ;;; Macros
 
-(defmacro aplig--with-context--nil (&rest body)
-  `(let ((aplig-lig-list nil)
+(defmacro aplig--with-context (buffer-contents &rest body)
+  `(let (;; Configurations
+         (aplig-lig--boundary?-fn (-const nil))
+
+         ;; Managed Objects
+         (aplig-lig-list nil)
          (aplig-mask-list nil))
-     ,@body))
+     (with-temp-buffer
+       (insert ,buffer-contents)
+       (aplig-setup--agnostic)
+
+       ,@body
+
+       (aplig-disable))))
+
+
+(defmacro aplig--with-context--simple (&rest body)
+  (let ((simple-buffer-contents
+         "
+(string foo
+        bar)
+"
+         ))
+    `(aplig--with-context ,simple-buffer-contents ,@body)))
 
 
 
 ;;; Overlays
 
-(defun aplig-test--mock-lig (width)
-  (let ((replacement (s-repeat width "a")))
-    (aplig-lig--init-lig replacement width)))
+(defun aplig-test--mock-lig (string replacement)
+  (let* ((width       (- (length string) (length replacement)))
+         (start       0)
+         (end         (+ start (length string))))
+    (aplig-lig--init-lig replacement width start end)))
