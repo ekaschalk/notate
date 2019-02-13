@@ -1,7 +1,7 @@
 (source gnu)
 (source melpa)
 
-(package-file "virtual-indent.el")
+(package-file "apl.el")
 
 (depends-on "cl")
 (depends-on "dash")

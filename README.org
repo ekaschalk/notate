@@ -4,6 +4,10 @@
 
 Indentation correcting visual replacements of symbols with other symbols.
 
+Alignment and specifically indentation issues hamper generalized ligatures,
+known as prettified-symbols in Emacs. APL attempts to bring the joy and
+readability of APLang to every language!
+
 ** Goal
 
 Centralize ligature/prettify/etc. packages under an optional, major-mode

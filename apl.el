@@ -3,39 +3,18 @@
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 ;;
 ;; Authors: Eric Kaschalk <ekaschalk@gmail.com>
-;; URL: http://github.com/ekaschalk/virtual-indent
+;; URL: http://github.com/ekaschalk/apl
 ;; Version: 0.1
 ;; Keywords: indentation, display, ligatures, major-modes
 ;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (s "1.12.0") (emacs "26.1"))
-
-;; virtual-indent is free software; you can redistribute it and/or modify it
-;; under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
-;;
-;; virtual-indent is distributed in the hope that it will be useful, but WITHOUT
-;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-;; License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with virtual-indent.  If not, see <http://www.gnu.org/licenses/>.
-
-;; This file is not part of GNU Emacs.
 
 
 
 ;;; Commentary:
 
-;; Exploring concept of "personalized indentation"
-
-;; Several use-cases:
-;; 1. Rendering and editing a 2-indent python file as if it was a 4-indent,
-;;    and the reverse.
-;; 2. Multi-character ligature replacements, like lambda -> lambda-symbol will
-;;    not modify indentation in programming modes.
-;; 3. The `nameless-mode' library will not require a choice of which
-;;    indentation to keep correct, the true or your view of the file.
+;; Alignment and specifically indentation issues hamper generalized ligatures,
+;; known as prettified-symbols in Emacs. APL attempts to bring the joy and
+;; readability of APLang to every language!
 
 
 
@@ -53,7 +32,7 @@
 ;;; Configuration
 ;;;; Utils
 
-(defun virtual-indent-make-spec (name string replacement &optional rx)
+(defun apl-make-spec (name string replacement &optional rx)
   "Create spec plist NAME for STRING to REPLACEMENT optionally with custom RX.
 
 Without a RX given, default to matching entire STRING.
@@ -68,360 +47,332 @@ The RX, if given, should set the first group for the match to replace."
     :width       ,(- (length string)
                      (length replacement))))
 
-(defun virtual-indent-make-specs (specs)
-  "Apply `virtual-indent-make-spec' to each SPEC."
-  (-map (-applify #'virtual-indent-make-spec) specs))
+(defun apl-make-specs (specs)
+  "Apply `apl-make-spec' to each SPEC."
+  (-map (-applify #'apl-make-spec) specs))
 
 ;;;; Configured
 
-(defconst virtual-indent-specs
-  (virtual-indent-make-specs '(("Hello Lig"   "hello"     "")
-                               ("0-space Lig" "0-space"   "")
-                               ("1-space Lig" "1-space"   " ")
-                               ("2-space Lig" "2-space"   "  ")
-                               ("tab Lig"     "tab-space" "	")))
-  "Collection of specs from `virtual-indent-make-spec'.")
+(defconst apl-specs
+  (apl-make-specs '(("Hello Lig"   "hello"     "")
+                    ("0-space Lig" "0-space"   "")
+                    ("1-space Lig" "1-space"   " ")
+                    ("2-space Lig" "2-space"   "  ")
+                    ("tab Lig"     "tab-space" "	")))
+  "Collection of specs from `apl-make-spec'.")
 
-(defconst virtual-indent-display-prefixes? t
+(defconst apl-display-prefixes? t
   "Whether to add the `line-prefix' property to indentation overlays.")
 
-;;;; Constants
+(defconst apl-lig--boundary-fn #'apl-lig--boundary-fn--lisps
+  "A function that should return a cons of line boundaries given a LIG.")
 
-(defconst virtual-indent--lig-subexp 1
-  "Alias the SUBEXP for ligatures in `match-data'.")
+;; Below fn not used yet
+(defconst apl-lig--boundary?-fn #'apl-lig--boundary-fn--lisps
+  "A subset of `apl-lig--boundary-fn', whether LIG has a boundary.")
 
 ;;;; Managed
 
-(defconst virtual-indent-ovs nil
+(defconst apl-lig-list nil
   "List of ligature overlays currently managed.")
 
-(defconst virtual-indent-masks nil
+(defconst apl-mask-list nil
   "List of indent overlays currently managed.")
+
+(defconst apl-mask--wait-for-refresh nil
+  "Let-bind true to hold off on refreshing masks during batch modifications.")
 
 
 
 ;;; Overlays
-;;;; Utils
-;;;;; General
+;;;; Predicates
 
-(defun virtual-indent--make-ov-for-match (subexp)
-  "Specialized `make-overlay' with start and end taking `match-data' at SUBEXP."
-  (make-overlay (match-beginning subexp) (match-end subexp)))
+(defun apl-ov--lig? (ov)
+  "Is OV a ligature?"
+  (overlay-get ov 'apl-lig?))
 
-(defun virtual-indent--ovs-in-match (subexp)
-  "Specialized `overlays-in' with start and end taking `match-data' at SUBEXP."
-  (overlays-in (match-beginning subexp) (match-end subexp)))
+(defun apl-ov--mask? (ov)
+  "Is OV a mask?"
+  (overlay-get ov 'apl-mask?))
 
-(defun virtual-indent--ov-in-bound? (ov start end)
-  "Is overlay OV contained within START and END?"
+(defun apl-ov--in? (ov start end)
+  "Is OV contained within START and END?"
   (and ov start end
        (<= start (overlay-start ov) (overlay-end ov) end)))
 
-(defun virtual-indent--ov-in-match? (ov subexp)
-  "Is overlay OV contained in the SUBEXP'th matching group?"
-  (virtual-indent--ov-in-bound? ov (match-beginning subexp) (match-end subexp)))
+(defun apl-ov--in-match? (ov subexp)
+  "Is OV contained in the SUBEXP matching group?"
+  (apl--ov-in-bound? ov (match-beginning subexp) (match-end subexp)))
 
-;;;;; Specialized
-
-(defun virtual-indent--lig-in-match? (ov)
-  "Specialize `virtual-indent--ov-in?' for ligatures."
-  (and (overlay-get ov 'virtual-indent-lig?)
-       (virtual-indent--ov-in-match? ov virtual-indent--lig-subexp)))
-
-(defun virtual-indent--any-lig-in-match? ()
-  "Is any ligature overlay in the current match?"
-  (-any #'virtual-indent--lig-in-match?
-        (virtual-indent--ovs-in-match virtual-indent--lig-subexp)))
-
-;;;; Deletion
-
-(defun virtual-indent--delete-lig (ov)
-  "Delete a ligature overlay."
-  (setq virtual-indent-ovs (delq ov virtual-indent-ovs))
-  (delete-overlay ov))
-
-(defun virtual-indent--delete-mask (ov)
-  "Delete an indent mask."
-  (setq virtual-indent-masks (delq ov virtual-indent-masks))
-  (delete-overlay ov))
-
-(defun virtual-indent-delete-ligs ()
-  "Delete ligature overlays."
-  (-each virtual-indent-ovs #'virtual-indent--delete-lig))
-
-(defun virtual-indent-delete-masks ()
-  "Delete indent overlays."
-  (-each virtual-indent-masks #'virtual-indent--delete-mask))
-
-(defun virtual-indent-delete-ovs ()
-  "Delete overlays managed by virtual-indent."
-  (interactive)
-
-  (virtual-indent-delete-ligs)
-  (virtual-indent-delete-masks))
-
-;;;; Components
-
-(defun virtual-indent-remove-lig-as-parent (lig)
-  "Remove ov LIG as a parent in each mask in its range."
-  ;; NOTE Depending on how outlines are implemented,
-  ;; deleting the lig OV and refreshing might be sufficient rather
-  ;; than explicitly delqing the mask.
-  (let ((masks (virtual-indent-masks-with lig)))
-    (-each masks
-      (lambda (mask)
-        (->>
-         (overlay-get mask 'virtual-indent-parents)
-         (delq mask)
-         (overlay-put mask 'virtual-indent-parents))
-        (virtual-indent-refresh-mask mask)))))
-
-(defun virtual-indent--lig-decompose-hook (lig post-mod? start end &optional _)
-  "Overlay modification hook to delete lig ov upon modification within the ov."
-  (when post-mod?
-    (virtual-indent-remove-lig-as-parent)
-    (virtual-indent--delete-lig lig)))
-
-(defun virtual-indent--mask-decompose-hook (mask post-mod? start end &optional _)
-  "Overlay modification hook to delete indent ov upon modification within it."
-  (when post-mod?
-    (let* ((inhibit-modification-hooks t)
-           (width                      (virtual-indent-mask->width mask))
-           (invis-spaces-to-delete     (1+ width)))
-      (virtual-indent--delete-mask mask)
-      (evil-with-single-undo
-        (delete-char (- invis-spaces-to-delete))))))
-
-(defun virtual-indent--format-prefix (width num-parents)
-  "Format the `line-prefix' overlay text property."
-  (let* ((sep "|")
-         (true-indent (virtual-indent-indent-col))
-         (sections (list (-> "%02d"  (format true-indent))
-                         (-> "%02d" (format width))
-                         (-> "#%d:"  (format num-parents)))))
-    (->> sections (-interpose sep) (apply #'s-concat))))
-
-
-
-;;; Masks
 ;;;; Utils
 
-(defun virtual-indent-indent-col (&optional n)
-  "Get indentation col, of line forward N-1 times if given."
-  (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
+(defun apl-ovs--map (ovs prop fn)
+  "Map FN over OVS PROP."
+  (--map (overlay-get it prop) fn))
 
-(defun virtual-indent-line-begin-pos (line)
-  "Return point at start of LINE."
-  (save-excursion (goto-line line) (line-beginning-position)))
-
-(defun virtual-indent-line-end-pos (line)
-  "Return point at end of LINE."
-  (save-excursion (goto-line line) (line-end-position)))
-
-(defun virtual-indent-line-count-modified? ()
-  "Positive if lines have been added, negative if removed, otherwise zero."
-  (- (line-number-at-pos (point-max))
-     (length virtual-indent-masks)))
-
-;;;; Aliases
-
-(defun virtual-indent-mask-at (line)
-  "Indent mask at line."
-  (nth line virtual-indent-masks))
-
-(defun virtual-indent-masks-at (lines)
-  "Indent masks at lines."
-  (-select-by-indices lines virtual-indent-masks))
-
-(defun virtual-indent-masks-in (start-line end-line)
-  "Indent masks in slice."
-  (-slice virtual-indent-masks start-line end-line))
-
-(defun virtual-indent-masks-with (lig)
-  "Retrieve masks that (should) have LIG as a parent."
-  (-let (((start-line . end-line)
-          (virtual-indent-lig-indent-interval lig)))
-    (virtual-indent-masks-in start-line end-line)))
-
-;;;; Construction
-
-(defun virtual-indent--init-mask ()
-  "Create initial mask, without parents, for current line."
-  (let* ((line  (line-number-at-pos))
-         (start (line-beginning-position))
-         (ov    (make-overlay start (1+ start))))
-    (-doto ov
-      (overlay-put 'virtual-indent?        t)
-      (overlay-put 'virtual-indent-mask?   t)
-      (overlay-put 'virtual-indent-parents nil)
-
-      (overlay-put 'face 'underline)
-      ;; (overlay-put 'display " ")
-      (overlay-put 'line-prefix (virtual-indent--format-prefix 1 0))
-      (overlay-put 'modification-hooks '(virtual-indent--mask-decompose-hook)))
-
-    (-insert-at line ov virtual-indent-masks)))
-
-(defun virtual-indent-init-masks ()
-  "Line-by-line buildup empty `virtual-indent-masks'."
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (virtual-indent--init-mask)
-      (forward-line))))
-
-;;;; Management
-
-(defun virtual-indent-mask->width (mask)
-  (-> mask (overlay-get 'virtual-indent-parents) virtual-indent-parents-width))
-
-(defun virtual-indent-refresh-mask (mask)
-  "Recalculate and set bounds and properties of MASK."
-  (let* ((parents     (virtual-indent-mask->width mask))
-         (line-prefix (virtual-indent--format-prefix width (length parents))))
-    (overlay-put mask 'line-prefix line-prefix)
-    (move-overlay mask (overlay-start mask) width)))
+(defun apl-ov--present? (start end prop)
+  "Is a lig present within START and END with non-nil PROP? Return it."
+  (and start end
+       (-any (-cut #'overlay-get <> prop)
+             (overlays-in start end))))
 
 
 
 ;;; Ligs
-;;;; Construction
+;;;; Boundary Functions
 
-(defun virtual-indent-build-lig (replacement width)
-  "Build ligature overlay for current `match-data'."
-  (let ((ov (virtual-indent--make-ov-for-match virtual-indent--lig-subexp)))
-    (-doto ov
-      (overlay-put 'virtual-indent?      t)
-      (overlay-put 'virtual-indent-lig?  t)
-      (overlay-put 'virtual-indent-width width)
+(defun apl-lig--boundary-fn--lisps (lig)
+  "Calculate line boundary cons for LIG's masks."
+  (let ((lig-line (-> ov overlay-start line-number-at-pos)))
+    (cons (1+ lig-line)
+          (save-excursion
+            (goto-line lig-line)
+            (sp-end-of-sexp)
+            (line-number-at-pos)))))
 
-      (overlay-put 'display replacement)
-      (overlay-put 'modification-hooks '(virtual-indent--lig-decompose-hook))
-
-      (push virtual-indent-ovs))
-
-    (virtual-indent-add-parent-maybe ov)))
-
-;;;; Methods
-
-(defun virtual-indent-lig-modifies-indent? (lig)
-  "Does the ov LIG modify following lines' indentations?" ; TODO
+(defun apl-lig--boundary?--lisps (lig)
+  "Does LIG have an indentation boundary? A weaker version of boundary-fn."
   ;; 1. Is the lig a form opener?
   ;; 2. Is the lig already modifying indentation?
   ;; 3. Are there more lines?
+  ;; Note that we should store the reason why it fails, as an optimization
+  ;; we can utilize when modifications are performed on a line containing LIG
   t)
 
-(defun virtual-indent-lig-indent-interval (lig)
-  "Find the limiting lines cons for ov LIG's affect on indentation."
-  (save-excursion
-    (goto-char (overlay-start lig))
-    (cons (1+ (line-number-at-pos))
-          (progn (sp-end-of-sexp) (line-number-at-pos)))))
+;;;; Unorganized
 
-(defun virtual-indent-add-parent (lig)
-  "Add LIG ov to the appropriate masks and refresh them."
-  (let ((masks (virtual-indent-masks-with lig)))
-    (-each masks
-      (lambda (mask)
-        (->>
-         (overlay-get mask 'virtual-indent-parents)
-         (cons lig)
-         (overlay-put mask 'virtual-indent-parents))
-        (virtual-indent-refresh-mask mask)))))
+(defun apl-lig--delete (lig)
+  "Delete LIG."
+  (delq lig apl-lig-list)
+  (delete-overlay lig))
 
-(defun virtual-indent-add-parent-maybe (lig)
-  "Determine whether LIG effects indentation before adding it as a parent."
-  (when (virtual-indent-lig-modifies-indent? lig)
-    (virtual-indent-add-parent)))
+(defun apl-ligs->width (ligs)
+  "Sum widths of LIGS."
+  (apl-ovs--map ligs 'apl-width #'sum))
 
+(defun apl-lig--decompose-hook (lig post-modification? start end &optional _)
+  "Decompose LIG upon modification as a modification-hook."
+  (when post-modification?
+    (apl-lig-mask--remove-lig-from-masks lig)
+    (apl-lig--delete lig)))
 
-(defun virtual-indent-parents-width (ligs)
-  "Sum LIGS ovs widths."
-  (->> ligs (--map (overlay-get it 'virtual-indent-width)) -sum))
+(defun apl-lig--init-lig-ov (ov replacement width)
+  "Put lig text properties into OV."
+  (-doto ov
+    (overlay-put 'apl?      t)
+    (overlay-put 'apl-lig?  t)
+    (overlay-put 'apl-width width)
+
+    (overlay-put 'display replacement)
+    (overlay-put 'modification-hooks '(apl-lig--decompose-hook))))
+
+(defun apl-lig--init-lig (replacement width)
+  "Build ligature overlay for current `match-data'."
+  (let* ((start (match-beginning 1))
+         (end   (match-end 1))
+         (lig   (apl-lig--init-lig-ov (make-overlay start end) replacement width)))
+    (push lig apl-lig-list)
+    (apl-lig-mask--add-lig-to-masks lig)))
 
 
 
-;;; Font-Locks
+;;; Masks
 
-(defun virtual-indent-match (replacement width)
-  "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT.
+(defun apl-mask--at (line)
+  "Retrieve mask at LINE."
+  (nth line apl-mask-list))
 
-Identify a ligature has been found and dispatch ov builders as required."
-  (unless (virtual-indent--any-lig-in-match?)
-    (virtual-indent-build-lig replacement width)))
+(defun apl-masks--at (lines)
+  "Retrieve masks at LINES."
+  (-select-by-indices lines apl-masks))
 
-(defun virtual-indent--build-kwd (spec)
-  "Compose the font-lock-keyword for SPEC in `virtual-indent-specs'."
+(defun apl-masks--in (start-line end-line)
+  "Retrieve masks within START-LINE and END-LINE."
+  (-slice apl-mask-list start-line end-line))
+
+(defun apl-mask--insert-at (mask line)
+  "Insert MASK at LINE."
+  (-insert-at line ov apl-masks))
+
+(defun apl-mask--line-count-modified? ()
+  "Positive if lines have been added, negative if removed, otherwise zero."
+  (- (line-number-at-pos (point-max))
+     (length apl-masks)))
+
+(defun apl-mask--indent-col (&optional n)
+  "Get indentation col, of line forward N-1 times if given."
+  (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
+
+(defun apl-mask--delete (mask)
+  "Delete MASK."
+  (delq lig apl-lig-list)
+  (delete-overlay mask))
+
+(defun apl-mask--decompose-hook (mask post-mod? start end &optional _)
+  "Overlay modification hook to delete indent ov upon modification within it."
+  (when post-mod?
+    (let* ((inhibit-modification-hooks t)
+           (width                      (apl-mask->width mask))
+           (invis-spaces-to-delete     (1+ width)))
+      (apl-mask--delete mask)
+      (evil-with-single-undo
+        (delete-char (- invis-spaces-to-delete))))))
+
+(defun apl-mask--set-prefix (mask)
+  "Format and set the `line-prefix' overlay text property for MASK."
+  (let* ((sep         "|")
+         (true-indent (apl-mask--indent-col))
+         (width       (apl-mask->width))
+         (num-parents (length (overlay-get mask 'apl-ligs)))
+         (sections    (list (-> "%02d" (format true-indent))
+                            (-> "%02d" (format width))
+                            (-> "#%d:" (format num-parents)))))
+    (->> sections (-interpose sep) (apply #'s-concat))))
+
+(defun apl-mask--init-mask-ov (ov)
+  "Put mask text properties into OV."
+  (-doto ov
+    (overlay-put 'apl?      t)
+    (overlay-put 'apl-mask? t)
+    (overlay-put 'apl-ligs  nil)
+
+    (overlay-put 'face               'underline)
+    (overlay-put 'display            " ")
+    (overlay-put 'line-prefix        (apl--format-prefix 1 0))
+    (overlay-put 'modification-hooks '(apl-mask--decompose-hook))))
+
+(defun apl-mask--init-mask (&optional line)
+  "Create empty mask for LINE, otherwise current line."
+  (save-excursion
+    (when line (goto-line line))
+
+    (let* ((line  (line-number-at-pos))
+           (start (line-beginning-position))
+           (end   (1+ start))
+           (mask  (apl-mask--init-mask-ov (make-overlay start end))))
+      (apl-mask--insert-at mask line))))
+
+(defun apl-mask--init-masks ()
+  "Line-by-line buildup `apl-masks'."
+  (save-excursion
+    (goto-char (point-min))
+
+    (while (not (eobp))
+      (apl-mask--init-mask)
+      (forward-line))))
+
+(defun apl-mask->width (mask)
+  "Calculate width of MASK's ligs."
+  (-> mask (overlay-get 'apl-ligs) apl-ligs->width))
+
+(defun apl-mask--recenter (mask)
+  "Recenter MASK, ie. reset its end position based on ligs widths."
+  (let ((start (overlay-start mask))
+        (width (apl-mask->width mask)))
+    (move-overlay mask start (+ start width))))
+
+(defun apl-mask--refresh (mask)
+  "Reset bounds and boundary-dependent properties of MASK based on cur ligs."
+  (-doto mask
+    (apl-mask--recenter)
+    (apl-mask--set-prefix)))
+
+(defun apl-mask--refresh-maybe (mask)
+  "Perform `apl-mask--refresh' when we should."
+  (unless apl-mask--wait-for-refresh
+    (apl-mask--refresh mask)))
+
+(defun apl-masks--refresh (masks)
+  "Refresh MASKS."
+  (-each masks #'apl-mask--refresh-maybe))
+
+
+
+;;; Mask-Lig Interface
+
+(defun apl-lig-mask--masks-for (lig)
+  "Return all masks LIG contributes to."
+  (->> lig (funcall #'apl-lig--boundary-fn) (apply #'apl-masks--in)))
+
+(defun apl-lig-mask--add-lig-to-mask (lig mask)
+  (push lig (overlay-get mask 'apl-ligs))
+  (apl-mask--refresh-maybe mask))
+
+(defun apl-lig-mask--remove-lig-from-mask (lig mask)
+  "Remove LIG from MASK."
+  (delq lig (overlay-get mask 'apl-ligs))
+  (apl-mask--refresh-maybe mask))
+
+(defun apl-lig-mask--add-lig-to-masks (lig)
+  "Add LIG to all masks it contributes to."
+  (-each (apl-lig-mask--masks-for lig)
+    (-partial #'apl-lig-mask--add-lig-to-mask lig)))
+
+(defun apl-lig-mask--remove-lig-from-masks (lig)
+  "Remove LIG from all masks it contributes to."
+  (-each (apl-lig-mask--masks-for lig)
+    (-partial #'apl-lig-mask--remove-lig-from-mask lig)))
+
+
+
+;;; Font Locks
+
+(defun apl-kwd--match (replacement width)
+  "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
+  (unless (apl-ov--present? (match-beginning 1) (match-end 1) 'apl-lig?)
+    (apl-lig--init replacement width)))
+
+(defun apl-kwd--build (spec)
+  "Compose the font-lock-keyword for SPEC in `apl-specs'."
   (-let (((&plist :name name
                   :replacement replacement
                   :rx rx
                   :width width)
           spec))
-    `(,rx (0 (prog1 virtual-indent-lig-face
-               (virtual-indent-match ,replacement ,width))))))
+    `(,rx (0 (prog1 nil (apl-kwd--match ,replacement ,width))))))
 
-(defun virtual-indent-add-kwds ()
-  "Translate spec into keywords and add to `font-lock-keywords'."
-  (->> virtual-indent-specs
-     (-map #'virtual-indent--build-kwd)
-     (font-lock-add-keywords nil)))
-
-
-
-;;; Setup
-
-(defun virtual-indent-setup ()
-  "Handle virtual-indent instantiation to take place before font-locks turn on."
-  (virtual-indent-init-masks))
+(defun apl-kwds--build ()
+  "Build kwds from `apl-specs' and add to `font-lock-keywords'."
+  (let ((kwds (-map #'apl-kwd--build apl-specs)))
+    (font-lock-add-keywords nil kwds)))
 
 
 
 ;;; Interactive
 
-(defun virtual-indent-disable ()
-  "Disable and cleanup virtual-indent."
+(defun apl-disable ()
+  "Delete overlays managed by apl."
   (interactive)
 
+  (-each apl-mask-list #'apl-mask--delete)
+  (-each apl-lig-list #'apl-lig--delete)
   (setq font-lock-keywords nil)
-  (remove-hook 'lisp-mode-hook #'virtual-indent-add-kwds)
-  (virtual-indent-delete-ovs))
+  (remove-hook 'lisp-mode-hook #'apl-add-kwds))
 
-(defun virtual-indent-enable ()
-  "Enable virtual-indent and cleanup previous instance if running."
+(defun apl-enable ()
+  "Enable apl and cleanup previous instance if running."
   (interactive)
 
-  (virtual-indent-disable)
-  (virtual-indent-setup)
-  (add-hook 'lisp-mode-hook #'virtual-indent-add-kwds nil 'local)
-  (lisp-mode)
-
-  ;; Change Functions to use later...
-  ;; before-change-functions
-  ;; after-change-functions
-  )
+  (apl-disable)
+  (apl-init-masks)
+  (add-hook 'lisp-mode-hook #'apl-add-kwds nil 'local)
+  (lisp-mode))
 
 
 
-;;; Development Stuff
+;;; Scratch
 
 (when nil
   (spacemacs/declare-prefix "d" "dev")
-  (spacemacs/set-leader-keys "de" #'virtual-indent-enable)
-  (spacemacs/set-leader-keys "dd" #'virtual-indent-disable))
-
-(defconst virtual-indent-lig-face font-lock-function-name-face
-  "Make it easier to tell when a ligature is found.")
+  (spacemacs/set-leader-keys "de" #'apl-enable)
+  (spacemacs/set-leader-keys "dd" #'apl-disable))
 
 
 
-(provide 'virtual-indent)
+;;; Footer
 
-;;; virtual-indent.el ends here
+(provide 'apl)
 
-;; Notes
-;; 1. It's collapsing newlines atm
-;; 2. Cant lead with a mask on left-margin text as zero-size outline will
-;;    not yield the line-prefix.
-;;    - Can either not set the display on such a mask and manage displays now when
-;;    using hooks and stuff
-;;    - Or dont build overlays for non-indented areas (probably do 1st option)
+
+
+;;; apl.el ends here
