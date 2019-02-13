@@ -68,7 +68,7 @@ The RX, if given, should set the first group for the match to replace."
   "A function that should return a cons of line boundaries given a LIG.")
 
 ;; Below fn not used yet
-(defconst aplig-lig--boundary?-fn #'aplig-lig--boundary-fn--lisps
+(defconst aplig-lig--boundary?-fn #'aplig-lig--boundary?--lisps
   "A subset of `aplig-lig--boundary-fn', whether LIG has a boundary.")
 
 ;;;; Managed
@@ -133,7 +133,7 @@ The RX, if given, should set the first group for the match to replace."
   ;; we can utilize when modifications are performed on a line containing LIG
   t)
 
-;;;; Unorganized
+;;;; Overlays
 
 (defun aplig-lig--present? (start end)
   "Is a lig present within START and END? Return it."
@@ -145,10 +145,6 @@ The RX, if given, should set the first group for the match to replace."
   "Delete LIG."
   (delq lig aplig-lig-list)
   (delete-overlay lig))
-
-(defun aplig-ligs->width (ligs)
-  "Sum widths of LIGS."
-  (aplig-ovs--map ligs 'aplig-width #'sum))
 
 (defun aplig-lig--decompose-hook (lig post-modification? start end &optional _)
   "Decompose LIG upon modification as a modification-hook."
@@ -166,6 +162,12 @@ The RX, if given, should set the first group for the match to replace."
     (overlay-put 'display replacement)
     (overlay-put 'modification-hooks '(aplig-lig--decompose-hook))))
 
+;;;; Methods
+
+(defun aplig-ligs->width (ligs)
+  "Sum widths of LIGS."
+  (aplig-ovs--map ligs 'aplig-width #'sum))
+
 (defun aplig-lig--init-lig (replacement width)
   "Build ligature overlay for current `match-data'."
   (let* ((start (match-beginning 1))
@@ -177,6 +179,16 @@ The RX, if given, should set the first group for the match to replace."
 
 
 ;;; Masks
+;;;; Lines
+
+(defun aplig-mask--line-count-modified? ()
+  "Positive if lines have been added, negative if removed, otherwise zero."
+  (- (line-number-at-pos (point-max))
+     (length aplig-masks)))
+
+(defun aplig-mask--indent-col (&optional n)
+  "Get indentation col, of line forward N-1 times if given."
+  (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
 
 (defun aplig-mask--at (line)
   "Retrieve mask at LINE."
@@ -194,14 +206,7 @@ The RX, if given, should set the first group for the match to replace."
   "Insert MASK at LINE."
   (-insert-at line ov aplig-masks))
 
-(defun aplig-mask--line-count-modified? ()
-  "Positive if lines have been added, negative if removed, otherwise zero."
-  (- (line-number-at-pos (point-max))
-     (length aplig-masks)))
-
-(defun aplig-mask--indent-col (&optional n)
-  "Get indentation col, of line forward N-1 times if given."
-  (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
+;;;; Overlays
 
 (defun aplig-mask--delete (mask)
   "Delete MASK."
@@ -241,30 +246,6 @@ The RX, if given, should set the first group for the match to replace."
     (overlay-put 'line-prefix        (aplig--format-prefix 1 0))
     (overlay-put 'modification-hooks '(aplig-mask--decompose-hook))))
 
-(defun aplig-mask--init-mask (&optional line)
-  "Create empty mask for LINE, otherwise current line."
-  (save-excursion
-    (when line (goto-line line))
-
-    (let* ((line  (line-number-at-pos))
-           (start (line-beginning-position))
-           (end   (1+ start))
-           (mask  (aplig-mask--init-mask-ov (make-overlay start end))))
-      (aplig-mask--insert-at mask line))))
-
-(defun aplig-mask--init-masks ()
-  "Line-by-line buildup `aplig-masks'."
-  (save-excursion
-    (goto-char (point-min))
-
-    (while (not (eobp))
-      (aplig-mask--init-mask)
-      (forward-line))))
-
-(defun aplig-mask->width (mask)
-  "Calculate width of MASK's ligs."
-  (-> mask (overlay-get 'aplig-ligs) aplig-ligs->width))
-
 (defun aplig-mask--recenter (mask)
   "Recenter MASK, ie. reset its end position based on ligs widths."
   (let ((start (overlay-start mask))
@@ -286,9 +267,35 @@ The RX, if given, should set the first group for the match to replace."
   "Refresh MASKS."
   (-each masks #'aplig-mask--refresh-maybe))
 
+;;;; Methods
+
+(defun aplig-mask->width (mask)
+  "Calculate width of MASK's ligs."
+  (-> mask (overlay-get 'aplig-ligs) aplig-ligs->width))
+
+(defun aplig-mask--init-mask (&optional line)
+  "Create empty mask for LINE, otherwise current line."
+  (save-excursion
+    (when line (goto-line line))
+
+    (let* ((line  (line-number-at-pos))
+           (start (line-beginning-position))
+           (end   (1+ start))
+           (mask  (aplig-mask--init-mask-ov (make-overlay start end))))
+      (aplig-mask--insert-at mask line))))
+
+(defun aplig-mask--init-masks ()
+  "Line-by-line buildup `aplig-masks'."
+  (save-excursion
+    (goto-char (point-min))
+
+    (while (not (eobp))
+      (aplig-mask--init-mask)
+      (forward-line))))
+
 
 
-;;; Mask-Lig Interface
+;;; Lig-Mask Interface
 
 (defun aplig-lig-mask--masks-for (lig)
   "Return all masks LIG contributes to."
