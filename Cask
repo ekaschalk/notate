@@ -1,7 +1,7 @@
 (source gnu)
 (source melpa)
 
-(package-file "apl.el")
+(package-file "aplig.el")
 
 (depends-on "cl")
 (depends-on "dash")

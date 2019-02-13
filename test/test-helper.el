@@ -9,7 +9,7 @@
 (require 'f)
 
 (progn (add-to-list 'load-path (-> (f-this-file) (f-parent) (f-parent)))
-       (require 'apl))
+       (require 'aplig))
 
 
 

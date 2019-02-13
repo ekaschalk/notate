@@ -1,9 +1,9 @@
-;;; apl.el --- Always Program in Ligatures -*- lexical-binding: t; -*-
+;;; aplig.el --- Always Program with Ligatures -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 ;;
 ;; Authors: Eric Kaschalk <ekaschalk@gmail.com>
-;; URL: http://github.com/ekaschalk/apl
+;; URL: http://github.com/ekaschalk/aplig
 ;; Version: 0.1
 ;; Keywords: indentation, display, ligatures, major-modes
 ;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (s "1.12.0") (emacs "26.1"))
@@ -13,8 +13,8 @@
 ;;; Commentary:
 
 ;; Alignment and specifically indentation issues hamper generalized ligatures,
-;; known as prettified-symbols in Emacs. APL attempts to bring the joy and
-;; readability of APLang to every language!
+;; known as prettified-symbols in Emacs. aplig attempts to bring the joy and
+;; readability of APL to every language!
 
 
 
@@ -32,7 +32,7 @@
 ;;; Configuration
 ;;;; Utils
 
-(defun apl-make-spec (name string replacement &optional rx)
+(defun aplig-make-spec (name string replacement &optional rx)
   "Create spec plist NAME for STRING to REPLACEMENT optionally with custom RX.
 
 Without a RX given, default to matching entire STRING.
@@ -47,39 +47,39 @@ The RX, if given, should set the first group for the match to replace."
     :width       ,(- (length string)
                      (length replacement))))
 
-(defun apl-make-specs (specs)
-  "Apply `apl-make-spec' to each SPEC."
-  (-map (-applify #'apl-make-spec) specs))
+(defun aplig-make-specs (specs)
+  "Apply `aplig-make-spec' to each SPEC."
+  (-map (-applify #'aplig-make-spec) specs))
 
 ;;;; Configured
 
-(defconst apl-specs
-  (apl-make-specs '(("Hello Lig"   "hello"     "")
-                    ("0-space Lig" "0-space"   "")
-                    ("1-space Lig" "1-space"   " ")
-                    ("2-space Lig" "2-space"   "  ")
-                    ("tab Lig"     "tab-space" "	")))
-  "Collection of specs from `apl-make-spec'.")
+(defconst aplig-specs
+  (aplig-make-specs '(("Hello Lig"   "hello"     "")
+                      ("0-space Lig" "0-space"   "")
+                      ("1-space Lig" "1-space"   " ")
+                      ("2-space Lig" "2-space"   "  ")
+                      ("tab Lig"     "tab-space" "	")))
+  "Collection of specs from `aplig-make-spec'.")
 
-(defconst apl-display-prefixes? t
+(defconst aplig-display-prefixes? t
   "Whether to add the `line-prefix' property to indentation overlays.")
 
-(defconst apl-lig--boundary-fn #'apl-lig--boundary-fn--lisps
+(defconst aplig-lig--boundary-fn #'aplig-lig--boundary-fn--lisps
   "A function that should return a cons of line boundaries given a LIG.")
 
 ;; Below fn not used yet
-(defconst apl-lig--boundary?-fn #'apl-lig--boundary-fn--lisps
-  "A subset of `apl-lig--boundary-fn', whether LIG has a boundary.")
+(defconst aplig-lig--boundary?-fn #'aplig-lig--boundary-fn--lisps
+  "A subset of `aplig-lig--boundary-fn', whether LIG has a boundary.")
 
 ;;;; Managed
 
-(defconst apl-lig-list nil
+(defconst aplig-lig-list nil
   "List of ligature overlays currently managed.")
 
-(defconst apl-mask-list nil
+(defconst aplig-mask-list nil
   "List of indent overlays currently managed.")
 
-(defconst apl-mask--wait-for-refresh nil
+(defconst aplig-mask--wait-for-refresh nil
   "Let-bind true to hold off on refreshing masks during batch modifications.")
 
 
@@ -87,41 +87,35 @@ The RX, if given, should set the first group for the match to replace."
 ;;; Overlays
 ;;;; Predicates
 
-(defun apl-ov--lig? (ov)
+(defun aplig-ov--lig? (ov)
   "Is OV a ligature?"
-  (overlay-get ov 'apl-lig?))
+  (overlay-get ov 'aplig-lig?))
 
-(defun apl-ov--mask? (ov)
+(defun aplig-ov--mask? (ov)
   "Is OV a mask?"
-  (overlay-get ov 'apl-mask?))
+  (overlay-get ov 'aplig-mask?))
 
-(defun apl-ov--in? (ov start end)
+(defun aplig-ov--in? (ov start end)
   "Is OV contained within START and END?"
   (and ov start end
        (<= start (overlay-start ov) (overlay-end ov) end)))
 
-(defun apl-ov--in-match? (ov subexp)
+(defun aplig-ov--in-match? (ov subexp)
   "Is OV contained in the SUBEXP matching group?"
-  (apl--ov-in-bound? ov (match-beginning subexp) (match-end subexp)))
+  (aplig--ov-in-bound? ov (match-beginning subexp) (match-end subexp)))
 
 ;;;; Utils
 
-(defun apl-ovs--map (ovs prop fn)
+(defun aplig-ovs--map (ovs prop fn)
   "Map FN over OVS PROP."
   (--map (overlay-get it prop) fn))
-
-(defun apl-ov--present? (start end prop)
-  "Is a lig present within START and END with non-nil PROP? Return it."
-  (and start end
-       (-any (-cut #'overlay-get <> prop)
-             (overlays-in start end))))
 
 
 
 ;;; Ligs
 ;;;; Boundary Functions
 
-(defun apl-lig--boundary-fn--lisps (lig)
+(defun aplig-lig--boundary-fn--lisps (lig)
   "Calculate line boundary cons for LIG's masks."
   (let ((lig-line (-> ov overlay-start line-number-at-pos)))
     (cons (1+ lig-line)
@@ -130,7 +124,7 @@ The RX, if given, should set the first group for the match to replace."
             (sp-end-of-sexp)
             (line-number-at-pos)))))
 
-(defun apl-lig--boundary?--lisps (lig)
+(defun aplig-lig--boundary?--lisps (lig)
   "Does LIG have an indentation boundary? A weaker version of boundary-fn."
   ;; 1. Is the lig a form opener?
   ;; 2. Is the lig already modifying indentation?
@@ -141,107 +135,113 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;;; Unorganized
 
-(defun apl-lig--delete (lig)
+(defun aplig-lig--present? (start end)
+  "Is a lig present within START and END? Return it."
+  (and start end
+       (-any #'aplig-ov--lig?
+             (overlays-in start end))))
+
+(defun aplig-lig--delete (lig)
   "Delete LIG."
-  (delq lig apl-lig-list)
+  (delq lig aplig-lig-list)
   (delete-overlay lig))
 
-(defun apl-ligs->width (ligs)
+(defun aplig-ligs->width (ligs)
   "Sum widths of LIGS."
-  (apl-ovs--map ligs 'apl-width #'sum))
+  (aplig-ovs--map ligs 'aplig-width #'sum))
 
-(defun apl-lig--decompose-hook (lig post-modification? start end &optional _)
+(defun aplig-lig--decompose-hook (lig post-modification? start end &optional _)
   "Decompose LIG upon modification as a modification-hook."
   (when post-modification?
-    (apl-lig-mask--remove-lig-from-masks lig)
-    (apl-lig--delete lig)))
+    (aplig-lig-mask--remove-lig-from-masks lig)
+    (aplig-lig--delete lig)))
 
-(defun apl-lig--init-lig-ov (ov replacement width)
+(defun aplig-lig--init-lig-ov (ov replacement width)
   "Put lig text properties into OV."
   (-doto ov
     (overlay-put 'apl?      t)
-    (overlay-put 'apl-lig?  t)
-    (overlay-put 'apl-width width)
+    (overlay-put 'aplig-lig?  t)
+    (overlay-put 'aplig-width width)
 
     (overlay-put 'display replacement)
-    (overlay-put 'modification-hooks '(apl-lig--decompose-hook))))
+    (overlay-put 'modification-hooks '(aplig-lig--decompose-hook))))
 
-(defun apl-lig--init-lig (replacement width)
+(defun aplig-lig--init-lig (replacement width)
   "Build ligature overlay for current `match-data'."
   (let* ((start (match-beginning 1))
          (end   (match-end 1))
-         (lig   (apl-lig--init-lig-ov (make-overlay start end) replacement width)))
-    (push lig apl-lig-list)
-    (apl-lig-mask--add-lig-to-masks lig)))
+         (lig   (aplig-lig--init-lig-ov (make-overlay start end) replacement width)))
+    (push lig aplig-lig-list)
+    (aplig-lig-mask--add-lig-to-masks lig)))
 
 
 
 ;;; Masks
 
-(defun apl-mask--at (line)
+(defun aplig-mask--at (line)
   "Retrieve mask at LINE."
-  (nth line apl-mask-list))
+  (nth line aplig-mask-list))
 
-(defun apl-masks--at (lines)
+(defun aplig-masks--at (lines)
   "Retrieve masks at LINES."
-  (-select-by-indices lines apl-masks))
+  (-select-by-indices lines aplig-masks))
 
-(defun apl-masks--in (start-line end-line)
+(defun aplig-masks--in (start-line end-line)
   "Retrieve masks within START-LINE and END-LINE."
-  (-slice apl-mask-list start-line end-line))
+  (-slice aplig-mask-list start-line end-line))
 
-(defun apl-mask--insert-at (mask line)
+(defun aplig-mask--insert-at (mask line)
   "Insert MASK at LINE."
-  (-insert-at line ov apl-masks))
+  (-insert-at line ov aplig-masks))
 
-(defun apl-mask--line-count-modified? ()
+(defun aplig-mask--line-count-modified? ()
   "Positive if lines have been added, negative if removed, otherwise zero."
   (- (line-number-at-pos (point-max))
-     (length apl-masks)))
+     (length aplig-masks)))
 
-(defun apl-mask--indent-col (&optional n)
+(defun aplig-mask--indent-col (&optional n)
   "Get indentation col, of line forward N-1 times if given."
   (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
 
-(defun apl-mask--delete (mask)
+(defun aplig-mask--delete (mask)
   "Delete MASK."
-  (delq lig apl-lig-list)
+  (delq lig aplig-lig-list)
   (delete-overlay mask))
 
-(defun apl-mask--decompose-hook (mask post-mod? start end &optional _)
+(defun aplig-mask--decompose-hook (mask post-mod? start end &optional _)
   "Overlay modification hook to delete indent ov upon modification within it."
   (when post-mod?
     (let* ((inhibit-modification-hooks t)
-           (width                      (apl-mask->width mask))
+           (width                      (aplig-mask->width mask))
            (invis-spaces-to-delete     (1+ width)))
-      (apl-mask--delete mask)
+      (aplig-mask--delete mask)
       (evil-with-single-undo
         (delete-char (- invis-spaces-to-delete))))))
 
-(defun apl-mask--set-prefix (mask)
+(defun aplig-mask--set-prefix (mask)
   "Format and set the `line-prefix' overlay text property for MASK."
   (let* ((sep         "|")
-         (true-indent (apl-mask--indent-col))
-         (width       (apl-mask->width))
-         (num-parents (length (overlay-get mask 'apl-ligs)))
+         (true-indent (aplig-mask--indent-col))
+         (width       (aplig-mask->width))
+         (num-parents (length (overlay-get mask 'aplig-ligs)))
          (sections    (list (-> "%02d" (format true-indent))
                             (-> "%02d" (format width))
                             (-> "#%d:" (format num-parents)))))
     (->> sections (-interpose sep) (apply #'s-concat))))
 
-(defun apl-mask--init-mask-ov (ov)
+(defun aplig-mask--init-mask-ov (ov)
   "Put mask text properties into OV."
   (-doto ov
     (overlay-put 'apl?      t)
-    (overlay-put 'apl-mask? t)
-    (overlay-put 'apl-ligs  nil)
+    (overlay-put 'aplig-mask? t)
+    (overlay-put 'aplig-ligs  nil)
 
     (overlay-put 'face               'underline)
     (overlay-put 'display            " ")
-    (overlay-put 'line-prefix        (apl--format-prefix 1 0))
-    (overlay-put 'modification-hooks '(apl-mask--decompose-hook))))
+    (overlay-put 'line-prefix        (aplig--format-prefix 1 0))
+    (overlay-put 'modification-hooks '(aplig-mask--decompose-hook))))
 
-(defun apl-mask--init-mask (&optional line)
+(defun aplig-mask--init-mask (&optional line)
   "Create empty mask for LINE, otherwise current line."
   (save-excursion
     (when line (goto-line line))
@@ -249,113 +249,113 @@ The RX, if given, should set the first group for the match to replace."
     (let* ((line  (line-number-at-pos))
            (start (line-beginning-position))
            (end   (1+ start))
-           (mask  (apl-mask--init-mask-ov (make-overlay start end))))
-      (apl-mask--insert-at mask line))))
+           (mask  (aplig-mask--init-mask-ov (make-overlay start end))))
+      (aplig-mask--insert-at mask line))))
 
-(defun apl-mask--init-masks ()
-  "Line-by-line buildup `apl-masks'."
+(defun aplig-mask--init-masks ()
+  "Line-by-line buildup `aplig-masks'."
   (save-excursion
     (goto-char (point-min))
 
     (while (not (eobp))
-      (apl-mask--init-mask)
+      (aplig-mask--init-mask)
       (forward-line))))
 
-(defun apl-mask->width (mask)
+(defun aplig-mask->width (mask)
   "Calculate width of MASK's ligs."
-  (-> mask (overlay-get 'apl-ligs) apl-ligs->width))
+  (-> mask (overlay-get 'aplig-ligs) aplig-ligs->width))
 
-(defun apl-mask--recenter (mask)
+(defun aplig-mask--recenter (mask)
   "Recenter MASK, ie. reset its end position based on ligs widths."
   (let ((start (overlay-start mask))
-        (width (apl-mask->width mask)))
+        (width (aplig-mask->width mask)))
     (move-overlay mask start (+ start width))))
 
-(defun apl-mask--refresh (mask)
+(defun aplig-mask--refresh (mask)
   "Reset bounds and boundary-dependent properties of MASK based on cur ligs."
   (-doto mask
-    (apl-mask--recenter)
-    (apl-mask--set-prefix)))
+    (aplig-mask--recenter)
+    (aplig-mask--set-prefix)))
 
-(defun apl-mask--refresh-maybe (mask)
-  "Perform `apl-mask--refresh' when we should."
-  (unless apl-mask--wait-for-refresh
-    (apl-mask--refresh mask)))
+(defun aplig-mask--refresh-maybe (mask)
+  "Perform `aplig-mask--refresh' when we should."
+  (unless aplig-mask--wait-for-refresh
+    (aplig-mask--refresh mask)))
 
-(defun apl-masks--refresh (masks)
+(defun aplig-masks--refresh (masks)
   "Refresh MASKS."
-  (-each masks #'apl-mask--refresh-maybe))
+  (-each masks #'aplig-mask--refresh-maybe))
 
 
 
 ;;; Mask-Lig Interface
 
-(defun apl-lig-mask--masks-for (lig)
+(defun aplig-lig-mask--masks-for (lig)
   "Return all masks LIG contributes to."
-  (->> lig (funcall #'apl-lig--boundary-fn) (apply #'apl-masks--in)))
+  (->> lig (funcall #'aplig-lig--boundary-fn) (apply #'aplig-masks--in)))
 
-(defun apl-lig-mask--add-lig-to-mask (lig mask)
-  (push lig (overlay-get mask 'apl-ligs))
-  (apl-mask--refresh-maybe mask))
+(defun aplig-lig-mask--add-lig-to-mask (lig mask)
+  (push lig (overlay-get mask 'aplig-ligs))
+  (aplig-mask--refresh-maybe mask))
 
-(defun apl-lig-mask--remove-lig-from-mask (lig mask)
+(defun aplig-lig-mask--remove-lig-from-mask (lig mask)
   "Remove LIG from MASK."
-  (delq lig (overlay-get mask 'apl-ligs))
-  (apl-mask--refresh-maybe mask))
+  (delq lig (overlay-get mask 'aplig-ligs))
+  (aplig-mask--refresh-maybe mask))
 
-(defun apl-lig-mask--add-lig-to-masks (lig)
+(defun aplig-lig-mask--add-lig-to-masks (lig)
   "Add LIG to all masks it contributes to."
-  (-each (apl-lig-mask--masks-for lig)
-    (-partial #'apl-lig-mask--add-lig-to-mask lig)))
+  (-each (aplig-lig-mask--masks-for lig)
+    (-partial #'aplig-lig-mask--add-lig-to-mask lig)))
 
-(defun apl-lig-mask--remove-lig-from-masks (lig)
+(defun aplig-lig-mask--remove-lig-from-masks (lig)
   "Remove LIG from all masks it contributes to."
-  (-each (apl-lig-mask--masks-for lig)
-    (-partial #'apl-lig-mask--remove-lig-from-mask lig)))
+  (-each (aplig-lig-mask--masks-for lig)
+    (-partial #'aplig-lig-mask--remove-lig-from-mask lig)))
 
 
 
 ;;; Font Locks
 
-(defun apl-kwd--match (replacement width)
+(defun aplig-kwd--match (replacement width)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
-  (unless (apl-ov--present? (match-beginning 1) (match-end 1) 'apl-lig?)
-    (apl-lig--init replacement width)))
+  (unless (aplig-lig--present? (match-beginning 1) (match-end 1))
+    (aplig-lig--init replacement width)))
 
-(defun apl-kwd--build (spec)
-  "Compose the font-lock-keyword for SPEC in `apl-specs'."
+(defun aplig-kwd--build (spec)
+  "Compose the font-lock-keyword for SPEC in `aplig-specs'."
   (-let (((&plist :name name
                   :replacement replacement
                   :rx rx
                   :width width)
           spec))
-    `(,rx (0 (prog1 nil (apl-kwd--match ,replacement ,width))))))
+    `(,rx (0 (prog1 nil (aplig-kwd--match ,replacement ,width))))))
 
-(defun apl-kwds--build ()
-  "Build kwds from `apl-specs' and add to `font-lock-keywords'."
-  (let ((kwds (-map #'apl-kwd--build apl-specs)))
+(defun aplig-kwds--build ()
+  "Build kwds from `aplig-specs' and add to `font-lock-keywords'."
+  (let ((kwds (-map #'aplig-kwd--build aplig-specs)))
     (font-lock-add-keywords nil kwds)))
 
 
 
 ;;; Interactive
 
-(defun apl-disable ()
+(defun aplig-disable ()
   "Delete overlays managed by apl."
   (interactive)
 
-  (-each apl-mask-list #'apl-mask--delete)
-  (-each apl-lig-list #'apl-lig--delete)
+  (-each aplig-mask-list #'aplig-mask--delete)
+  (-each aplig-lig-list #'aplig-lig--delete)
   (setq font-lock-keywords nil)
-  (remove-hook 'lisp-mode-hook #'apl-add-kwds))
+  (remove-hook 'lisp-mode-hook #'aplig-add-kwds))
 
-(defun apl-enable ()
+(defun aplig-enable ()
   "Enable apl and cleanup previous instance if running."
   (interactive)
 
-  (apl-disable)
-  (apl-init-masks)
-  (add-hook 'lisp-mode-hook #'apl-add-kwds nil 'local)
+  (aplig-disable)
+  (aplig-init-masks)
+  (add-hook 'lisp-mode-hook #'aplig-add-kwds nil 'local)
   (lisp-mode))
 
 
@@ -364,15 +364,15 @@ The RX, if given, should set the first group for the match to replace."
 
 (when nil
   (spacemacs/declare-prefix "d" "dev")
-  (spacemacs/set-leader-keys "de" #'apl-enable)
-  (spacemacs/set-leader-keys "dd" #'apl-disable))
+  (spacemacs/set-leader-keys "de" #'aplig-enable)
+  (spacemacs/set-leader-keys "dd" #'aplig-disable))
 
 
 
 ;;; Footer
 
-(provide 'apl)
+(provide 'aplig)
 
 
 
-;;; apl.el ends here
+;;; aplig.el ends here

@@ -1,4 +1,4 @@
-;;; apl-test.el --- Tests -*- lexical-binding: t -*-
+;;; aplig-test.el --- Tests -*- lexical-binding: t -*-
 
 ;; Tested
 ;; ...

@@ -1,14 +1,42 @@
-* APL - Always Program in Ligatures
+* aplig - Always Program with Ligatures (in emacs)
 
 (In-progress)
 
-Indentation correcting visual replacements of symbols with other symbols.
+Indentation-correcting visual replacements of symbols with other symbols.
 
 Alignment and specifically indentation issues hamper generalized ligatures,
 known as prettified-symbols in Emacs. APL attempts to bring the joy and
 readability of APLang to every language!
 
-** Goal
+** Details
 
-Centralize ligature/prettify/etc. packages under an optional, major-mode
-agnostic indentation-aligning framework.
+Ligatures render consecutive graphemes (characters) as a single glyph.
+
+Fonts with programming ligatures, like Fira Code, design their ligature glyphs
+to have the same width as their constituent characters. Eg. the glyph for "=="
+takes up two spaces.
+
+Matching sizes is not always possible and alignment will thus break. A simple
+example, choosing to render "and" with the logical symbol for and "∧":
+
+#+BEGIN_SRC lisp
+(and foo   ; The actual text
+     bar)
+(∧ foo     ; What we see when working - bar isn't aligned!
+     bar)
+(∧ foo     ; What we want to see when working...
+   bar)
+(and foo   ; But now the true indentation is incorrect!
+   bar)
+#+END_SRC
+
+There are many desirable examples of similar ligature-likes. Like rendering
+"alpha" as its single-width greek character ɑ. Or rendering "for" with its
+mathematical counterpart ∀.
+
+*aplig maintains indentation masks* so that the indentation we see uses the
+ligatures, while the true indentation uses the true text.
+
+/Note on terminology:/ [[https://helpful.knobs-dials.com/index.php/Morpheme,_Syllable,_Lexeme,_Grapheme,_Phoneme,_Character,_Glyph][graphemes, characters, and glyphs]] can be confusing when
+used technically. I choose the least precise definition of ligatures and extend
+it to mean: rendering consecutive characters as another set of characters.
