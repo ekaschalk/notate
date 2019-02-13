@@ -108,7 +108,7 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-ovs--map (ovs prop fn)
   "Map FN over OVS PROP."
-  (--map (overlay-get it prop) fn))
+  (->> ovs (--map (overlay-get it prop)) (funcall fn)))
 
 
 
@@ -166,13 +166,14 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-ligs->width (ligs)
   "Sum widths of LIGS."
-  (aplig-ovs--map ligs 'aplig-width #'sum))
+  (aplig-ovs--map ligs 'aplig-width #'-sum))
 
 (defun aplig-lig--init-lig (replacement width)
   "Build ligature overlay for current `match-data'."
   (let* ((start (match-beginning 1))
          (end   (match-end 1))
-         (lig   (aplig-lig--init-lig-ov (make-overlay start end) replacement width)))
+         (ov    (make-overlay start end))
+         (lig   (aplig-lig--init-lig-ov ov replacement width)))
     (push lig aplig-lig-list)
     (aplig-lig-mask--add-lig-to-masks lig)))
 
@@ -184,7 +185,7 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-mask--line-count-modified? ()
   "Positive if lines have been added, negative if removed, otherwise zero."
   (- (line-number-at-pos (point-max))
-     (length aplig-masks)))
+     (length aplig-mask-list)))
 
 (defun aplig-mask--indent-col (&optional n)
   "Get indentation col, of line forward N-1 times if given."
@@ -196,7 +197,7 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-masks--at (lines)
   "Retrieve masks at LINES."
-  (-select-by-indices lines aplig-masks))
+  (-select-by-indices lines aplig-mask-list))
 
 (defun aplig-masks--in (start-line end-line)
   "Retrieve masks within START-LINE and END-LINE."
@@ -204,13 +205,13 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-mask--insert-at (mask line)
   "Insert MASK at LINE."
-  (-insert-at line ov aplig-masks))
+  (setq aplig-mask-list (-insert-at line mask aplig-mask-list)))
 
 ;;;; Overlays
 
 (defun aplig-mask--delete (mask)
   "Delete MASK."
-  (delq lig aplig-lig-list)
+  (delq mask aplig-mask-list)
   (delete-overlay mask))
 
 (defun aplig-mask--decompose-hook (mask post-mod? start end &optional _)
@@ -223,8 +224,8 @@ The RX, if given, should set the first group for the match to replace."
       (evil-with-single-undo
         (delete-char (- invis-spaces-to-delete))))))
 
-(defun aplig-mask--set-prefix (mask)
-  "Format and set the `line-prefix' overlay text property for MASK."
+(defun aplig-mask--format-prefix (mask)
+  "Format the `line-prefix' overlay text property for MASK."
   (let* ((sep         "|")
          (true-indent (aplig-mask--indent-col))
          (width       (aplig-mask->width))
@@ -234,7 +235,11 @@ The RX, if given, should set the first group for the match to replace."
                             (-> "#%d:" (format num-parents)))))
     (->> sections (-interpose sep) (apply #'s-concat))))
 
-(defun aplig-mask--init-mask-ov (ov)
+(defun aplig-mask--reset-prefix (mask)
+  "Reset the `line-prefix' overlay text property for MASK."
+  (->> mask aplig-mask--format-prefix (overlay-put mask 'line-prefix)))
+
+(defun aplig-mask--init-ov (ov)
   "Put mask text properties into OV."
   (-doto ov
     (overlay-put 'apl?      t)
@@ -243,7 +248,6 @@ The RX, if given, should set the first group for the match to replace."
 
     (overlay-put 'face               'underline)
     (overlay-put 'display            " ")
-    (overlay-put 'line-prefix        (aplig--format-prefix 1 0))
     (overlay-put 'modification-hooks '(aplig-mask--decompose-hook))))
 
 (defun aplig-mask--recenter (mask)
@@ -256,7 +260,7 @@ The RX, if given, should set the first group for the match to replace."
   "Reset bounds and boundary-dependent properties of MASK based on cur ligs."
   (-doto mask
     (aplig-mask--recenter)
-    (aplig-mask--set-prefix)))
+    (aplig-mask--reset-prefix)))
 
 (defun aplig-mask--refresh-maybe (mask)
   "Perform `aplig-mask--refresh' when we should."
@@ -271,9 +275,11 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-mask->width (mask)
   "Calculate width of MASK's ligs."
+  ;; (aplig-ligs->width (overlay-get mask 'aplig-ligs))
+
   (-> mask (overlay-get 'aplig-ligs) aplig-ligs->width))
 
-(defun aplig-mask--init-mask (&optional line)
+(defun aplig-mask--init (&optional line)
   "Create empty mask for LINE, otherwise current line."
   (save-excursion
     (when line (goto-line line))
@@ -281,16 +287,17 @@ The RX, if given, should set the first group for the match to replace."
     (let* ((line  (line-number-at-pos))
            (start (line-beginning-position))
            (end   (1+ start))
-           (mask  (aplig-mask--init-mask-ov (make-overlay start end))))
+           (mask  (aplig-mask--init-ov (make-overlay start end))))
+      (message (format "%s" mask))
       (aplig-mask--insert-at mask line))))
 
-(defun aplig-mask--init-masks ()
-  "Line-by-line buildup `aplig-masks'."
+(defun aplig-masks--init ()
+  "Line-by-line buildup `aplig-mask-list'."
   (save-excursion
     (goto-char (point-min))
 
     (while (not (eobp))
-      (aplig-mask--init-mask)
+      (aplig-mask--init)
       (forward-line))))
 
 
@@ -338,7 +345,7 @@ The RX, if given, should set the first group for the match to replace."
           spec))
     `(,rx (0 (prog1 nil (aplig-kwd--match ,replacement ,width))))))
 
-(defun aplig-kwds--build ()
+(defun aplig-kwds--add ()
   "Build kwds from `aplig-specs' and add to `font-lock-keywords'."
   (let ((kwds (-map #'aplig-kwd--build aplig-specs)))
     (font-lock-add-keywords nil kwds)))
@@ -354,15 +361,16 @@ The RX, if given, should set the first group for the match to replace."
   (-each aplig-mask-list #'aplig-mask--delete)
   (-each aplig-lig-list #'aplig-lig--delete)
   (setq font-lock-keywords nil)
-  (remove-hook 'lisp-mode-hook #'aplig-add-kwds))
+  (remove-hook 'lisp-mode-hook #'aplig-kwds--add))
 
 (defun aplig-enable ()
   "Enable apl and cleanup previous instance if running."
   (interactive)
 
   (aplig-disable)
-  (aplig-init-masks)
-  (add-hook 'lisp-mode-hook #'aplig-add-kwds nil 'local)
+  (aplig-masks--init)
+  (aplig-masks--refresh aplig-mask-list)
+  (add-hook 'lisp-mode-hook #'aplig-kwds--add nil 'local)
   (lisp-mode))
 
 
