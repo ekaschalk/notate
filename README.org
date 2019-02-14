@@ -5,8 +5,8 @@
 Indentation-correcting visual replacements of symbols with other symbols.
 
 Alignment and indentation issues hamper ligature's generalization, known as
-prettified-symbols in Emacs. aplig attempts to bring the joy and readability of
-apl to every language!
+prettified-symbols in Emacs, from adoption. aplig attempts to bring the joy and
+readability of apl to every language!
 
 ** Details
 

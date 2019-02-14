@@ -66,10 +66,10 @@ The RX, if given, should set the first group for the match to replace."
 
 (defconst aplig-specs
   (aplig-make-specs '(
-                      ("hello"     "")
-
                       ;; ("hello"   "hey")
-                      ;; ("bye"     "!")
+
+                      ("hello"   "∧")
+                      ("bye"     "!∨")
 
                       ;; ("0-space"   "")
                       ;; ("1-space"   " ")
@@ -306,7 +306,7 @@ The RX, if given, should set the first group for the match to replace."
   "Recenter MASK, ie. reset its end position based on ligs widths."
   (let* ((start (overlay-start mask))
          (width (aplig-mask->width mask))
-         (end   (+ start width)))
+         (end   (1+ (+ start width))))  ; 1+ opens RHS to match overlay defs
     (move-overlay mask start end)))
 
 (defun aplig-mask--render? (mask)
@@ -530,6 +530,10 @@ ligs: %s
   (spacemacs/set-leader-keys "dp" #'aplig-print-at-point))
 
 
+
+;; NOTE up/down movements should add the difference of widths
+;; That is, must wrap `evil-line-move' to preserve column +- mask offsets
+;; (and `forward-line', the evil func has commentary on column preservation)
 
 (provide 'aplig)
 

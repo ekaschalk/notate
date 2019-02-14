@@ -1,11 +1,16 @@
-;; Test-bed for virtual-indent
+;; Test-bed for aplig
 
 (hello bar
-       (hello foo
-              bar
-              baz)
+       (bye foo
+            bar
+            baz)
        foo
        baz)
 
-(foo bar
-     foo)
+
+(foooo bar
+       (foo foo
+            bar
+            baz)
+       foo
+       baz)
