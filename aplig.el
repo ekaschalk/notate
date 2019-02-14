@@ -146,14 +146,15 @@ The RX, if given, should set the first group for the match to replace."
 ;;;; Boundary Functions
 
 (defun aplig-lig--boundary--lisps (lig)
-  "Calculate line boundary for LIG's masks."
-  (let ((lig-line (-> lig overlay-start line-number-at-pos)))
-    (list (min (line-number-at-pos (point-max))
-               (1+ lig-line))
+  "Calculate line boundary [a b) for LIG's masks."
+  (let* ((start (overlay-start lig))
+         (line (line-number-at-pos start))
+         (max-line (line-number-at-pos (point-max))))
+    (list (min (1+ line) max-line)
           (save-excursion
-            (goto-line lig-line)
+            (goto-char start)
             (sp-end-of-sexp)
-            (line-number-at-pos)))))
+            (1+ (line-number-at-pos))))))
 
 (defun aplig-lig--boundary?--lisps (lig)
   "Does LIG have an indentation boundary? A weaker version of boundary-fn."
@@ -206,8 +207,6 @@ The RX, if given, should set the first group for the match to replace."
   (unless (or (or start (match-beginning 1))
               (or end   (match-end 1)))
     (error "Initiatializing ligature without match-data set."))
-
-  (message "INIT")
 
   (let* ((start (or start (match-beginning 1)))
          (end   (or end (match-end 1)))
@@ -482,16 +481,18 @@ The RX, if given, should set the first group for the match to replace."
          (line (line-number-at-pos start))
          (string (buffer-substring-no-properties start end))
          (replacement (overlay-get lig 'display))
+         (width (- (length string) (length replacement)))
          (masks (aplig-lig-mask--masks-for lig)))
     (message "Lig overlay:
 start: %s
 end: %s
 line: %s
+width: %s
 string: %s
 replacement: %s
 masks: %s
 "
-             start end line string replacement masks)))
+             start end line width string replacement masks)))
 
 (defun aplig-mask--print (mask)
   "Pprint a mask."
