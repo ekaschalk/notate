@@ -74,7 +74,7 @@ The RX, if given, should set the first group for the match to replace."
                       ))
   "Collection of specs from `aplig-make-spec'.")
 
-(defconst aplig-display-prefixes? t
+(defconst aplig-display-prefixes? nil
   "Whether to add the `line-prefix' property to indentation overlays.")
 
 (defconst aplig-lig--boundary-fn #'aplig-lig--boundary--lisps
@@ -150,11 +150,11 @@ The RX, if given, should set the first group for the match to replace."
   (let* ((start (overlay-start lig))
          (line (line-number-at-pos start))
          (max-line (line-number-at-pos (point-max))))
-    (list (min (1+ line) max-line)
+    (list (min line max-line)
           (save-excursion
             (goto-char start)
             (sp-end-of-sexp)
-            (1+ (line-number-at-pos))))))
+            (line-number-at-pos)))))
 
 (defun aplig-lig--boundary?--lisps (lig)
   "Does LIG have an indentation boundary? A weaker version of boundary-fn."
@@ -245,6 +245,14 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-mask--insert-at (mask line)
   "Insert MASK at LINE."
   (setq aplig-mask-list (-insert-at line mask aplig-mask-list)))
+
+(defun aplig-masks--empty-line? (mask)
+  "Is MASK at an empty line?"
+  ;; NOTE Currently checks a bit more than that, but need to separate later
+  (let ((line-width (- (line-end-position)
+                       (line-beginning-position)))
+        (mask-width (aplig-mask->width mask)))
+    (< line-width mask-width)))
 
 ;;;; Overlays
 
@@ -375,7 +383,8 @@ The RX, if given, should set the first group for the match to replace."
   (when (funcall (symbol-value #'aplig-lig--boundary?-fn) lig)
     (->> lig
        (funcall (symbol-value #'aplig-lig--boundary-fn))
-       (apply #'aplig-masks--in))))
+       (apply #'aplig-masks--in)
+       (-remove #'aplig-masks--empty-line?))))
 
 (defun aplig-lig-mask--add-lig-to-mask (lig mask)
   (push lig (overlay-get mask 'aplig-ligs))
@@ -496,8 +505,8 @@ masks: %s
 
 (defun aplig-mask--print (mask)
   "Pprint a mask."
-  (let* ((start (overlay-start lig))
-         (end (overlay-end lig))
+  (let* ((start (overlay-start mask))
+         (end (overlay-end mask))
          (line (line-number-at-pos start))
          (ligs (overlay-get mask 'aplig-ligs)))
     (message "Mask overlay:

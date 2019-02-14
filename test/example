@@ -1,7 +1,8 @@
 ;; Test-bed for virtual-indent
 
 (hello bar
-       foo)
+       foo
+       baz)
 
 (foo bar
      foo)
