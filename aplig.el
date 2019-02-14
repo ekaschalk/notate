@@ -32,15 +32,14 @@
 ;;; Configuration
 ;;;; Utils
 
-(defun aplig-make-spec (name string replacement &optional rx)
-  "Create spec plist NAME for STRING to REPLACEMENT optionally with custom RX.
+(defun aplig-make-spec (string replacement &optional rx)
+  "Create spec plist for STRING to REPLACEMENT optionally with custom RX.
 
 Without a RX given, default to matching entire STRING.
 The RX, if given, should set the first group for the match to replace."
-  (aplig-validate-spec name string replacement)
-  `(:name
-    ,name
-    :string      ,string
+  (aplig-validate-spec string replacement)
+  `(:string
+    ,string
     :rx          ,(or rx
                       `,(rx-to-string `(group ,string)
                                       'no-shy-group))
@@ -52,7 +51,7 @@ The RX, if given, should set the first group for the match to replace."
   "Apply `aplig-make-spec' to each SPEC."
   (-map (-applify #'aplig-make-spec) specs))
 
-(defun aplig-validate-spec (name string replacement)
+(defun aplig-validate-spec (string replacement)
   "Throw error on egregious inputs."
   (cond
    ((or (s-contains? "\n" string)
@@ -67,15 +66,15 @@ The RX, if given, should set the first group for the match to replace."
 
 (defconst aplig-specs
   (aplig-make-specs '(
-                      ("Hello Lig"   "hello"     "")
+                      ("hello"     "")
 
-                      ;; ("Hello Lig" "hello"   "hey")
-                      ;; ("Bye Lig"   "bye"     "!")
+                      ;; ("hello"   "hey")
+                      ;; ("bye"     "!")
 
-                      ;; ("0-space Lig" "0-space"   "")
-                      ;; ("1-space Lig" "1-space"   " ")
-                      ;; ("2-space Lig" "2-space"   "  ")
-                      ;; ("tab Lig"     "tab-space" "	")
+                      ;; ("0-space"   "")
+                      ;; ("1-space"   " ")
+                      ;; ("2-space"   "  ")
+                      ;; ("tab-space" "	")
                       ))
   "Collection of specs from `aplig-make-spec'.")
 
@@ -429,8 +428,7 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-kwd--build (spec)
   "Compose the font-lock-keyword for SPEC in `aplig-specs'."
-  (-let (((&plist :name name
-                  :replacement replacement
+  (-let (((&plist :replacement replacement
                   :rx rx
                   :width width)
           spec))
@@ -462,7 +460,7 @@ The RX, if given, should set the first group for the match to replace."
 ;;;; Toggling
 
 (defun aplig-disable ()
-  "Delete overlays managed by apl."
+  "Delete overlays managed by aplig."
   (interactive)
 
   (-each aplig-mask-list #'aplig-mask--delete)
@@ -475,7 +473,7 @@ The RX, if given, should set the first group for the match to replace."
   (remove-hook 'lisp-mode-hook #'aplig-kwds--add))
 
 (defun aplig-enable ()
-  "Enable apl and cleanup previous instance if running."
+  "Enable aplig and cleanup previous instance if running."
   (interactive)
 
   (aplig-disable)
