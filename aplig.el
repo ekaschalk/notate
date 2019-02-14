@@ -55,10 +55,11 @@ The RX, if given, should set the first group for the match to replace."
 
 (defconst aplig-specs
   (aplig-make-specs '(("Hello Lig"   "hello"     "")
-                      ("0-space Lig" "0-space"   "")
-                      ("1-space Lig" "1-space"   " ")
-                      ("2-space Lig" "2-space"   "  ")
-                      ("tab Lig"     "tab-space" "	")))
+                      ;; ("0-space Lig" "0-space"   "")
+                      ;; ("1-space Lig" "1-space"   " ")
+                      ;; ("2-space Lig" "2-space"   "  ")
+                      ;; ("tab Lig"     "tab-space" "	")
+                      ))
   "Collection of specs from `aplig-make-spec'.")
 
 (defconst aplig-display-prefixes? t
@@ -113,6 +114,20 @@ The RX, if given, should set the first group for the match to replace."
   "Return list of each OVS PROP."
   (--map (overlay-get it prop) ovs))
 
+(defun aplig--ov-at (pos)
+  "Return first aplig overlay at POS."
+  (let ((ovs (overlays-at pos)))
+    (--any (when (overlay-get it 'aplig?) it) ovs)))
+
+(defun aplig-ov--print (ov)
+  "Dispatch pprint on OV."
+  (cond ((null ov)
+         (print "No ov found."))
+        ((aplig-ov--lig? ov)
+         (aplig-lig--print ov))
+        ((aplig-ov--mask? ov)
+         (aplig-mask--print ov))))
+
 
 
 ;;; Ligs
@@ -139,11 +154,13 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;;; Overlays
 
-(defun aplig-lig--present? (start end)
-  "Is a lig present within START and END? Return it."
-  (and start end
-       (-any #'aplig-ov--lig?
-             (overlays-in start end))))
+(defun aplig-lig--present? (&optional start end)
+  "Is a lig present within START and END, defaulting to `match-data'? Get it."
+  (let ((start (or start (match-beginning 1)))
+        (end   (or end (match-end 1))))
+    (and start end
+         (-any #'aplig-ov--lig?
+               (overlays-in start end)))))
 
 (defun aplig-lig--delete (lig)
   "Delete LIG."
@@ -156,10 +173,10 @@ The RX, if given, should set the first group for the match to replace."
     (aplig-lig-mask--remove-lig-from-masks lig)
     (aplig-lig--delete lig)))
 
-(defun aplig-lig--init-lig-ov (ov replacement width)
+(defun aplig-lig--init-ov (ov replacement width)
   "Put lig text properties into OV."
   (-doto ov
-    (overlay-put 'apl?        t)
+    (overlay-put 'aplig?      t)
     (overlay-put 'aplig-lig?  t)
     (overlay-put 'aplig-width width)
 
@@ -172,16 +189,18 @@ The RX, if given, should set the first group for the match to replace."
   "Sum widths of LIGS."
   (-> ligs (aplig-ovs--prop 'aplig-width) -sum))
 
-(defun aplig-lig--init-lig (replacement width &optional start end)
+(defun aplig-lig--init (replacement width &optional start end)
   "Build ligature overlay, defaulting to `match-data' for START and END."
   (unless (or (or start (match-beginning 1))
               (or end   (match-end 1)))
     (error "Initiatializing ligature without match-data set."))
 
+  (message "INIT")
+
   (let* ((start (or start (match-beginning 1)))
          (end   (or end (match-end 1)))
          (ov    (make-overlay start end))
-         (lig   (aplig-lig--init-lig-ov ov replacement width)))
+         (lig   (aplig-lig--init-ov ov replacement width)))
     (push lig aplig-lig-list)
     (aplig-lig-mask--add-lig-to-masks lig)
     lig))
@@ -254,7 +273,7 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-mask--init-ov (ov)
   "Put always-on text properties for masks into OV."
   (-doto ov
-    (overlay-put 'apl?      t)
+    (overlay-put 'aplig?      t)
     (overlay-put 'aplig-mask? t)
     (overlay-put 'aplig-ligs  nil)
 
@@ -380,7 +399,7 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-kwd--match (replacement width)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
-  (unless (aplig-lig--present? (match-beginning 1) (match-end 1))
+  (unless (aplig-lig--present?)
     (aplig-lig--init replacement width)))
 
 (defun aplig-kwd--build (spec)
@@ -400,11 +419,22 @@ The RX, if given, should set the first group for the match to replace."
 
 
 ;;; Interactive
+;;;; Utils
+
+(defun aplig-print-at-point ()
+  "Pprint aplig OV at point."
+  (interactive)
+
+  (-> (point) aplig--ov-at aplig-ov--print))
+
+;;;; Setup
 
 (defun aplig-setup--agnostic ()
   "Setup all *major-mode-agnostic* components."
   (aplig-masks--init)
   (aplig-masks--refresh aplig-mask-list))
+
+;;;; Toggling
 
 (defun aplig-disable ()
   "Delete overlays managed by apl."
@@ -421,7 +451,8 @@ The RX, if given, should set the first group for the match to replace."
 
   (aplig-disable)
   (aplig-setup--agnostic)
-  (add-hook 'lisp-mode-hook #'aplig-kwds--add nil 'local)
+  (add-hook 'lisp-mode-hook #'aplig-kwds--add)
+  ;; (add-hook 'lisp-mode-hook #'aplig-kwds--add nil 'local)
 
   (let ((aplig-mask--wait-for-refresh t))
     (lisp-mode)
@@ -430,12 +461,45 @@ The RX, if given, should set the first group for the match to replace."
 
 
 
-;;; Scratch
+;;; Dev
+
+(defun aplig-lig--print (lig)
+  "Pprint a ligature."
+  (let* ((start (overlay-start lig))
+         (end (overlay-end lig))
+         (line (line-number-at-pos start))
+         (string (buffer-substring-no-properties start end))
+         (replacement (overlay-get lig 'display))
+         (masks (aplig-lig-mask--masks-for lig)))
+    (message "Lig overlay:
+start: %s
+end: %s
+line: %s
+string: %s
+replacement: %s
+masks: %s
+"
+             start end line string replacement masks)))
+
+(defun aplig-mask--print (mask)
+  "Pprint a mask."
+  (let* ((start (overlay-start lig))
+         (end (overlay-end lig))
+         (line (line-number-at-pos start))
+         (ligs (overlay-get mask 'aplig-ligs)))
+    (message "Mask overlay:
+start: %s
+end: %s
+line: %s
+ligs: %s
+"
+             start end line ligs)))
 
 (when nil
   (spacemacs/declare-prefix "d" "dev")
   (spacemacs/set-leader-keys "de" #'aplig-enable)
-  (spacemacs/set-leader-keys "dd" #'aplig-disable))
+  (spacemacs/set-leader-keys "dd" #'aplig-disable)
+  (spacemacs/set-leader-keys "dp" #'aplig-print-at-point))
 
 
 
