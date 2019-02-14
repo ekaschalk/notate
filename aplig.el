@@ -12,9 +12,9 @@
 
 ;;; Commentary:
 
-;; Alignment and specifically indentation issues hamper generalized ligatures,
-;; known as prettified-symbols in Emacs. aplig attempts to bring the joy and
-;; readability of APL to every language!
+;; Alignment and indentation issues hamper ligature's generalization, known as
+;; prettified-symbols in Emacs. aplig attempts to bring the joy and readability
+;; of apl to every language!
 
 
 
@@ -37,6 +37,7 @@
 
 Without a RX given, default to matching entire STRING.
 The RX, if given, should set the first group for the match to replace."
+  (aplig-validate-spec name string replacement)
   `(:name
     ,name
     :string      ,string
@@ -50,6 +51,17 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-make-specs (specs)
   "Apply `aplig-make-spec' to each SPEC."
   (-map (-applify #'aplig-make-spec) specs))
+
+(defun aplig-validate-spec (name string replacement)
+  "Throw error on egregious inputs."
+  (cond
+   ((or (s-contains? "\n" string)
+        (s-contains? "\n" replacement))
+    (error "Newlines anywhere in spec are confusing, will not be supported."))
+
+   ((> (length replacement)
+       (length string))
+    (error "Indentation expansions are not supported yet."))))
 
 ;;;; Configured
 
