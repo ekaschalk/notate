@@ -66,7 +66,12 @@ The RX, if given, should set the first group for the match to replace."
 ;;;; Configured
 
 (defconst aplig-specs
-  (aplig-make-specs '(("Hello Lig"   "hello"     "")
+  (aplig-make-specs '(
+                      ("Hello Lig"   "hello"     "")
+
+                      ;; ("Hello Lig" "hello"   "hey")
+                      ;; ("Bye Lig"   "bye"     "!")
+
                       ;; ("0-space Lig" "0-space"   "")
                       ;; ("1-space Lig" "1-space"   " ")
                       ;; ("2-space Lig" "2-space"   "  ")
@@ -462,6 +467,10 @@ The RX, if given, should set the first group for the match to replace."
 
   (-each aplig-mask-list #'aplig-mask--delete)
   (-each aplig-lig-list #'aplig-lig--delete)
+  (setq aplig-mask-list nil)
+  (setq aplig-lig-list nil)
+  (setq aplig-mask--wait-for-refresh nil)  ; Just in case...
+
   (setq font-lock-keywords nil)
   (remove-hook 'lisp-mode-hook #'aplig-kwds--add))
 
@@ -472,7 +481,6 @@ The RX, if given, should set the first group for the match to replace."
   (aplig-disable)
   (aplig-setup--agnostic)
   (add-hook 'lisp-mode-hook #'aplig-kwds--add)
-  ;; (add-hook 'lisp-mode-hook #'aplig-kwds--add nil 'local)
 
   (let ((aplig-mask--wait-for-refresh t))
     (lisp-mode)
@@ -523,9 +531,7 @@ ligs: %s
   (spacemacs/set-leader-keys "dd" #'aplig-disable)
   (spacemacs/set-leader-keys "dp" #'aplig-print-at-point))
 
-
 
-;;; Footer
 
 (provide 'aplig)
 
