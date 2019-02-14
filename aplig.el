@@ -66,8 +66,6 @@ The RX, if given, should set the first group for the match to replace."
 
 (defconst aplig-specs
   (aplig-make-specs '(
-                      ;; ("hello"   "hey")
-
                       ("hello"   "∧")
                       ("bye"     "!∨")
 
@@ -78,7 +76,7 @@ The RX, if given, should set the first group for the match to replace."
                       ))
   "Collection of specs from `aplig-make-spec'.")
 
-(defconst aplig-display-prefixes? nil
+(defconst aplig-display-prefixes? t  ; keep nil atm
   "Whether to add the `line-prefix' property to indentation overlays.")
 
 (defconst aplig-lig--boundary-fn #'aplig-lig--boundary--lisps
@@ -280,12 +278,14 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-mask--format-prefix (mask)
   "Format the `line-prefix' overlay text property for MASK."
   (let* ((sep         "|")
-         (true-indent (aplig-mask--indent-col))
+         (true-indent (save-excursion
+                        (goto-char (overlay-start mask))
+                        (aplig-mask--indent-col)))
          (width       (aplig-mask->width mask))
          (num-ligs    (length (overlay-get mask 'aplig-ligs)))
          (sections    (list (-> "%02d" (format true-indent))
                             (-> "%02d" (format width))
-                            (-> "#%d:" (format num-ligs)))))
+                            (-> "+%d " (format num-ligs)))))
     (->> sections (-interpose sep) (apply #'s-concat))))
 
 (defun aplig-mask--reset-prefix (mask)
@@ -529,11 +529,16 @@ ligs: %s
   (spacemacs/set-leader-keys "dd" #'aplig-disable)
   (spacemacs/set-leader-keys "dp" #'aplig-print-at-point))
 
+
 
+;;; Notes
 
 ;; NOTE up/down movements should add the difference of widths
 ;; That is, must wrap `evil-line-move' to preserve column +- mask offsets
 ;; (and `forward-line', the evil func has commentary on column preservation)
+
+;; NOTE https://emacs.stackexchange.com/questions/14420/how-can-i-fix-incorrect-character-width has potential for standardizing widths of all the icons fonts
+
 
 (provide 'aplig)
 
