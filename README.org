@@ -4,20 +4,20 @@
 
 Indentation-correcting visual replacements of symbols with other symbols.
 
-Alignment and specifically indentation issues hamper generalized ligatures,
-known as prettified-symbols in Emacs. aplig attempts to bring the joy and
-readability of apl to every language!
+Alignment and indentation issues hamper ligature's generalization, known as
+prettified-symbols in Emacs. aplig attempts to bring the joy and readability of
+apl to every language!
 
 ** Details
 
-Ligatures render consecutive graphemes (characters) as a single glyph.
+Ligatures render consecutive graphemes, or characters, as a single glyph.
 
 Fonts with programming ligatures, like Fira Code, design their ligature glyphs
-to have the same width as their constituent characters. Eg. the glyph for "=="
-takes up two spaces.
+to have the same width as their constituent characters. The glyphs for >= and ->
+take up two spaces.
 
-Matching sizes is not always possible and alignment will thus break. A simple
-example, choosing to render "and" with the logical symbol for and "∧":
+Matching sizes is not always possible so alignment will break. A simple
+example: render ~and~ as ~∧~, its symbol.
 
 #+BEGIN_SRC lisp
 (and foo   ; The actual text
@@ -30,13 +30,15 @@ example, choosing to render "and" with the logical symbol for and "∧":
    bar)
 #+END_SRC
 
-There are many desirable examples of similar ligature-likes. Like rendering
-"alpha" as its single-width greek character ɑ. Or rendering "for" with its
-mathematical counterpart ∀.
+There are many similar, desirable examples. Like rendering ~alpha~ as ~ɑ~,
+~lambda~ as ~λ~, ~for~ as ~∀~, and so on.
 
-*aplig maintains indentation masks* so that the indentation we see uses the
-ligatures, while the true indentation uses the true text.
+*aplig masks indentation*. Our working indentation is visually modified so that
+in the example above, we see example 3 while the true text is example 1.
 
 /Note on terminology:/ [[https://helpful.knobs-dials.com/index.php/Morpheme,_Syllable,_Lexeme,_Grapheme,_Phoneme,_Character,_Glyph][graphemes, characters, and glyphs]] can be confusing when
-used technically. I choose the least precise definition of ligatures and extend
-it to mean: rendering consecutive characters as another set of characters.
+used technically. I understand the least precise definition of ligatures to be
+the rendering of consecutive characters as a specific character. Emacs
+generalization is ~prettify-symbols~. Note that typical ligatures are not
+supported by Emacs display engine and require non-trivial modifications to Emacs
+C core.
