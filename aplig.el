@@ -156,7 +156,7 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-lig--init-lig-ov (ov replacement width)
   "Put lig text properties into OV."
   (-doto ov
-    (overlay-put 'apl?      t)
+    (overlay-put 'apl?        t)
     (overlay-put 'aplig-lig?  t)
     (overlay-put 'aplig-width width)
 
@@ -235,10 +235,10 @@ The RX, if given, should set the first group for the match to replace."
   (let* ((sep         "|")
          (true-indent (aplig-mask--indent-col))
          (width       (aplig-mask->width mask))
-         (num-parents (length (overlay-get mask 'aplig-ligs)))
+         (num-ligs    (length (overlay-get mask 'aplig-ligs)))
          (sections    (list (-> "%02d" (format true-indent))
                             (-> "%02d" (format width))
-                            (-> "#%d:" (format num-parents)))))
+                            (-> "#%d:" (format num-ligs)))))
     (->> sections (-interpose sep) (apply #'s-concat))))
 
 (defun aplig-mask--reset-prefix (mask)
@@ -246,27 +246,50 @@ The RX, if given, should set the first group for the match to replace."
   (->> mask aplig-mask--format-prefix (overlay-put mask 'line-prefix)))
 
 (defun aplig-mask--init-ov (ov)
-  "Put mask text properties into OV."
+  "Put always-on text properties for masks into OV."
   (-doto ov
     (overlay-put 'apl?      t)
     (overlay-put 'aplig-mask? t)
     (overlay-put 'aplig-ligs  nil)
 
-    (overlay-put 'face               'underline)
-    (overlay-put 'display            " ")
     (overlay-put 'modification-hooks '(aplig-mask--decompose-hook))))
 
 (defun aplig-mask--recenter (mask)
   "Recenter MASK, ie. reset its end position based on ligs widths."
-  (let ((start (overlay-start mask))
-        (width (aplig-mask->width mask)))
-    (move-overlay mask start (+ start width))))
+  (let* ((start (overlay-start mask))
+         (width (aplig-mask->width mask))
+         (end   (+ start width)))
+    (move-overlay mask start end)))
+
+(defun aplig-mask--render? (mask)
+  "Should MASK be rendered?"
+  (> (aplig-mask->width mask) 0))
+
+(defun aplig-mask--render (mask)
+  "Set display-based overlay properties for MASK."
+  (-doto mask
+    (overlay-put 'face    'underline)
+    (overlay-put 'display " ")))
+
+(defun aplig-mask--unrender (mask)
+  "Remove display-based overlay properties for MASK."
+  ;; For line-prefix no need to nil, it is not rendered when display is nil
+  (-doto mask
+    (overlay-put 'face    nil)
+    (overlay-put 'display nil)))
+
+(defun aplig-mask--reset-display (mask)
+  "Reset display-affecting text properties of MASK."
+  (if (aplig-mask--render? mask)
+      (aplig-mask--render mask)
+    (aplig-mask--unrender mask)))
 
 (defun aplig-mask--refresh (mask)
   "Reset bounds and boundary-dependent properties of MASK based on cur ligs."
   (-doto mask
     (aplig-mask--recenter)
-    (aplig-mask--reset-prefix)))
+    (aplig-mask--reset-prefix)
+    (aplig-mask--reset-display)))
 
 (defun aplig-mask--refresh-maybe (mask)
   "Perform `aplig-mask--refresh' when we should."
