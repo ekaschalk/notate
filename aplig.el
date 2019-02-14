@@ -67,9 +67,12 @@ The RX, if given, should set the first group for the match to replace."
 (defconst aplig-lig--boundary-fn #'aplig-lig--boundary--lisps
   "A function that should return line boundaries given a LIG.")
 
-;; Below fn not used yet
 (defconst aplig-lig--boundary?-fn #'aplig-lig--boundary?--lisps
   "A subset of `aplig-lig--boundary-fn', whether LIG has a boundary.")
+
+;; Eventually support indentation heuristic optimizations
+(defconst aplig-lig--boundary-fn--heuristic nil)
+(defconst aplig-lig--boundary?-fn--heuristic nil)
 
 ;;;; Managed
 
@@ -222,6 +225,8 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-mask--decompose-hook (mask post-mod? start end &optional _)
   "Overlay modification hook to delete indent ov upon modification within it."
+  ;; NOTE probably need to handle deleting forward differently
+  ;; NOTE probably need to handle visual deletion differently
   (when post-mod?
     (let* ((inhibit-modification-hooks t)
            (width                      (aplig-mask->width mask))
@@ -243,7 +248,8 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-mask--reset-prefix (mask)
   "Reset the `line-prefix' overlay text property for MASK."
-  (->> mask aplig-mask--format-prefix (overlay-put mask 'line-prefix)))
+  (when aplig-display-prefixes?
+    (->> mask aplig-mask--format-prefix (overlay-put mask 'line-prefix))))
 
 (defun aplig-mask--init-ov (ov)
   "Put always-on text properties for masks into OV."
@@ -299,6 +305,10 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-masks--refresh (masks)
   "Refresh MASKS."
   (-each masks #'aplig-mask--refresh-maybe))
+
+(defun aplig-masks--refresh-buffer ()
+  "Refresh `aplig-mask-list'."
+  (aplig-masks--refresh aplig-mask-list))
 
 ;;;; Methods
 
@@ -356,6 +366,14 @@ The RX, if given, should set the first group for the match to replace."
   (-each (aplig-lig-mask--masks-for lig)
     (-partial #'aplig-lig-mask--remove-lig-from-mask lig)))
 
+(defun aplig-lig-mask--add-ligs-to-masks (ligs)
+  "Batch add LIGS to their masks refreshing upon completion."
+  (let ((aplig-mask--wait-for-refresh t))
+    (-each ligs #'aplig-lig-mask--add-lig-to-masks))
+
+  ;; NOTE Easier atm to just refresh the buffer than the correct intervals
+  (aplig-masks--refresh-buffer))
+
 
 
 ;;; Font Locks
@@ -404,7 +422,11 @@ The RX, if given, should set the first group for the match to replace."
   (aplig-disable)
   (aplig-setup--agnostic)
   (add-hook 'lisp-mode-hook #'aplig-kwds--add nil 'local)
-  (lisp-mode))
+
+  (let ((aplig-mask--wait-for-refresh t))
+    (lisp-mode)
+    (font-lock-ensure))
+  (aplig-masks--refresh-buffer))
 
 
 
