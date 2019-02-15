@@ -45,7 +45,7 @@ C core.
 
 ** Current State
 
-Given ~hello -> ∧~ and ~bye -> ∨~:
+Given ~hello -> ∧~ and ~bye -> !∨~ (a two-character replacement):
 
 [[./img/progress-1.png]]
 
