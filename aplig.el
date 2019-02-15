@@ -76,7 +76,7 @@ The RX, if given, should set the first group for the match to replace."
                       ))
   "Collection of specs from `aplig-make-spec'.")
 
-(defconst aplig-display-prefixes? t  ; keep nil atm
+(defconst aplig-display-prefixes? t
   "Whether to add the `line-prefix' property to indentation overlays.")
 
 (defconst aplig-lig--boundary-fn #'aplig-lig--boundary--lisps

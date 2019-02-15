@@ -42,3 +42,18 @@ the rendering of consecutive characters as a specific character. Emacs
 generalization is ~prettify-symbols~. Note that typical ligatures are not
 supported by Emacs display engine and require non-trivial modifications to Emacs
 C core.
+
+** Current State
+
+Given ~hello -> ∧~ and ~bye -> ∨~:
+
+[[./img/progress-1.png]]
+
+The text on the left is debugging information showing
+~true-indent|masked-indent|contributing-symbols~.
+
+- Doesn't yet support buffer modification, it's a toggle.
+- Line movement needs to adjust for the indentation masks.
+- Boundary functions are very simple and make many assumptions.
+- Boundary functions only implemented for lisps.
+- ... and many more challenges.
