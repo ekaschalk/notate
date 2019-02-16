@@ -76,9 +76,6 @@ The RX, if given, should set the first group for the match to replace."
                       ))
   "Collection of specs from `aplig-make-spec'.")
 
-(defconst aplig-display-prefixes? t
-  "Whether to add the `line-prefix' property to indentation overlays.")
-
 (defconst aplig-lig--boundary-fn #'aplig-lig--boundary--lisps
   "A function that should return line boundaries given a LIG.")
 
@@ -88,6 +85,14 @@ The RX, if given, should set the first group for the match to replace."
 ;; Eventually support indentation heuristic optimizations
 (defconst aplig-lig--boundary-fn--heuristic nil)
 (defconst aplig-lig--boundary?-fn--heuristic nil)
+
+;;;; Debugging
+
+(defconst aplig-display-prefixes? t
+  "Whether to add the `line-prefix' property to indentation overlays.")
+
+(defconst aplig-render-masks? t
+  "Should masks render? Note that line-prefixes, if set to, still display.")
 
 ;;;; Managed
 
@@ -128,19 +133,24 @@ The RX, if given, should set the first group for the match to replace."
   "Return list of each OVS PROP."
   (--map (overlay-get it prop) ovs))
 
-(defun aplig--ov-at (pos)
+(defun aplig-ov--at (pos)
   "Return first aplig overlay at POS."
   (let ((ovs (overlays-at pos)))
     (--any (when (overlay-get it 'aplig?) it) ovs)))
 
+(defun aplig-ov--at-point ()
+  "Execute `aplig-ov--at' point."
+  (aplig-ov--at (point)))
+
 (defun aplig-ov--print (ov)
-  "Dispatch pprint on OV."
-  (cond ((null ov)
-         (print "No ov found."))
-        ((aplig-ov--lig? ov)
-         (aplig-lig--print ov))
-        ((aplig-ov--mask? ov)
-         (aplig-mask--print ov))))
+  "Dispatch formater for OV and message."
+  (message
+   (cond ((null ov)
+          "No ov found.")
+         ((aplig-ov--lig? ov)
+          (aplig-lig--format ov))
+         ((aplig-ov--mask? ov)
+          (aplig-mask--format ov)))))
 
 
 
@@ -224,7 +234,7 @@ The RX, if given, should set the first group for the match to replace."
 ;;;; Lines
 
 (defun aplig-mask--line-count-modified? ()
-  "Positive if lines have been added, negative if removed, otherwise zero."
+  "Lines added: +x, removed: -x, otherwise 0 since mask list last updated."
   (- (line-number-at-pos (point-max))
      (length aplig-mask-list)))
 
@@ -245,16 +255,12 @@ The RX, if given, should set the first group for the match to replace."
   (-slice aplig-mask-list start-line end-line))
 
 (defun aplig-mask--insert-at (mask line)
-  "Insert MASK at LINE."
+  "Insert MASK at LINE into `aplig-mask-list'."
   (setq aplig-mask-list (-insert-at line mask aplig-mask-list)))
 
-(defun aplig-masks--empty-line? (mask)
-  "Is MASK at an empty line?"
-  ;; NOTE Currently checks a bit more than that, but need to separate later
-  (let ((line-width (- (line-end-position)
-                       (line-beginning-position)))
-        (mask-width (aplig-mask->width mask)))
-    (< line-width mask-width)))
+(defun aplig-mask--goto (mask)
+  "Goto MASK's start."
+  (goto-char (overlay-start mask)))
 
 ;;;; Overlays
 
@@ -279,13 +285,13 @@ The RX, if given, should set the first group for the match to replace."
   "Format the `line-prefix' overlay text property for MASK."
   (let* ((sep         "|")
          (true-indent (save-excursion
-                        (goto-char (overlay-start mask))
+                        (aplig-mask--goto mask)
                         (aplig-mask--indent-col)))
          (width       (aplig-mask->width mask))
-         (num-ligs    (length (overlay-get mask 'aplig-ligs)))
+         (ligs        (overlay-get mask 'aplig-ligs))
          (sections    (list (-> "%02d" (format true-indent))
                             (-> "%02d" (format width))
-                            (-> "+%d " (format num-ligs)))))
+                            (-> "+%d " (format (length ligs))))))
     (->> sections (-interpose sep) (apply #'s-concat))))
 
 (defun aplig-mask--reset-prefix (mask)
@@ -311,7 +317,8 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-mask--render? (mask)
   "Should MASK be rendered?"
-  (> (aplig-mask->width mask) 0))
+  (and aplig-render-masks?
+       (> (aplig-mask->width mask) 0)))
 
 (defun aplig-mask--render (mask)
   "Set display-based overlay properties for MASK."
@@ -388,9 +395,20 @@ The RX, if given, should set the first group for the match to replace."
     (->> lig
        (funcall (symbol-value #'aplig-lig--boundary-fn))
        (apply #'aplig-masks--in)
-       (-remove #'aplig-masks--empty-line?))))
+       (-remove (-partial #'aplig-lig-mask--skip? lig)))))
+
+(defun aplig-lig-mask--skip? (lig mask)
+  "Should MASK in boundary of LIG be skipped when adding LIG to its masks?"
+  (save-excursion
+    (aplig-mask--goto mask)
+    (let* ((line-width (- (line-end-position)
+                          (line-beginning-position)))
+           (mask-width (aplig-mask->width mask))
+           (mask-potential-width (+ mask-width (overlay-get lig 'aplig-width))))
+      (<= line-width mask-potential-width))))
 
 (defun aplig-lig-mask--add-lig-to-mask (lig mask)
+  "Add LIG to a MASK and possibly refresh it."
   (push lig (overlay-get mask 'aplig-ligs))
   (aplig-mask--refresh-maybe mask))
 
@@ -445,10 +463,10 @@ The RX, if given, should set the first group for the match to replace."
 ;;;; Utils
 
 (defun aplig-print-at-point ()
-  "Pprint aplig OV at point."
+  "Print aplig OV at point."
   (interactive)
 
-  (-> (point) aplig--ov-at aplig-ov--print))
+  (aplig-ov--print (aplig-ov--at-point)))
 
 ;;;; Setup
 
@@ -489,8 +507,8 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;; Dev
 
-(defun aplig-lig--print (lig)
-  "Pprint a ligature."
+(defun aplig-lig--format (lig)
+  "Format LIG for pprinting."
   (let* ((start (overlay-start lig))
          (end (overlay-end lig))
          (line (line-number-at-pos start))
@@ -498,7 +516,7 @@ The RX, if given, should set the first group for the match to replace."
          (replacement (overlay-get lig 'display))
          (width (- (length string) (length replacement)))
          (masks (aplig-lig-mask--masks-for lig)))
-    (message "Lig overlay:
+    (format "Lig overlay:
 start: %s
 end: %s
 line: %s
@@ -507,21 +525,21 @@ string: %s
 replacement: %s
 masks: %s
 "
-             start end line width string replacement masks)))
+            start end line width string replacement masks)))
 
-(defun aplig-mask--print (mask)
-  "Pprint a mask."
+(defun aplig-mask--format (mask)
+  "Format MASK for pprinting."
   (let* ((start (overlay-start mask))
          (end (overlay-end mask))
          (line (line-number-at-pos start))
          (ligs (overlay-get mask 'aplig-ligs)))
-    (message "Mask overlay:
+    (format "Mask overlay:
 start: %s
 end: %s
 line: %s
 ligs: %s
 "
-             start end line ligs)))
+            start end line ligs)))
 
 (when nil
   (spacemacs/declare-prefix "d" "dev")
