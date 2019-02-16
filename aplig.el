@@ -182,21 +182,28 @@ The RX, if given, should set the first group for the match to replace."
       at-form-opener?)))
 
 (defun aplig-lig--boundary?--lisps (lig)
-  "Does LIG have an indentation boundary? A weaker version of boundary-fn."
+  "Does LIG have an indentation boundary? Return back LIG if it does."
   ;; Always-correct boundary-fn much more involved than a good-enough heuristic
   ;; It must correspond to `lisp-indent-function', but given its calling
   ;; convention, likely difficult to emulate in a non-temp-buffer-based impl.
-  (aplig-lig--boundary?-fn--heuristic--lisps lig))
+  (and (aplig-lig--boundary?-fn--heuristic--lisps lig)
+       lig))
 
 ;;;; Overlays
 
-(defun aplig-lig--present? (&optional start end)
-  "Is a lig present within START and END, defaulting to `match-data'? Get it."
+(defun aplig-ligs--present? (&optional start end)
+  "Are ligs present within START and END, defaulting to `match-data'? Get it."
   (let ((start (or start (match-beginning 1)))
         (end   (or end (match-end 1))))
     (and start end
-         (-any #'aplig-ov--lig?
-               (overlays-in start end)))))
+         (-filter #'aplig-ov--lig?
+                  (overlays-in start end)))))
+
+(defun aplig-ligs--at (line)
+  "Return all ligs on LINE."
+  (aplig-ligs--present?
+   (save-excursion (goto-line line) (line-beginning-position))
+   (line-end-position)))
 
 (defun aplig-lig--delete (lig)
   "Delete LIG."
@@ -377,7 +384,8 @@ The RX, if given, should set the first group for the match to replace."
            (start (line-beginning-position))
            (end   (1+ start))
            (mask  (aplig-mask--init-ov (make-overlay start end))))
-      (aplig-mask--insert-at mask line))))
+      (aplig-mask--insert-at mask line)
+      mask)))
 
 (defun aplig-masks--init ()
   "Line-by-line buildup `aplig-mask-list'."
@@ -394,11 +402,12 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-lig-mask--masks-for (lig)
   "Return all masks LIG contributes to."
-  (when (funcall (symbol-value #'aplig-lig--boundary?-fn) lig)
-    (->> lig
-       (funcall (symbol-value #'aplig-lig--boundary-fn))
-       (apply #'aplig-masks--in)
-       (-remove (-partial #'aplig-lig-mask--skip? lig)))))
+  (-some->>
+   lig
+   (funcall (symbol-value #'aplig-lig--boundary?-fn))
+   (funcall (symbol-value #'aplig-lig--boundary-fn))
+   (apply #'aplig-masks--in)
+   (-remove (-partial #'aplig-lig-mask--skip? lig))))
 
 (defun aplig-lig-mask--skip? (lig mask)
   "Should MASK in boundary of LIG be skipped when adding LIG to its masks?"
@@ -407,8 +416,10 @@ The RX, if given, should set the first group for the match to replace."
     (let* ((line-width (- (line-end-position)
                           (line-beginning-position)))
            (mask-width (aplig-mask->width mask))
-           (mask-potential-width (+ mask-width (overlay-get lig 'aplig-width))))
-      (<= line-width mask-potential-width))))
+           (mask-potential-width (+ mask-width (overlay-get lig 'aplig-width)))
+           (lig-already-in-mask? (-contains? (overlay-get mask 'aplig-ligs) lig)))
+      (or lig-already-in-mask?
+          (<= line-width mask-potential-width)))))
 
 (defun aplig-lig-mask--add-lig-to-mask (lig mask)
   "Add LIG to a MASK and possibly refresh it."
@@ -463,12 +474,25 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;;; Insertion
 
+
 (defun aplig-change--insertion (start end)
   "Change function specialized for insertion, in START and END."
-  ;; (message "Inserting from %s to %s" start end)
-
   (-when-let (new-lines (aplig-change--new-lines?))
-    (message "New lines %s" new-lines)
+    (let* (((end-line (1+ (line-number-at-pos)))
+            (start-line (- end-line new-lines))
+
+            (line-before-change (1- start-line))
+            (mask-before-change (aplig-mask--at line-before-change))
+            (ligs-before-change (overlay-get 'aplig-ligs mask-before-change))
+
+            (ligs (-union ligs-before-change
+                          (aplig-ligs--at line-before-change)))))
+      (-each (-counter start-line end-line) #'aplig-mask--init)
+      (aplig-lig-mask--add-ligs-to-masks ligs)
+
+      ;; NOTE strange error was occurring when refreshing a mask without a
+      ;; ligature, maybe occurring because end-line already has a mask?
+      (message "New lines %s" new-lines))
     ))
 
 ;;;; Deletion
@@ -494,7 +518,7 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-kwd--match (replacement width)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
-  (unless (aplig-lig--present?)
+  (unless (aplig-ligs--present?)
     (aplig-lig--init replacement width)))
 
 (defun aplig-kwd--build (spec)
