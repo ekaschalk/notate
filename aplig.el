@@ -138,6 +138,10 @@ The RX, if given, should set the first group for the match to replace."
   (let ((ovs (overlays-at pos)))
     (--any (when (overlay-get it 'aplig?) it) ovs)))
 
+(defun aplig-ov--goto (ov)
+  "Goto start of OV."
+  (goto-char (overlay-start ov)))
+
 (defun aplig-ov--at-point ()
   "Execute `aplig-ov--at' point."
   (aplig-ov--at (point)))
@@ -168,14 +172,21 @@ The RX, if given, should set the first group for the match to replace."
             (sp-end-of-sexp)
             (line-number-at-pos)))))
 
+(defun aplig-lig--boundary?-fn--heuristic--lisps (lig)
+  "Hueristic version of boundary predicate."
+  (save-excursion
+    (aplig-ov--goto lig)
+
+    (let ((at-form-opener?
+           (null (ignore-errors (backward-sexp) t))))
+      at-form-opener?)))
+
 (defun aplig-lig--boundary?--lisps (lig)
   "Does LIG have an indentation boundary? A weaker version of boundary-fn."
-  ;; 1. Is the lig a form opener?
-  ;; 2. Is the lig already modifying indentation?
-  ;; 3. Are there more lines?
-  ;; Note that we should store the reason why it fails, as an optimization
-  ;; we can utilize when modifications are performed on a line containing LIG
-  t)
+  ;; Always-correct boundary-fn much more involved than a good-enough heuristic
+  ;; It must correspond to `lisp-indent-function', but given its calling
+  ;; convention, likely difficult to emulate in a non-temp-buffer-based impl.
+  (aplig-lig--boundary?-fn--heuristic--lisps lig))
 
 ;;;; Overlays
 
@@ -240,6 +251,7 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-mask--indent-col (&optional n)
   "Get indentation col, of line forward N-1 times if given."
+  ;; NOTE For lisps `calculate-lisp-indent', though that does alot of extra work
   (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
 
 (defun aplig-mask--at (line)
@@ -257,10 +269,6 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-mask--insert-at (mask line)
   "Insert MASK at LINE into `aplig-mask-list'."
   (setq aplig-mask-list (-insert-at line mask aplig-mask-list)))
-
-(defun aplig-mask--goto (mask)
-  "Goto MASK's start."
-  (goto-char (overlay-start mask)))
 
 ;;;; Overlays
 
@@ -285,7 +293,7 @@ The RX, if given, should set the first group for the match to replace."
   "Format the `line-prefix' overlay text property for MASK."
   (let* ((sep         "|")
          (true-indent (save-excursion
-                        (aplig-mask--goto mask)
+                        (aplig-ov--goto mask)
                         (aplig-mask--indent-col)))
          (width       (aplig-mask->width mask))
          (ligs        (overlay-get mask 'aplig-ligs))
@@ -400,7 +408,7 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-lig-mask--skip? (lig mask)
   "Should MASK in boundary of LIG be skipped when adding LIG to its masks?"
   (save-excursion
-    (aplig-mask--goto mask)
+    (aplig-ov--goto mask)
     (let* ((line-width (- (line-end-position)
                           (line-beginning-position)))
            (mask-width (aplig-mask->width mask))

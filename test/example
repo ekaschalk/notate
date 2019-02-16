@@ -1,6 +1,6 @@
 ;; Test-bed for aplig
 
-(hello bar
+(hello hello
        (bye foo
 
             bar
