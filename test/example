@@ -1,7 +1,8 @@
 ;; Test-bed for aplig
 
 (hello hello
-       (bye foo
+       (bye fooo
+
 
             bar
             baz)

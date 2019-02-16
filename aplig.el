@@ -177,9 +177,22 @@ The RX, if given, should set the first group for the match to replace."
   (save-excursion
     (aplig-ov--goto lig)
 
-    (let ((at-form-opener?
-           (null (ignore-errors (backward-sexp) t))))
-      at-form-opener?)))
+    (let* ((at-form-opener? (null (ignore-errors (backward-sexp) t)))
+
+           ;; (declare indent)
+           in-specially-indented-body?
+
+           ;; (foo lig (foo foo
+           ;;               foo))
+           another-form-opener-same-line?
+
+           ;; (lig
+           ;;  foo)
+           only-sexp-on-its-line?)
+      (and at-form-opener?
+           (not in-specially-indented-body?)
+           (not another-form-opener-same-line?)
+           (not only-sexp-on-its-line?)))))
 
 (defun aplig-lig--boundary?--lisps (lig)
   "Does LIG have an indentation boundary? Return back LIG if it does."
@@ -478,15 +491,15 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-change--insertion (start end)
   "Change function specialized for insertion, in START and END."
   (-when-let (new-lines (aplig-change--new-lines?))
-    (let* (((end-line (1+ (line-number-at-pos)))
-            (start-line (- end-line new-lines))
+    (let* ((end-line (1+ (line-number-at-pos)))
+           (start-line (- end-line new-lines))
 
-            (line-before-change (1- start-line))
-            (mask-before-change (aplig-mask--at line-before-change))
-            (ligs-before-change (overlay-get 'aplig-ligs mask-before-change))
+           (line-before-change (1- start-line))
+           (mask-before-change (aplig-mask--at line-before-change))
+           (ligs-before-change (overlay-get mask-before-change 'aplig-ligs))
 
-            (ligs (-union ligs-before-change
-                          (aplig-ligs--at line-before-change)))))
+           (ligs (-union ligs-before-change
+                         (aplig-ligs--at line-before-change))))
       (-each (-counter start-line end-line) #'aplig-mask--init)
       (aplig-lig-mask--add-ligs-to-masks ligs)
 
