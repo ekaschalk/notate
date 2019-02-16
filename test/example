@@ -9,10 +9,4 @@
        foo
        baz)
 
-
-(foooo bar
-       (foo foo
-            bar
-            baz)
-       foo
-       baz)
+;; End of testing

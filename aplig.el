@@ -244,11 +244,6 @@ The RX, if given, should set the first group for the match to replace."
 ;;; Masks
 ;;;; Lines
 
-(defun aplig-mask--line-count-modified? ()
-  "Lines added: +x, removed: -x, otherwise 0 since mask list last updated."
-  (- (line-number-at-pos (point-max))
-     (length aplig-mask-list)))
-
 (defun aplig-mask--indent-col (&optional n)
   "Get indentation col, of line forward N-1 times if given."
   ;; NOTE For lisps `calculate-lisp-indent', though that does alot of extra work
@@ -445,6 +440,38 @@ The RX, if given, should set the first group for the match to replace."
 
 
 
+;;; Change Functions
+;;;; Utils
+
+(defun aplig-change--line-count-modified? ()
+  "Lines added: +x, removed: -x, otherwise 0 since mask list last updated."
+  (- (line-number-at-pos (point-max))
+     (length aplig-mask-list)))
+
+;;;; Insertion
+
+(defun aplig-after-change-function--insertion (start end)
+  "Change function specialized for insertion, in START and END."
+  (message (format "Inserting from %s to %s" start end))
+  )
+
+;;;; Deletion
+
+(defun aplig-after-change-function--deletion (pos chars-deleted)
+  "Change function specialized for deletion, number CHARS-DELETED at POS."
+  (message (format "Deleting at pos %s, %s characters" pos chars-deleted))
+  )
+
+;;;; Hook
+
+(defun aplig-after-change-function (start end chars-deleted)
+  "See `after-change-functions'."
+  (if (= 0 chars-deleted)
+      (aplig-after-change-function--insertion start end)
+    (aplig-after-change-function--deletion start chars-deleted)))
+
+
+
 ;;; Font Locks
 
 (defun aplig-kwd--match (replacement width)
@@ -499,7 +526,8 @@ The RX, if given, should set the first group for the match to replace."
   (remove-overlays nil nil 'aplig? t)
 
   (setq font-lock-keywords nil)
-  (remove-hook 'lisp-mode-hook #'aplig-kwds--add))
+  (remove-hook 'lisp-mode-hook #'aplig-kwds--add)
+  (remove-hook 'after-change-functions #'aplig-after-change-function 'local))
 
 (defun aplig-enable ()
   "Enable aplig and cleanup previous instance if running."
@@ -507,12 +535,14 @@ The RX, if given, should set the first group for the match to replace."
 
   (aplig-disable)
   (aplig-setup--agnostic)
-  (add-hook 'lisp-mode-hook #'aplig-kwds--add)
 
+  (add-hook 'lisp-mode-hook #'aplig-kwds--add)
   (let ((aplig-mask--wait-for-refresh t))
     (lisp-mode)
     (font-lock-ensure))
-  (aplig-masks--refresh-buffer))
+
+  (aplig-masks--refresh-buffer)
+  (add-hook 'after-change-functions #'aplig-after-change-function nil 'local))
 
 
 
