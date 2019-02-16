@@ -485,7 +485,10 @@ The RX, if given, should set the first group for the match to replace."
   (-each aplig-lig-list #'aplig-lig--delete)
   (setq aplig-mask-list nil)
   (setq aplig-lig-list nil)
-  (setq aplig-mask--wait-for-refresh nil)  ; Just in case...
+
+  ;; Below aren't needed in normal use, resets buffer just in case
+  (setq aplig-mask--wait-for-refresh nil)
+  (remove-overlays nil nil 'aplig? t)
 
   (setq font-lock-keywords nil)
   (remove-hook 'lisp-mode-hook #'aplig-kwds--add))
