@@ -1,1 +1,21 @@
-How to maintain and access constantly updated prefix overlays?
+#+TITLE: aplig - Task Management
+
+* Core
+** TODO Buffer modifications
+
+   Very involved task, still must determine all things to be accounted for.
+
+* Nice to have
+** TODO Retain up-down line movement's visual column
+
+   When moving into an indentation-masked line, the visual column does not
+   correspond to the true column, making vertical line movement also move
+   left/right depending on whether we are ascending or descending a sexp.
+
+   This isn't the end of the world but a substantial improvement should it be
+   resolved.
+
+** TODO Further test coverage
+
+   This appears to be harder than expected to test modularly. Might need to
+   invest in a more involved testing context macro.

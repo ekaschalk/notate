@@ -57,3 +57,5 @@ The text on the left is debugging information showing
 - Boundary functions are very simple and make many assumptions.
 - Boundary functions only implemented for lisps.
 - ... and many more challenges.
+
+[[./docs/tasks.org]] contains further, not necessarily exhaustive details.

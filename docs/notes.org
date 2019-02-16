@@ -1,24 +1,11 @@
-#+TITLE: Virtual-Indent Implementation Notes
+#+TITLE: aplig Notes
 
-* Useful Functions
+Serves as a scratch buffer for thoughts and other notes related to aplig.
 
-`indent-sexp' - lisp-mode only
-`indent-region' - all-modes (start end)
+* Notes
 
-* Text Property Documentation
+must wrap `evil-line-move' to preserve column +- mask offsets
+(and `forward-line', the evil func has commentary on column preservation)
 
-- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Truncation.html#Truncation][`line-prefix' and `wrap-prefix' used by org-indent]]
-
-- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Special-Properties.html#Special-Properties][All other special properties]]
-
-- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Display-Property.html#Display-Property][Details on the display property]]
-
-- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Other-Display-Specs.html#Other-Display-Specs][display spec]]
-
-- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Glyphs.html][glyphs]]
-
-- [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Character-Display.html#Character-Display][how chars are displayed]]
-
-* Thoughts
-
-What if I modify the space following the composed ligature?
+https://emacs.stackexchange.com/questions/14420/how-can-i-fix-incorrect-character-width
+has potential for standardizing widths of all the icons fonts

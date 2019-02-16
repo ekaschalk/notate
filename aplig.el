@@ -56,11 +56,11 @@ The RX, if given, should set the first group for the match to replace."
   (cond
    ((or (s-contains? "\n" string)
         (s-contains? "\n" replacement))
-    (error "Newlines anywhere in spec are confusing, will not be supported."))
+    (error "Newlines anywhere in spec components cause ambiguity."))
 
    ((> (length replacement)
        (length string))
-    (error "Indentation expansions are not supported yet."))))
+    (error "Indentation expansions not supported yet."))))
 
 ;;;; Configured
 
@@ -548,15 +548,6 @@ ligs: %s
   (spacemacs/set-leader-keys "dp" #'aplig-print-at-point))
 
 
-
-;;; Notes
-
-;; NOTE up/down movements should add the difference of widths
-;; That is, must wrap `evil-line-move' to preserve column +- mask offsets
-;; (and `forward-line', the evil func has commentary on column preservation)
-
-;; NOTE https://emacs.stackexchange.com/questions/14420/how-can-i-fix-incorrect-character-width has potential for standardizing widths of all the icons fonts
-
 
 (provide 'aplig)
 
