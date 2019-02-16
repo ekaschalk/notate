@@ -443,23 +443,41 @@ The RX, if given, should set the first group for the match to replace."
 ;;; Change Functions
 ;;;; Utils
 
-(defun aplig-change--line-count-modified? ()
+(defun aplig-change--line-diff ()
   "Lines added: +x, removed: -x, otherwise 0 since mask list last updated."
-  (- (line-number-at-pos (point-max))
+  ;; NOTE 1- point-max easier than calling skip-line on last-line's mask
+  (- (line-number-at-pos (1- (point-max)))
      (length aplig-mask-list)))
+
+(defun aplig-change--new-lines? ()
+  "Return count of lines added since last update or nil."
+  (let ((line-change (aplig-change--line-diff)))
+    (when (> line-change 0)
+      line-change)))
+
+(defun aplig-change--removed-lines? ()
+  "Return count of lines removed since last update or nil."
+  (let ((line-change (aplig-change--line-diff)))
+    (when (< line-change 0)
+      (- line-change))))
 
 ;;;; Insertion
 
-(defun aplig-after-change-function--insertion (start end)
+(defun aplig-change--insertion (start end)
   "Change function specialized for insertion, in START and END."
-  (message (format "Inserting from %s to %s" start end))
-  )
+  ;; (message "Inserting from %s to %s" start end)
+
+  (-when-let (new-lines (aplig-change--new-lines?))
+    (message "New lines %s" new-lines)
+    ))
 
 ;;;; Deletion
 
-(defun aplig-after-change-function--deletion (pos chars-deleted)
+(defun aplig-change--deletion (pos chars-deleted)
   "Change function specialized for deletion, number CHARS-DELETED at POS."
-  (message (format "Deleting at pos %s, %s characters" pos chars-deleted))
+  ;; (message "Deleting at pos %s, %s characters" pos chars-deleted)
+
+
   )
 
 ;;;; Hook
@@ -467,8 +485,8 @@ The RX, if given, should set the first group for the match to replace."
 (defun aplig-after-change-function (start end chars-deleted)
   "See `after-change-functions'."
   (if (= 0 chars-deleted)
-      (aplig-after-change-function--insertion start end)
-    (aplig-after-change-function--deletion start chars-deleted)))
+      (aplig-change--insertion start end)
+    (aplig-change--deletion start chars-deleted)))
 
 
 
