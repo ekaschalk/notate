@@ -431,6 +431,11 @@ The RX, if given, should set the first group for the match to replace."
            (mask-width (aplig-mask->width mask))
            (mask-potential-width (+ mask-width (overlay-get lig 'aplig-width)))
            (lig-already-in-mask? (-contains? (overlay-get mask 'aplig-ligs) lig)))
+      ;; (message "Looking at lig %s mask %s. Potential: %s. Has: %s"
+      ;;          lig mask mask-potential-width lig-already-in-mask?)
+
+      ;; have to insert two characters for the mask to kick in, why?
+
       (or lig-already-in-mask?
           (<= line-width mask-potential-width)))))
 
@@ -493,20 +498,25 @@ The RX, if given, should set the first group for the match to replace."
   (-when-let (new-lines (aplig-change--new-lines?))
     (let* ((end-line (1+ (line-number-at-pos)))
            (start-line (- end-line new-lines))
-
            (line-before-change (1- start-line))
+
+           ;; Must init masks ASAP for `aplig-mask-list' integrity
+           (masks (-map #'aplig-mask--init
+                        (number-sequence start-line (1- end-line))))  ; incl.
+
            (mask-before-change (aplig-mask--at line-before-change))
            (ligs-before-change (overlay-get mask-before-change 'aplig-ligs))
 
            (ligs (-union ligs-before-change
                          (aplig-ligs--at line-before-change))))
-      (-each (-counter start-line end-line) #'aplig-mask--init)
-      (aplig-lig-mask--add-ligs-to-masks ligs)
 
-      ;; NOTE strange error was occurring when refreshing a mask without a
-      ;; ligature, maybe occurring because end-line already has a mask?
-      (message "New lines %s" new-lines))
-    ))
+      ;; The lig is being added to mask but it takes 2 insertions to "kick in"
+      ;; for some reason?
+      ;; (aplig-lig-mask--add-ligs-to-masks ligs)
+      (-each ligs #'aplig-lig-mask--add-lig-to-masks)
+
+      (message "%s %s" start end)
+      )))
 
 ;;;; Deletion
 
@@ -637,11 +647,37 @@ ligs: %s
 "
             start end line ligs)))
 
+
+(defun aplig-reset-test-buffer ()
+  "Strange things can happen to buffer/undo-tree. Reset test buffer."
+  (interactive)
+
+  (when (string= (buffer-name) "example")
+    (delete-region (point-min) (point-max))
+    (insert
+     ";; Test-bed for aplig
+
+(hello hello
+       (bye foo
+
+            bar
+            baz)
+       foo
+       baz)
+
+;; End of testing
+")))
+
 (when nil
   (spacemacs/declare-prefix "d" "dev")
+
+  ;; core
   (spacemacs/set-leader-keys "de" #'aplig-enable)
   (spacemacs/set-leader-keys "dd" #'aplig-disable)
-  (spacemacs/set-leader-keys "dp" #'aplig-print-at-point))
+
+  ;; debugging
+  (spacemacs/set-leader-keys "dp" #'aplig-print-at-point)
+  (spacemacs/set-leader-keys "dr" #'aplig-reset-test-buffer))
 
 
 
