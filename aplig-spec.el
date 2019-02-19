@@ -53,6 +53,29 @@ The RX, if given, should set the first group for the match to replace."
 
 
 
+;;; Font Locks
+
+(defun aplig-spec--kwd-match (replacement width)
+  "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
+  (unless (aplig-ligs--present?)
+    (aplig-lig--init replacement width)))
+
+(defun aplig-spec--kwd-build (spec)
+  "Compose the font-lock-keyword for SPEC in `aplig-specs'."
+  (-let (((&plist :replacement replacement
+                  :rx rx
+                  :width width)
+          spec))
+    `(,rx (0 (prog1 nil (aplig-spec--kwd-match ,replacement ,width))))))
+
+(defun aplig-spec--kwds-add ()
+  "Build kwds from `aplig-specs' and add to `font-lock-keywords'."
+  (->> aplig-specs
+     (-map #'aplig-spec--kwd-build)
+     (font-lock-add-keywords nil)))
+
+
+
 (provide 'aplig-spec)
 
 

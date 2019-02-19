@@ -23,13 +23,15 @@
 (defconst aplig-dev--modules
   '("aplig-dev.el"
 
+    ;; Modules
+    "aplig-lig.el"
+    "aplig-mask.el"
+    "aplig-ov.el"
+    "aplig-spec.el"
+
     ;; Core
     "aplig.el"
-    "aplig-base.el"
-
-    ;; Modules
-    "aplig-spec.el"
-    "aplig-ov.el")
+    "aplig-base.el")
   "A list of aplig's elisp file names, for reloading dev utility.")
 
 (defconst aplig-dev--test-buffer "*aplig-development*"
@@ -103,6 +105,7 @@ ligs: %s
 ;;; Commands
 ;;;; Definitions
 
+;;;###autoload
 (defun aplig-dev--switch-to-test-buffer ()
   "Get or create an aplig test buffer with `aplig-dev--test-text' inserted.
 
@@ -112,23 +115,24 @@ We can easily find ourselves with the error:
 When working on aplig, necessitating a transient testing buffer."
   (interactive)
 
-  (when (switch-to-buffer-other-window
-         (get-buffer-create aplig-dev--test-buffer))
-    (delete-region (point-min) (point-max))
-    (insert aplig-dev--test-text)
-    (goto-char (point-min))
+  (switch-to-buffer-other-window (get-buffer-create aplig-dev--test-buffer))
 
-    (local-set-key "q" 'quit-window)
-    (when (fboundp 'evil-local-set-key)
-      (evil-local-set-key 'normal "q" 'quit-window))))
+  (delete-region (point-min) (point-max))
+  (insert aplig-dev--test-text)
+  (goto-char (point-min))
+
+  (local-set-key "q" 'quit-window)
+  (when (fboundp 'evil-local-set-key)
+    (evil-local-set-key 'normal "q" 'quit-window)))
 
 (defun aplig-dev--print-at-point ()
   "Print aplig OV at point."
   (interactive) (aplig-dev--print (aplig-ov--at-point)))
 
+;;;###autoload
 (defun aplig-dev--reload ()
   "(Re)load all `aplig-dev--modules'."
-  (interactive) (-map #'load-file aplig-dev--modules))
+  (interactive) (-each aplig-dev--modules #'load-file))
 
 ;;;; Bind Keys
 
@@ -141,9 +145,11 @@ When working on aplig, necessitating a transient testing buffer."
     "dd" #'aplig-disable
 
     ;; Develop Commmands
-    "db" #'aplig-dev--reload
-    "dp" #'aplig-dev--print-at-point
-    "dr" #'aplig-dev--switch-to-test-buffer))
+    "dr" #'aplig-dev--reload
+    "db" #'aplig-dev--switch-to-test-buffer
+
+    ;; Debug Commands
+    "dp" #'aplig-dev--print-at-point))
 
 
 
