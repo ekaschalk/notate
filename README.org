@@ -43,6 +43,21 @@ generalization is ~prettify-symbols~. Note that typical ligatures are not
 supported by Emacs display engine and require non-trivial modifications to Emacs
 C core.
 
+** FAQ
+
+- Does aplig support all programming languages? :: aplig is major-mode agnostic
+     except for two major-mode dependent functions that must calculate
+     indentation masks' width and range. I believe this too can be made
+     major-mode agnostic, however, a general implementation will be slower, more
+     complex and likely more brittle.
+
+- Similar work? :: aplig is a novel extension to pretty-symbols/ligature-concept,
+                   which itself has only a counterpart in ~vim-conceal~.
+
+- How does it work? :: By (ab)using particular properties of emacs's ~display~
+     and ~modification-hooks~ text properties. Note traditional
+     "ligature"/pretty-symbol implementations for Emacs use ~compose-region~.
+
 ** Current State
 
 Given ~hello -> ∧~ and ~bye -> !∨~ (a two-character replacement):
@@ -52,10 +67,10 @@ Given ~hello -> ∧~ and ~bye -> !∨~ (a two-character replacement):
 The text on the left is debugging information showing
 ~true-indent|masked-indent|contributing-symbols~.
 
-- Doesn't yet support buffer modification, it's a toggle.
+- Doesn't yet recalculate masks on buffer modifications.
+  - Insertion almost working, deletion not started.
 - Line movement needs to adjust for the indentation masks.
-- Boundary functions are very simple and make many assumptions.
-- Boundary functions only implemented for lisps.
+  - In above example, moving point up within a mask also has horizontal
+    movement.
+- Boundary functions only implemented for lisps and cases remain.
 - ... and many more challenges.
-
-[[./docs/tasks.org]] contains further, not necessarily exhaustive details.
