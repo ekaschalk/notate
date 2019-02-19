@@ -21,70 +21,23 @@
 ;;; Code:
 ;;;; Requires
 
-(require 'cl)
-(require 'dash)
-(require 'dash-functional)
-(require 's)
-(require 'smartparens)
+(require 'aplig-base)
+
+(require 'aplig-ov)
+(require 'aplig-spec)
 
 
 
 ;;; Configuration
-;;;; Utils
 
-(defun aplig-make-spec (string replacement &optional rx)
-  "Create spec plist for STRING to REPLACEMENT optionally with custom RX.
-
-Without a RX given, default to matching entire STRING.
-The RX, if given, should set the first group for the match to replace."
-  (aplig-validate-spec string replacement)
-  `(:string
-    ,string
-    :rx          ,(or rx
-                      `,(rx-to-string `(group ,string)
-                                      'no-shy-group))
-    :replacement ,replacement
-    :width       ,(- (length string)
-                     (length replacement))))
-
-(defun aplig-make-specs (specs)
-  "Apply `aplig-make-spec' to each SPEC."
-  (-map (-applify #'aplig-make-spec) specs))
-
-(defun aplig-validate-spec (string replacement)
-  "Throw error on egregious inputs."
-  (cond
-   ((or (s-contains? "\n" string)
-        (s-contains? "\n" replacement))
-    (error "Newlines anywhere in spec components cause ambiguity."))
-
-   ((> (length replacement)
-       (length string))
-    (error "Indentation expansions not supported yet."))))
-
-;;;; Configured
-
-(defconst aplig-specs
-  (aplig-make-specs '(
-                      ("hello"   "∧")
-                      ("bye"     "!∨")
-
-                      ;; ("0-space"   "")
-                      ;; ("1-space"   " ")
-                      ;; ("2-space"   "  ")
-                      ;; ("tab-space" "	")
-                      ))
-  "Collection of specs from `aplig-make-spec'.")
+(defconst aplig-specs (aplig-specs--make '(("hello" "∧") ("bye" "!∨")))
+  "Collection of specs from `aplig-spec--make'.")
 
 (defconst aplig-lig--boundary-fn #'aplig-lig--boundary--lisps
   "A function that should return line boundaries given a LIG.")
 
 (defconst aplig-lig--boundary?-fn #'aplig-lig--boundary?--lisps
   "A subset of `aplig-lig--boundary-fn', whether LIG has a boundary.")
-
-;; Eventually support indentation heuristic optimizations
-(defconst aplig-lig--boundary-fn--heuristic nil)
-(defconst aplig-lig--boundary?-fn--heuristic nil)
 
 ;;;; Debugging
 
@@ -104,57 +57,6 @@ The RX, if given, should set the first group for the match to replace."
 
 (defconst aplig-mask--wait-for-refresh nil
   "Let-bind true to hold off on refreshing masks during batch modifications.")
-
-
-
-;;; Overlays
-;;;; Predicates
-
-(defun aplig-ov--lig? (ov)
-  "Is OV a ligature?"
-  (overlay-get ov 'aplig-lig?))
-
-(defun aplig-ov--mask? (ov)
-  "Is OV a mask?"
-  (overlay-get ov 'aplig-mask?))
-
-(defun aplig-ov--in? (ov start end)
-  "Is OV contained within START and END?"
-  (and ov start end
-       (<= start (overlay-start ov) (overlay-end ov) end)))
-
-(defun aplig-ov--in-match? (ov subexp)
-  "Is OV contained in the SUBEXP matching group?"
-  (aplig--ov-in-bound? ov (match-beginning subexp) (match-end subexp)))
-
-;;;; Utils
-
-(defun aplig-ovs--prop (ovs prop)
-  "Return list of each OVS PROP."
-  (--map (overlay-get it prop) ovs))
-
-(defun aplig-ov--at (pos)
-  "Return first aplig overlay at POS."
-  (let ((ovs (overlays-at pos)))
-    (--any (when (overlay-get it 'aplig?) it) ovs)))
-
-(defun aplig-ov--goto (ov)
-  "Goto start of OV."
-  (goto-char (overlay-start ov)))
-
-(defun aplig-ov--at-point ()
-  "Execute `aplig-ov--at' point."
-  (aplig-ov--at (point)))
-
-(defun aplig-ov--print (ov)
-  "Dispatch formater for OV and message."
-  (message
-   (cond ((null ov)
-          "No ov found.")
-         ((aplig-ov--lig? ov)
-          (aplig-lig--format ov))
-         ((aplig-ov--mask? ov)
-          (aplig-mask--format ov)))))
 
 
 
@@ -560,14 +462,6 @@ The RX, if given, should set the first group for the match to replace."
 
 
 ;;; Interactive
-;;;; Utils
-
-(defun aplig-print-at-point ()
-  "Print aplig OV at point."
-  (interactive)
-
-  (aplig-ov--print (aplig-ov--at-point)))
-
 ;;;; Setup
 
 (defun aplig-setup--agnostic ()
@@ -608,76 +502,6 @@ The RX, if given, should set the first group for the match to replace."
 
   (aplig-masks--refresh-buffer)
   (add-hook 'after-change-functions #'aplig-after-change-function nil 'local))
-
-
-
-;;; Dev
-
-(defun aplig-lig--format (lig)
-  "Format LIG for pprinting."
-  (let* ((start (overlay-start lig))
-         (end (overlay-end lig))
-         (line (line-number-at-pos start))
-         (string (buffer-substring-no-properties start end))
-         (replacement (overlay-get lig 'display))
-         (width (- (length string) (length replacement)))
-         (masks (aplig-lig-mask--masks-for lig)))
-    (format "Lig overlay:
-start: %s
-end: %s
-line: %s
-width: %s
-string: %s
-replacement: %s
-masks: %s
-"
-            start end line width string replacement masks)))
-
-(defun aplig-mask--format (mask)
-  "Format MASK for pprinting."
-  (let* ((start (overlay-start mask))
-         (end (overlay-end mask))
-         (line (line-number-at-pos start))
-         (ligs (overlay-get mask 'aplig-ligs)))
-    (format "Mask overlay:
-start: %s
-end: %s
-line: %s
-ligs: %s
-"
-            start end line ligs)))
-
-
-(defun aplig-reset-test-buffer ()
-  "Strange things can happen to buffer/undo-tree. Reset test buffer."
-  (interactive)
-
-  (when (string= (buffer-name) "example")
-    (delete-region (point-min) (point-max))
-    (insert
-     ";; Test-bed for aplig
-
-(hello hello
-       (bye foo
-
-            bar
-            baz)
-       foo
-       baz)
-
-;; End of testing
-")))
-
-(when nil
-  (spacemacs/declare-prefix "d" "dev")
-
-  ;; core
-  (spacemacs/set-leader-keys "de" #'aplig-enable)
-  (spacemacs/set-leader-keys "dd" #'aplig-disable)
-
-  ;; debugging
-  (spacemacs/set-leader-keys "dp" #'aplig-print-at-point)
-  (spacemacs/set-leader-keys "dr" #'aplig-reset-test-buffer))
 
 
 
