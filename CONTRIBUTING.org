@@ -1,0 +1,14 @@
+#+TITLE: Contributing to aplig
+
+
+aplig needs and appreciates contributors!
+
+This document will be fleshed out closer to a alpha/beta release.
+
+* Issues
+** Collecting Information
+
+* Contributing Code
+** Guidelines
+** Setup
+** Test suite
