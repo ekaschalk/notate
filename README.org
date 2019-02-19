@@ -45,23 +45,25 @@ C core.
 
 ** FAQ
 
-- Does aplig support all programming languages? :: aplig is major-mode agnostic
-     except for two major-mode dependent functions that must calculate
-     indentation masks' width and range. I believe this too can be made
-     major-mode agnostic, however, a general implementation will be slower, more
-     complex and likely more brittle.
+- Does aplig support all programming languages? :: Yes-ish.
+  - /Details/: aplig is major-mode agnostic except for two major-mode dependent
+    functions that must calculate indentation masks' width and range. I believe
+    this too can be made major-mode agnostic, however, a general implementation
+    will be slower, more complex and likely more brittle.
 
-- Similar work? :: aplig is a novel extension to pretty-symbols/ligature-concept,
-                   which itself has only a counterpart in ~vim-conceal~.
+- Similar work? :: aplig is a novel extension of ~prettify-symbols~, which itself
+                   has only a counterpart in ~vim-conceal~.
 
 - How does it work? :: By (ab)using particular properties of emacs's ~display~
-     and ~modification-hooks~ text properties. Note traditional
-     "ligature"/pretty-symbol implementations for Emacs use ~compose-region~.
+     and ~modification-hooks~ text properties.
+  - /Details/: aplig is self-contained and does not depend on
+    ~prettify-symbols~. The traditional ~compose-region~-based implementation is
+    not compatible with the indentation mask approach, which I believe to be the
+    only possible implementation, save modifying Emacs C source.
 
-- aplig breaks XXX :: This project is ambitious and has the potential to clash
-     with /many/ different things in /many/ different ways (eg. ~undo-tree~).
-     Please see CONTRIBUTING for details on how best to gather information about
-     and share your issue.
+- Contributing? :: Would be greatly appreciated! Non-coding things like images
+                   and screencasts are useful and exciting. For contributing
+                   code and raising issues, see CONTRIBUTING.
 
 ** Current State
 
