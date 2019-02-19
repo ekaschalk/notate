@@ -58,6 +58,11 @@ C core.
      and ~modification-hooks~ text properties. Note traditional
      "ligature"/pretty-symbol implementations for Emacs use ~compose-region~.
 
+- aplig breaks XXX :: This project is ambitious and has the potential to clash
+     with /many/ different things in /many/ different ways (eg. ~undo-tree~).
+     Please see CONTRIBUTING for details on how best to gather information about
+     and share your issue.
+
 ** Current State
 
 Given ~hello -> ∧~ and ~bye -> !∨~ (a two-character replacement):
