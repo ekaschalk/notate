@@ -9,6 +9,22 @@ This document will be fleshed out closer to a alpha/beta release.
 ** Collecting Information
 
 * Contributing Code
-** Guidelines
+** Conventions
+
+I politely ask several conventions to be followed of any PRs:
+
+- Name your functions: ~aplig-[module-name](s)--my-func~
+  - Eg. ~aplig-mask--init~ and ~aplig-masks--init~.
+
+- Predicates should have ~?~ appended, not ~-p~.
+  - Eg. ~aplig-ov--in-match?~ and ~aplig-mask--empty?~
+
+- Functions should be organized into outlines (;;; comments) as best as
+  possible.
+  - Eg. ~;;; Predicates~ contains all predicates.
+
+- Insert a form feed and newline before any top-level outline (3-asterisks).
+  - Done via ~C-x 8 RET~ (~insert-char~) on ~FORM FEED~.
+
 ** Setup
 ** Test suite
