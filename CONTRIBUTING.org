@@ -17,23 +17,23 @@ namespaces and aren't hard-set.
 *** Code
 
 - Name your functions: ~aplig-[module-name](s)--my-func~
-  - Eg. ~aplig-mask--init~ and ~aplig-masks--init~.
+  - ~aplig-mask--init~ and ~aplig-masks--init~.
 
 - Predicates should have ~?~ appended, not ~-p~.
-  - Eg. ~aplig-ov--in-match?~ and ~aplig-mask--empty?~
+  - ~aplig-mask--empty?~
 
-- Functions should be organized into existing outlines (;;; comments) when
-  reasonable.
-  - Eg. ~;;; Predicates~ contains all predicates.
+- Organize with outlines (;;; comments) when it is reasonable.
+  - aplig-mask.el's ~;;; Predicates~ contains all predicates operating on masks.
 
 - Insert a form feed and newline before any top-level outline (3-asterisks), if
-  your PR contains a new outline.
+  your PR contains a new outline section.
   - Done via ~C-x 8 RET~ (~insert-char~) and selecting ~FORM FEED~.
-    - This is not a [[http:http://ergoemacs.org/emacs/modernization_formfeed.html][universal convention]]. However, combined with an outline
-      (I markup with [[https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines][pretty-outlines]]), this is the best solution I've found to
-      organizing and visually separating emacs-lisp code blocks.
+    - This is not a [[http:http://ergoemacs.org/emacs/modernization_formfeed.html][universal convention]]. However, combined with an outline (I
+      markup with [[https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines][pretty-outlines]]), this is the best solution, if stylistic,
+      I've found to organizing and visually separating emacs-lisp code blocks
+      (and for that matter, all code blocks).
 
 *** Tests
 
-- Tests should be named ~[module]:[outline]:my-test[:test-case-name]~
-  - Eg. ~ov:predicates:ligs?~ and ~ligs:transforms:width:some-ligs~.
+- Name tests ~[module]:[outline]:my-test~
+  - ~ligs:overlays:access-by-line~
