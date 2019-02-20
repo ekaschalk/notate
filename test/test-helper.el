@@ -9,6 +9,8 @@
 
 ;;; Asserts
 
+;; Aliases for (compose `should' predicate). Not required, I just like it.
+
 (defmacro assert= (o1 o2) `(should (= ,o1 ,o2)))
 (defmacro assert/= (o1 o2) `(should (/= ,o1 ,o2)))
 (defmacro assert-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
@@ -23,7 +25,9 @@
 KIND is a symbol identifying how local variables should be set:
 
    'minimal: Ligs will not contribute to any mask.
-"
+
+After setting the context, `aplig-setup--agnostic' is executed. At the time of
+writing, it instantiates empty masks for the buffer and sets up managed vars."
   (declare (indent 2))
   `(with-temp-buffer
      (aplig-disable)
@@ -40,6 +44,7 @@ KIND is a symbol identifying how local variables should be set:
 
 
 ;;; Mocks
+;;;; Ligs
 
 (defun aplig-test--mock-lig (string replacement)
   "Mock lig for STRING to REPLACEMENT. STRING should exist in buffer!"

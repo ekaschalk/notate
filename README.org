@@ -5,9 +5,9 @@
 Indentation-correcting visual replacements of symbols with other symbols.
 
 Ligature's generalization, known as ~prettified-symbols~, can cause alignment
-and indentation issues, preventing one from rendering ~for~ as ~∀~ and ~lambda~
-as ~λ~ in their code. aplig attempts to bring the joy and readability of APL to
-every language!
+and indentation issues, preventing one from always rendering ~for~ as ~∀~ and
+~lambda~ as ~λ~ in their code. aplig attempts to bring the joy and readability
+of APL to every language!
 
 ** Details
 
@@ -56,10 +56,10 @@ engine and require non-trivial modifications to Emacs C core.
 
 - How does it work? :: By (ab)using particular properties of emacs's ~display~
      and ~modification-hooks~ text properties.
-  - /Details/: My approach [[https://old.reddit.com/r/emacs/comments/74jni0/fixing_ligature_indentation_proof_of_concept/][has received 'praise' from Emac's current maintainer]]:
-    "Using display properties and overlay strings to "fix" what the display
-    engine does is *fundamentally wrong*, and is not what these features were
-    designed for."
+  - /Details/: My approach [[https://old.reddit.com/r/emacs/comments/74jni0/fixing_ligature_indentation_proof_of_concept/][has received 'praise' from Emac's maintainer in the
+    past]]: "Using display properties and overlay strings to "fix" what the
+    display engine does is *fundamentally wrong*, and is not what these features
+    were designed for."
 
     aplig attempts to so egregiously abuse Emac's display engine that a skilled
     user cannot help themselves but to correct me (by extending Emac's C display
@@ -78,7 +78,7 @@ engine and require non-trivial modifications to Emacs C core.
                    exciting. For contributing code and raising issues, see
                    CONTRIBUTING.
 
-** status
+** Status
 
 Given ~hello -> ∧~ and ~bye -> !∨~ (a two-character replacement):
 
