@@ -51,18 +51,19 @@ C core.
     this too can be made major-mode agnostic, however, a general implementation
     will be slower, more complex and likely more brittle.
 
-- Similar work? :: aplig is a novel extension of ~prettify-symbols~, which itself
-                   has only a counterpart in ~vim-conceal~.
-
 - How does it work? :: By (ab)using particular properties of emacs's ~display~
      and ~modification-hooks~ text properties.
-  - /Details/: My approach [[https://old.reddit.com/r/emacs/comments/74jni0/fixing_ligature_indentation_proof_of_concept/][has received the highest praise]] from Emac's current
-    maintainer: "Using display properties and overlay strings to "fix" what the
+  - /Details/: My approach [[https://old.reddit.com/r/emacs/comments/74jni0/fixing_ligature_indentation_proof_of_concept/][has received the highest praise from Emac's current
+    maintainer]]: "Using display properties and overlay strings to "fix" what the
     display engine does is *fundamentally wrong*, and is not what these features
     were designed for."
 
     The goal of aplig is to be so egregiously wrong that a skilled user cannot
-    help themselves but to correct me by extending Emac's C display engine.
+    help themselves but to correct me by extending Emac's C display engine (by
+    implementing "[indentation metrics] smarter than fixed-width columns.")
+
+- Similar work? :: aplig is a novel extension of ~prettify-symbols~, which itself
+                   has only a counterpart in ~vim-conceal~.
 
 - Contributing? :: Would be greatly appreciated! Non-coding things like images
                    and screencasts are useful and exciting. For contributing
