@@ -3,6 +3,8 @@
 
 (package-file "aplig.el")
 
+(files "aplig*.el")
+
 (depends-on "cl")
 (depends-on "dash")
 (depends-on "dash-functional")

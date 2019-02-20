@@ -1,9 +1,3 @@
-(require 'cl)
-(require 'dash)
-(require 'dash-functional)
-(require 's)
-(require 'smartparens)
-
 (require 'ert)
 (require 'faceup)
 (require 'f)
@@ -56,4 +50,4 @@
   (let* ((width       (- (length string) (length replacement)))
          (start       0)
          (end         (+ start (length string))))
-    (aplig-lig--init-lig replacement width start end)))
+    (aplig-lig--init replacement width start end)))
