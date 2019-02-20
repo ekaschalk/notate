@@ -56,10 +56,13 @@ C core.
 
 - How does it work? :: By (ab)using particular properties of emacs's ~display~
      and ~modification-hooks~ text properties.
-  - /Details/: aplig is self-contained and does not depend on
-    ~prettify-symbols~. The traditional ~compose-region~-based implementation is
-    not compatible with the indentation mask approach, which I believe to be the
-    only possible implementation, save modifying Emacs C source.
+  - /Details/: My approach [[https://old.reddit.com/r/emacs/comments/74jni0/fixing_ligature_indentation_proof_of_concept/][has received the highest praise]] from Emac's current
+    maintainer: "Using display properties and overlay strings to "fix" what the
+    display engine does is *fundamentally wrong*, and is not what these features
+    were designed for."
+
+    The goal of aplig is to be so egregiously wrong that a skilled user cannot
+    help themselves but to correct me by extending Emac's C display engine.
 
 - Contributing? :: Would be greatly appreciated! Non-coding things like images
                    and screencasts are useful and exciting. For contributing
