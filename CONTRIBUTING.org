@@ -5,13 +5,16 @@ aplig needs and appreciates contributors!
 
 This document will be fleshed out closer to a alpha/beta release.
 
-* Issues
-** Collecting Information
+* Contributing
+** Issues
+** Code
 
-* Contributing Code
-** Conventions
+There are several conventions I'd like to maintain, enumerated here.
 
-There are several conventions I'd like to maintain:
+Most are just my takes on maintaining a clean emacs-lisp project in spite of no
+namespaces and aren't hard-set.
+
+*** Code
 
 - Name your functions: ~aplig-[module-name](s)--my-func~
   - Eg. ~aplig-mask--init~ and ~aplig-masks--init~.
@@ -30,5 +33,7 @@ There are several conventions I'd like to maintain:
       (I markup with [[https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines][pretty-outlines]]), this is the best solution I've found to
       organizing and visually separating emacs-lisp code blocks.
 
-** Setup
-** Test suite
+*** Tests
+
+- Tests should be named ~[module]:[outline]:my-test[:test-case-name]~
+  - Eg. ~ov:predicates:ligs?~ and ~ligs:transforms:width:some-ligs~.

@@ -21,7 +21,9 @@
 
 ;;; Utils
 
-;; None at the moment
+(defun aplig-base--s-diff (s1 s2)
+  "Return difference of lengths of strings S1 and S2."
+  (- (length s1) (length s2)))
 
 
 

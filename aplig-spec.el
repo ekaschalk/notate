@@ -15,6 +15,8 @@
 
 (require 'aplig-base)
 
+(require 'aplig-lig)
+
 
 
 ;;; Validation
@@ -32,6 +34,11 @@
 
 ;;; Construction
 
+(defun aplig-spec--string->rx (string)
+  "Convert string to an expected aplig-spec RX."
+  (rx-to-string `(group ,string)
+                'no-shy-group))
+
 (defun aplig-spec--make (string replacement &optional rx)
   "Create spec plist for STRING to REPLACEMENT optionally with custom RX.
 
@@ -40,12 +47,8 @@ The RX, if given, should set the first group for the match to replace."
   (aplig-spec--validate string replacement)
   `(:string
     ,string
-    :rx          ,(or rx
-                      `,(rx-to-string `(group ,string)
-                                      'no-shy-group))
-    :replacement ,replacement
-    :width       ,(- (length string)
-                     (length replacement))))
+    :rx          ,(or rx (aplig-spec--string->rx string))
+    :replacement ,replacement))
 
 (defun aplig-specs--make (specs)
   "Apply `aplig-spec--make' to each SPEC."
@@ -55,18 +58,18 @@ The RX, if given, should set the first group for the match to replace."
 
 ;;; Font Locks
 
-(defun aplig-spec--kwd-match (replacement width)
+(defun aplig-spec--kwd-match (string replacement)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
   (unless (aplig-ligs--present?)
-    (aplig-lig--init replacement width)))
+    (aplig-lig--init string replacement)))
 
 (defun aplig-spec--kwd-build (spec)
   "Compose the font-lock-keyword for SPEC in `aplig-specs'."
-  (-let (((&plist :replacement replacement
-                  :rx rx
-                  :width width)
+  (-let (((&plist :string string
+                  :replacement replacement
+                  :rx rx)
           spec))
-    `(,rx (0 (prog1 nil (aplig-spec--kwd-match ,replacement ,width))))))
+    `(,rx (0 (prog1 nil (aplig-spec--kwd-match ,string ,replacement))))))
 
 (defun aplig-spec--kwds-add ()
   "Build kwds from `aplig-specs' and add to `font-lock-keywords'."

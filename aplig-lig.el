@@ -103,26 +103,26 @@
 
 ;;; Init
 
-(defun aplig-lig--init-ov (ov replacement width)
+(defun aplig-lig--init-ov (ov string replacement)
   "Put lig text properties into OV."
   (-doto ov
     (overlay-put 'aplig?      t)
     (overlay-put 'aplig-lig?  t)
-    (overlay-put 'aplig-width width)
+    (overlay-put 'aplig-width (aplig-base--s-diff string replacement))
 
     (overlay-put 'display replacement)
     (overlay-put 'modification-hooks '(aplig-lig--decompose-hook))))
 
-(defun aplig-lig--init (replacement width &optional start end)
+(defun aplig-lig--init (string replacement &optional start end)
   "Build ligature overlay, defaulting to `match-data' for START and END."
-  (unless (or (or start (match-beginning 1))
-              (or end   (match-end 1)))
+  (setq start (or start (match-beginning 1)))
+  (setq end   (or end   (match-end 1)))
+
+  (unless (and start end)
     (error "Initiatializing ligature without match-data set."))
 
-  (let* ((start (or start (match-beginning 1)))
-         (end   (or end (match-end 1)))
-         (ov    (make-overlay start end))
-         (lig   (aplig-lig--init-ov ov replacement width)))
+  (let* ((ov    (make-overlay start end))
+         (lig   (aplig-lig--init-ov ov string replacement)))
     (push lig aplig-lig-list)
     (aplig-lig-mask--add-lig-to-masks lig)
     lig))

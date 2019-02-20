@@ -31,8 +31,8 @@ example: render ~and~ as ~∧~, its symbol in mathematics.
    bar)
 #+END_SRC
 
-There are many examples: render ~alpha~ as ~ɑ~, ~in~ as ~∈~, ~int~ as ~ℤ~, and
-[[https://github.com/Malabarba/Nameless][the "nameless" package]], and so on.
+There are many examples: render ~alpha~ as ~ɑ~, ~in~ as ~∈~, ~int~ as ~ℤ~, [[https://github.com/Malabarba/Nameless][the
+"nameless" package]], and so on.
 
 *aplig masks indentation*. Our working indentation is visually modified so that
 in the example above, we see example 3 while the true text is example 1.
