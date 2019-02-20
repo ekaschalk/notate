@@ -9,14 +9,9 @@ This document will be fleshed out closer to a alpha/beta release.
 ** Collecting Information
 
 * Contributing Code
-
-This section covers a few coding style requirements I have and describes a
-successful aplig development process.
-
 ** Conventions
 
-I politely ask several conventions to be followed of any PRs to keep the
-codebase consistent:
+There are several conventions I'd like to maintain:
 
 - Name your functions: ~aplig-[module-name](s)--my-func~
   - Eg. ~aplig-mask--init~ and ~aplig-masks--init~.
@@ -24,15 +19,15 @@ codebase consistent:
 - Predicates should have ~?~ appended, not ~-p~.
   - Eg. ~aplig-ov--in-match?~ and ~aplig-mask--empty?~
 
-- Functions should be organized into outlines (;;; comments) as best as
-  possible.
+- Functions should be organized into existing outlines (;;; comments) when
+  reasonable.
   - Eg. ~;;; Predicates~ contains all predicates.
 
 - Insert a form feed and newline before any top-level outline (3-asterisks), if
   your PR contains a new outline.
-  - Done via ~C-x 8 RET~ (~insert-char~) on ~FORM FEED~.
+  - Done via ~C-x 8 RET~ (~insert-char~) and selecting ~FORM FEED~.
     - This is not a [[http:http://ergoemacs.org/emacs/modernization_formfeed.html][universal convention]]. However, combined with an outline
-      (I mark up with [[https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines][pretty-outlines]]), this is the best solution I've found to
+      (I markup with [[https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines][pretty-outlines]]), this is the best solution I've found to
       organizing and visually separating emacs-lisp code blocks.
 
 ** Setup
