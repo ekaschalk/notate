@@ -95,9 +95,13 @@
 
 ;;; Transforms
 
+(defun aplig-lig->width (lig)
+  "Wrapper to access width of LIG."
+  (overlay-get lig 'aplig-width))
+
 (defun aplig-ligs->width (ligs)
   "Sum widths of LIGS."
-  (-> ligs (aplig-ovs--prop 'aplig-width) -sum))
+  (->> ligs (-map #'aplig-lig->width) -sum))
 
 
 

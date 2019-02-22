@@ -83,18 +83,19 @@ confusing indexings.")
   "Should MASK in boundary of LIG be skipped when adding LIG to its masks?"
   (save-excursion
     (aplig-ov--goto mask)
+
     (let* ((line-width (- (line-end-position)
                           (line-beginning-position)))
            (mask-width (aplig-mask->width mask))
-           (mask-potential-width (+ mask-width (overlay-get lig 'aplig-width)))
-           (lig-already-in-mask? (-contains? (overlay-get mask 'aplig-ligs) lig)))
+           (mask-potential-width (-> lig aplig-lig->width (+ mask-width)))
+
+           (lig-already-in-mask? (-> mask aplig-mask->ligs (-contains? lig)))
+           (line-too-small? (<= line-width mask-potential-width)))
+
       ;; (message "Looking at lig %s mask %s. Potential: %s. Has: %s"
       ;;          lig mask mask-potential-width lig-already-in-mask?)
 
-      ;; have to insert two characters for the mask to kick in, why?
-
-      (or lig-already-in-mask?
-          (<= line-width mask-potential-width)))))
+      (or lig-already-in-mask? line-too-small?))))
 
 (defun aplig-lig-mask--add-lig-to-mask (lig mask)
   "Add LIG to a MASK and possibly refresh it."

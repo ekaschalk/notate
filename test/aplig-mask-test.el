@@ -23,3 +23,14 @@
        (assert= 5))
     (-> 3 aplig-mask--at aplig-mask->indent
        (assert= 5))))
+
+(ert-deftest masks:transforms:widths ()
+  (aplig-test--with-context 'minimal "
+(foo bar
+12345
+     lig)
+"
+    (-> 3 aplig-mask--indent-at
+       (assert= 5))
+    (-> 3 aplig-mask--at aplig-mask->indent
+       (assert= 5))))

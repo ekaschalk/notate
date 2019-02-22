@@ -47,10 +47,6 @@
 
 ;;; Utils
 
-(defun aplig-ovs--prop (ovs prop)
-  "Return list of each OVS PROP."
-  (--map (overlay-get it prop) ovs))
-
 (defun aplig-ov--goto (ov)
   "Goto start of OV."
   (goto-char (overlay-start ov)))

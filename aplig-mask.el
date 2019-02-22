@@ -53,9 +53,13 @@
   "Return true indent of line containing MASK."
   (save-excursion (aplig-ov--goto mask) (aplig-mask--indent-col)))
 
+(defun aplig-mask->ligs (mask)
+  "Wrapper to access ligs contributing to MASK."
+  (overlay-get mask 'aplig-ligs))
+
 (defun aplig-mask->width (mask)
   "Calculate width of MASK's ligs."
-  (-> mask (overlay-get 'aplig-ligs) aplig-ligs->width))
+  (-> mask aplig-mask->ligs aplig-ligs->width))
 
 
 
@@ -93,14 +97,12 @@
 
 (defun aplig-mask--format-prefix (mask)
   "Format the `line-prefix' overlay text property for MASK."
-  (let* ((sep         "|")
-         (true-indent (aplig-mask->indent mask))
-         (width       (aplig-mask->width mask))
-         (ligs        (overlay-get mask 'aplig-ligs))
-         (sections    (list (-> "%02d" (format true-indent))
-                            (-> "%02d" (format width))
-                            (-> "+%d " (format (length ligs))))))
-    (->> sections (-interpose sep) (apply #'s-concat))))
+  (->>
+   (list (-> "%02d" (format (aplig-mask->indent mask)))
+         (-> "%02d" (format (aplig-mask->width mask)))
+         (-> "+%d " (format (length (aplig-mask->ligs mask)))))
+   (-interpose "|")
+   (apply #'s-concat)))
 
 (defun aplig-mask--reset-prefix (mask)
   "Reset the `line-prefix' text property for MASK."
