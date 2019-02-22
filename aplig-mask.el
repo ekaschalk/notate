@@ -31,19 +31,19 @@
 
 (defun aplig-mask--at (line)
   "Retrieve mask at LINE."
-  (nth line aplig-mask-list))
+  (nth (1- line) aplig-mask-list))
 
 (defun aplig-masks--at (lines)
   "Retrieve masks at LINES."
-  (-select-by-indices lines aplig-mask-list))
+  (-select-by-indices (-map #'1- lines) aplig-mask-list))
 
 (defun aplig-masks--in (start-line end-line)
   "Retrieve masks within START-LINE and END-LINE."
-  (-slice aplig-mask-list start-line end-line))
+  (-slice aplig-mask-list (1- start-line) (1- end-line)))
 
 (defun aplig-mask--insert-at (mask line)
   "Insert MASK at LINE into `aplig-mask-list'."
-  (setq aplig-mask-list (-insert-at line mask aplig-mask-list)))
+  (setq aplig-mask-list (-insert-at (1- line) mask aplig-mask-list)))
 
 
 

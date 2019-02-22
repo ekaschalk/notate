@@ -36,10 +36,10 @@
 (defconst aplig-specs (aplig-specs--make '(("hello" "∧") ("bye" "!∨")))
   "Collection of specs from `aplig-spec--make'.")
 
-(defconst aplig-bound-fn #'aplig-bounds--lisps
+(defvar-local aplig-bound-fn #'aplig-bounds--lisps
   "A function that should return line boundaries given a LIG.")
 
-(defconst aplig-bound?-fn #'aplig-bounds?--lisps
+(defvar-local aplig-bound?-fn #'aplig-bounds?--lisps
   "A subset of `aplig-bound-fn', whether LIG has a boundary.")
 
 ;;;; Debugging
@@ -56,7 +56,12 @@
   "List of ligature overlays currently managed.")
 
 (defconst aplig-mask-list nil
-  "List of indent overlays currently managed.")
+  "List of indent overlays currently managed.
+
+This an ordered list s.t. aplig-mask-list[i] = mask-at-line-i+1.
+
+Accessing this should be done through `aplig-mask--at' and friends to avoid
+confusing indexings.")
 
 (defconst aplig-mask--wait-for-refresh nil
   "Let-bind true to hold off on refreshing masks during batch modifications.")

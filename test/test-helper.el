@@ -26,9 +26,13 @@
 (defmacro aplig-test--with-context (kind buffer-contents &rest body)
   "Run BODY in context KIND in temp-buffer with (`s-trim'med) BUFFER-CONTENTS.
 
-KIND is a symbol identifying how local variables should be set:
+KIND is a symbol identifying how ligs will contribute to masks:
 
    'minimal: Ligs will not contribute to any mask.
+
+   'simple: Ligs will always contribute to following line's mask.
+
+   'lispy: Ligs use lisp boundary functions to contribute to masks.
 
 After setting the context, `aplig-setup--agnostic' is executed. At the time of
 writing, it instantiates empty masks for the buffer and sets up managed vars."
@@ -37,11 +41,22 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
      (aplig-disable)
 
      (cl-case ,kind
-       ('minimal (setq-local aplig-lig--boundary?-fn (-const nil)))
+       (minimal
+        (setq aplig-bound?-fn (-const nil)))  ; `aplig-bound-fn' won't be reached
+
+       (simple
+        (setq aplig-bound?-fn #'identity
+              aplig-bound-fn (-juxt #'line-number-at-pos
+                                    (-compose #'1+ #'line-number-at-pos))))
+
+       (lispy
+        (setq aplig-bound?-fn #'aplig-bounds?--lisps
+              aplig-bound-fn #'aplig-bounds--lisps))
+
        (else (error "Supplied testing context KIND %s not implemented" kind)))
 
-     (aplig-setup--agnostic)
      (insert (s-trim ,buffer-contents))
+     (aplig-setup--agnostic)
      ,@body
      (aplig-disable)))
 
