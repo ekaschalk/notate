@@ -37,7 +37,15 @@
   "Return pos at end of LINE."
   (save-excursion (aplig-base--goto-line line) (line-end-position)))
 
+(defun aplig-base--line-boundary (line)
+  "Return `(,start ,end) points of LINE."
+  (save-excursion
+    (aplig-base--goto-line line)
+    (list (line-beginning-position)
+          (line-end-position))))
+
 ;; Not sure if including this func or not yet
+
 ;; (defun aplig-base--range (from &optional to inc)
 ;;   "Open RHS variation of `number-sequence', see its documentation."
 ;;   (number-sequence from (and to (1+ to)) inc))
