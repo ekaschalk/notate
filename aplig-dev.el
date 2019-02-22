@@ -24,6 +24,7 @@
   '("aplig-dev.el"
 
     ;; Modules
+    "aplig-bounds.el"
     "aplig-lig.el"
     "aplig-mask.el"
     "aplig-ov.el"

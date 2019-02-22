@@ -23,6 +23,7 @@
 
 (require 'aplig-base)
 
+(require 'aplig-bounds)
 (require 'aplig-lig)
 (require 'aplig-mask)
 (require 'aplig-ov)
@@ -35,11 +36,11 @@
 (defconst aplig-specs (aplig-specs--make '(("hello" "∧") ("bye" "!∨")))
   "Collection of specs from `aplig-spec--make'.")
 
-(defconst aplig-lig--boundary-fn #'aplig-lig--boundary--lisps
+(defconst aplig-bound-fn #'aplig-bounds--lisps
   "A function that should return line boundaries given a LIG.")
 
-(defconst aplig-lig--boundary?-fn #'aplig-lig--boundary?--lisps
-  "A subset of `aplig-lig--boundary-fn', whether LIG has a boundary.")
+(defconst aplig-bound?-fn #'aplig-bounds?--lisps
+  "A subset of `aplig-bound-fn', whether LIG has a boundary.")
 
 ;;;; Debugging
 
@@ -68,8 +69,8 @@
   "Return all masks LIG contributes to."
   (-some->>
    lig
-   (funcall (symbol-value #'aplig-lig--boundary?-fn))
-   (funcall (symbol-value #'aplig-lig--boundary-fn))
+   (funcall (symbol-value #'aplig-bound?-fn))
+   (funcall (symbol-value #'aplig-bound-fn))
    (apply #'aplig-masks--in)
    (-remove (-partial #'aplig-lig-mask--skip? lig))))
 

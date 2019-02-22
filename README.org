@@ -52,7 +52,7 @@ engine and require non-trivial modifications to Emacs C core.
   - /Details/: aplig is major-mode agnostic except for a fn to calculate the
     range of an indentation mask. This too can be made major-mode agnostic,
     however, a general implementation will be slower, more complex and
-    potentially brittle.
+    potentially brittle. See ~aplig-bounds.el~.
 
 - How does it work? :: By (ab)using particular properties of emacs's ~display~
      and ~modification-hooks~ text properties.
