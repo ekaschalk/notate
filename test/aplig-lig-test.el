@@ -16,7 +16,7 @@
 ;;; Overlays
 
 (ert-deftest ligs:overlays:presence ()
-  (aplig-test--with-context 'minimal
+  (aplig-test--with-context 'all
       "
 1 (string1 foo
 2          bar)
@@ -37,7 +37,7 @@
              (aplig-base--line-end   5)))))
 
 (ert-deftest ligs:overlays:access-by-line ()
-  (aplig-test--with-context 'minimal
+  (aplig-test--with-context 'all
       "
 1 (string1 string2
 2          string1)
@@ -60,7 +60,7 @@
   (assert= (aplig-ligs->width nil) 0))
 
 (ert-deftest ligs:transforms:width:one-lig ()
-  (aplig-test--with-context 'minimal "(string foo bar)"
+  (aplig-test--with-context 'all "(string foo bar)"
     (->
      '(("string" "lig"))
      aplig-test--mock-ligs
@@ -68,7 +68,7 @@
      (assert= (- 5 2)))))
 
 (ert-deftest ligs:transforms:width:some-ligs ()
-  (aplig-test--with-context 'minimal "(string foo bar)"
+  (aplig-test--with-context 'all "(string foo bar)"
     (->
      '(("string" "lig")
        ("foo" "!"))
@@ -82,14 +82,14 @@
 ;;; Init
 
 (ert-deftest ligs:init:simple ()
-  (aplig-test--with-context 'minimal "(string foo bar)"
+  (aplig-test--with-context 'all "(string foo bar)"
     (->
      '(("string" "lig"))
      aplig-test--mock-ligs
      (assert-size 1))))
 
 (ert-deftest ligs:init:complex ()
-  (aplig-test--with-context 'minimal
+  (aplig-test--with-context 'all
       "
 1 (string1 string2 string1
 2          string1) string2
