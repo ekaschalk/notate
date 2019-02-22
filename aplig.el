@@ -125,6 +125,13 @@ confusing indexings.")
   ;; NOTE Easier atm to just refresh the buffer than the correct intervals
   (aplig-masks--refresh-buffer))
 
+(defun aplig-lig-mask--delete-lig (lig)
+  "Delete LIG and refresh masks it contributed to."
+  (when lig
+    (-doto lig
+      (aplig-lig-mask--remove-lig-from-masks)
+      (aplig-lig--delete))))
+
 
 
 ;;; Change Functions
@@ -236,6 +243,12 @@ confusing indexings.")
 
   (aplig-masks--refresh-buffer)
   (add-hook 'after-change-functions #'aplig-after-change-function nil 'local))
+
+;;;; Commands
+
+(defun aplig-remove-lig-at-point ()
+  "Delete lig at point if it exists and update masks."
+  (interactive) (aplig-lig-mask--delete (aplig-lig-at-point)))
 
 
 

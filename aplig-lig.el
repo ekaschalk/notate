@@ -67,12 +67,20 @@
 ;;; Overlays
 
 (defun aplig-ligs--present? (&optional start end)
-  "Are ligs present within START and END, defaulting to `match-data'? Get it."
+  "Are ligs present within START and END, defaulting to `match-data'? Get them."
   (let ((start (or start (match-beginning 1)))
         (end   (or end (match-end 1))))
     (and start end
          (-filter #'aplig-ov--lig?
                   (overlays-in start end)))))
+
+(defun aplig-lig--at (pos)
+  "Get lig at POS."
+  (-first-item (aplig-ligs--present? pos (1+ pos))))
+
+(defun aplig-lig--at-point ()
+  "Get lig at point."
+  (aplig-lig--at (point)))
 
 (defun aplig-ligs--at (line)
   "Return all ligs on LINE."
