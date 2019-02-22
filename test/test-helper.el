@@ -14,7 +14,7 @@
 (defmacro assert= (f1 f2) `(should (= ,f1 ,f2)))
 (defmacro assert/= (f1 f2) `(should (/= ,f1 ,f2)))
 (defmacro assert-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
-(defmacro assert-size (coll size) `(assert= ,size (length ,coll)))
+(defmacro assert-size (coll size) `(assert= (length ,coll) ,size))
 
 
 
@@ -48,14 +48,16 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
 ;;;; Ligs
 
 (defun aplig-test--mock-lig (string replacement)
-  "Mock lig for STRING to REPLACEMENT. STRING should exist in buffer!"
-  ;; set match data and error if you mock a lig that doesn't exist
+  "Mock ligs for STRING to REPLACEMENT."
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward (aplig-spec--string->rx string)))
 
-  (aplig-lig--init string replacement))
+    (let ((rx (aplig-spec--string->rx string))
+          ligs)
+      (while (re-search-forward rx nil 'noerror)
+        (push (aplig-lig--init string replacement) ligs))
+      ligs)))
 
-(defun aplig-test--mock-ligs (string-replacement-pairs)
-  "Map `aplig-test--mock-lig' over list STRING-REPLACEMENT-PAIRS."
-  (-map (-applify #'aplig-test--mock-lig) string-replacement-pairs))
+(defun aplig-test--mock-ligs (string-replacement-alist)
+  "Map `aplig-test--mock-lig' over list STRING-REPLACEMENT-ALIST."
+  (-mapcat (-applify #'aplig-test--mock-lig) string-replacement-alist))

@@ -39,7 +39,7 @@
   (aplig-test--with-context 'minimal
       "
 1 (string1 string2
-2          bar)
+2          string1)
 3
 4 (string2 foo
 5          bar)
@@ -47,11 +47,12 @@
     (aplig-test--mock-ligs '(("string1" "lig1") ("string2" "lig2")))
 
     ;; Passing
-    (assert-size (aplig-ligs--at 1) 2)
-    (assert-size (aplig-ligs--at 2) 0)
+    ;; (assert-size (aplig-ligs--at 1) 2)
+    ;; (assert-size (aplig-ligs--at 2) 1)
+    ;; (assert-size (aplig-ligs--at 3) 0)
 
     ;; Failing
-    ;; (message "%s foo" (aplig-ligs--at 3))
+    ;; (message "%s foo" (aplig-ligs--at 4))
     ;; (assert-size (aplig-ligs--at 4) 1)
     ))
 
