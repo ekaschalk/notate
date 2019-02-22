@@ -6,7 +6,7 @@
 
 ;;; Commentary:
 
-;; Hi
+;; Define and validate ligatures and add to `font-lock-mode'
 
 
 
@@ -27,6 +27,10 @@
    ((or (s-contains? "\n" string)
         (s-contains? "\n" replacement))
     (error "Newlines anywhere in spec components cause ambiguity."))
+
+   ((= 0
+       (length replacement))
+    (error "Zero-width replacements can be done natively with 'invisible."))
 
    ((> (length replacement)
        (length string))
