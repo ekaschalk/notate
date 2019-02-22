@@ -46,15 +46,10 @@
 "
     (aplig-test--mock-ligs '(("string1" "lig1") ("string2" "lig2")))
 
-    ;; Passing
-    ;; (assert-size (aplig-ligs--at 1) 2)
-    ;; (assert-size (aplig-ligs--at 2) 1)
-    ;; (assert-size (aplig-ligs--at 3) 0)
-
-    ;; Failing
-    ;; (message "%s foo" (aplig-ligs--at 4))
-    ;; (assert-size (aplig-ligs--at 4) 1)
-    ))
+    (assert-size (aplig-ligs--at 1) 2)
+    (assert-size (aplig-ligs--at 2) 1)
+    (assert-size (aplig-ligs--at 3) 0)
+    (assert-size (aplig-ligs--at 4) 1)))
 
 
 
