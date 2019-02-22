@@ -23,6 +23,29 @@
 
 ;;; Macros
 
+(defmacro aplig-test--kind->context (kind)
+  "See `aplig-test--with-context' for documentation on KIND."
+  `(cl-case ,kind
+     (minimal
+      (setq aplig-bound?-fn (-const nil)))  ; `aplig-bound-fn' won't be reached
+
+     (simple
+      (setq aplig-bound?-fn #'identity
+            aplig-bound-fn (-juxt #'line-number-at-pos
+                                  (-compose #'1+ #'line-number-at-pos))))
+
+     (simple-2
+      (setq aplig-bound?-fn #'identity
+            aplig-bound-fn (-juxt #'line-number-at-pos
+                                  (-compose #'1+ #'1+ #'line-number-at-pos))))
+
+     (lispy
+      (setq aplig-bound?-fn #'aplig-bounds?--lisps
+            aplig-bound-fn #'aplig-bounds--lisps))
+
+     (otherwise
+      (error "Supplied testing context KIND %s not implemented" kind))))
+
 (defmacro aplig-test--with-context (kind buffer-contents &rest body)
   "Run BODY in context KIND in temp-buffer with (`s-trim'med) BUFFER-CONTENTS.
 
@@ -36,42 +59,23 @@ KIND is a symbol identifying how ligs will contribute to masks:
 
    'lispy: Ligs use lisp boundary functions to contribute to masks.
 
-   'all: Execute BODY for the following values of KIND: minimal, simple, lispy.
+   'any: Execute BODY for the following values of KIND: minimal, simple, lispy.
+         Useful when mask-lig interaction is present but doesn't matter.
 
 After setting the context, `aplig-setup--agnostic' is executed. At the time of
 writing, it instantiates empty masks for the buffer and sets up managed vars."
   (declare (indent 2))
 
-  `(when (eq 'all ,kind)
+  `(when (eq 'any ,kind)
      (aplig-test--with-context 'minimal buffer-contents ,@body)
      (aplig-test--with-context 'simple buffer-contents ,@body)
      (aplig-test--with-context 'lispy buffer-contents ,@body))
 
-  `(unless (eq 'all ,kind)
+  ;; Collapsing into an if causes max-eval-depth err, haven't looked into why
+  `(unless (eq 'any ,kind)
      (with-temp-buffer
        (aplig-disable)
-
-       (cl-case ,kind
-         (minimal
-          (setq aplig-bound?-fn (-const nil)))  ; `aplig-bound-fn' won't be reached
-
-         (simple
-          (setq aplig-bound?-fn #'identity
-                aplig-bound-fn (-juxt #'line-number-at-pos
-                                      (-compose #'1+ #'line-number-at-pos))))
-
-         (simple-2
-          (setq aplig-bound?-fn #'identity
-                aplig-bound-fn (-juxt #'line-number-at-pos
-                                      (-compose #'1+ #'1+ #'line-number-at-pos))))
-
-         (lispy
-          (setq aplig-bound?-fn #'aplig-bounds?--lisps
-                aplig-bound-fn #'aplig-bounds--lisps))
-
-         (otherwise
-          (error "Supplied testing context KIND %s not implemented" kind)))
-
+       (aplig-test--kind->context ,kind)
        (insert (s-trim ,buffer-contents))
        (aplig-setup--agnostic)
        ,@body
