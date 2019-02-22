@@ -23,8 +23,11 @@
 
 (defun aplig-mask--indent-col (&optional n)
   "Get indentation col, of line forward N-1 times if given."
-  ;; NOTE For lisps `calculate-lisp-indent', though that does alot of extra work
   (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
+
+(defun aplig-mask--indent-at (line)
+  "Get indentation col of LINE."
+  (save-excursion (aplig-base--goto-line line) (aplig-mask--indent-col)))
 
 (defun aplig-mask--at (line)
   "Retrieve mask at LINE."
@@ -165,7 +168,7 @@
 (defun aplig-mask--init (&optional line)
   "Create empty mask for LINE, otherwise current line."
   (save-excursion
-    (when line (goto-line line))
+    (when line (aplig-base--goto-line line))
 
     (let* ((line  (line-number-at-pos))
            (start (line-beginning-position))

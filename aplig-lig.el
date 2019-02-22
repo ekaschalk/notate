@@ -77,7 +77,7 @@
 (defun aplig-ligs--at (line)
   "Return all ligs on LINE."
   (save-excursion
-    (goto-line line)
+    (aplig-base--goto-line line)
     (aplig-ligs--present? (line-beginning-position) (line-end-position))))
 
 (defun aplig-lig--delete (lig)

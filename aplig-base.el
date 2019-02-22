@@ -25,13 +25,17 @@
   "Return difference of lengths of strings S1 and S2."
   (- (length s1) (length s2)))
 
+(defun aplig-base--goto-line (line)
+  "Non-interactive version of `goto-line'."
+  (forward-line (- line (line-number-at-pos))))
+
 (defun aplig-base--line-start (line)
   "Return pos at start of LINE."
-  (save-excursion (goto-line line) (line-beginning-position)))
+  (save-excursion (aplig-base--goto-line line) (line-beginning-position)))
 
 (defun aplig-base--line-end (line)
   "Return pos at end of LINE."
-  (save-excursion (goto-line line) (line-end-position)))
+  (save-excursion (aplig-base--goto-line line) (line-end-position)))
 
 
 
