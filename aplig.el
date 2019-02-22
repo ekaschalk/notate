@@ -104,7 +104,7 @@ confusing indexings.")
 
 (defun aplig-lig-mask--remove-lig-from-mask (lig mask)
   "Remove LIG from MASK."
-  (delq lig (overlay-get mask 'aplig-ligs))
+  (delq lig (aplig-mask->ligs mask))
   (aplig-mask--refresh-maybe mask))
 
 (defun aplig-lig-mask--add-lig-to-masks (lig)
@@ -128,6 +128,21 @@ confusing indexings.")
 (defun aplig-lig-mask--delete-lig (lig)
   "Delete LIG and refresh masks it contributed to."
   (when lig
+
+    ;; FIXME we skip masks that lig already is placed in in masks-for
+    ;; so when we remove-lig-from-masks, it will skip the ones it needs
+    ;; When we delete the lig ov, the ligs are still contained in the masks,
+    ;; but are for no buffer now.
+
+    ;; Perhaps as an optimization (and simpler implementation) we do this:
+    ;; 1. Delete the lig
+    ;; 2. forward line deleting all overlays for no buffers
+    ;; 3. once we hit a line without a no buffer, we got to the end
+
+    ;; Note this also allows for efficient batch removal as if we remove many
+    ;; ligs in some contiguous region, we don't do any more work than if
+    ;; if deleting a single lig
+
     (-doto lig
       (aplig-lig-mask--remove-lig-from-masks)
       (aplig-lig--delete))))
@@ -251,7 +266,7 @@ confusing indexings.")
 
 (defun aplig-remove-lig-at-point ()
   "Delete lig at point if it exists and update masks."
-  (interactive) (aplig-lig-mask--delete (aplig-lig-at-point)))
+  (interactive) (aplig-lig-mask--delete-lig (aplig-lig--at-point)))
 
 
 
