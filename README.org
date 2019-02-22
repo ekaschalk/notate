@@ -73,6 +73,11 @@ engine and require non-trivial modifications to Emacs C core.
                    self-contained and doesn't/can't use Emac's
                    ~prettify-symbols-mode~.
 
+- Why? :: [[http://modernemacs.com][I've found a hobby]] in confusing any over-the-shoulder onlooker. I
+          believe in the value of notation, as a graduate in math. I also do not
+          believe in the often referenced "cognitive overhead" of text and it's
+          display not matching.
+
 - Contributing? :: Would be greatly appreciated! Non-coding materials like
                    images, screencasts, and other examples are useful and
                    exciting. For contributing code and raising issues, see
