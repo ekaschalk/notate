@@ -3,11 +3,12 @@
 ;; ~ Testing Status ~
 
 ;; Covered:
+;; - overlay methods
 ;; - width transforms
+;; - lig init and mocking
 
 ;; Not Covered:
-;; - boundary-fns
-;; - overlay methods
+;; - decompose hook
 
 
 
@@ -56,23 +57,47 @@
 ;;; Transforms
 
 (ert-deftest ligs:transforms:width:base-case ()
-  (assert= (aplig-ligs->width nil)
-           0))
+  (assert= (aplig-ligs->width nil) 0))
 
 (ert-deftest ligs:transforms:width:one-lig ()
   (aplig-test--with-context 'minimal "(string foo bar)"
-    (assert= (->
-              '(("string" "lig"))
-              aplig-test--mock-ligs
-              aplig-ligs->width)
-             (- 5 2))))
+    (->
+     '(("string" "lig"))
+     aplig-test--mock-ligs
+     aplig-ligs->width
+     (assert= (- 5 2)))))
 
 (ert-deftest ligs:transforms:width:some-ligs ()
   (aplig-test--with-context 'minimal "(string foo bar)"
-    (assert= (->
-              '(("string" "lig")
-                ("foo" "!"))
-              aplig-test--mock-ligs
-              aplig-ligs->width)
-             (+ (- 5 2)
-                (- 3 1)))))
+    (->
+     '(("string" "lig")
+       ("foo" "!"))
+     aplig-test--mock-ligs
+     aplig-ligs->width
+     (assert= (+ (- 5 2)
+                 (- 3 1))))))
+
+
+
+;;; Init
+
+(ert-deftest ligs:init:simple ()
+  (aplig-test--with-context 'minimal "(string foo bar)"
+    (->
+     '(("string" "lig"))
+     aplig-test--mock-ligs
+     (assert-size 1))))
+
+(ert-deftest ligs:init:complex ()
+  (aplig-test--with-context 'minimal
+      "
+1 (string1 string2 string1
+2          string1) string2
+3
+4 (string2 foo
+5          bar)
+"
+    (->
+     '(("string1" "lig1") ("string2" "lig2"))
+     aplig-test--mock-ligs
+     (assert-size 6))))

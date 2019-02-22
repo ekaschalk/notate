@@ -9,12 +9,15 @@
 
 ;;; Asserts
 
-;; Aliases for (compose `should' predicate). Not required, I just like it.
+;; Aliases for (compose `should' predicate). Not required, but I like it.
 
 (defmacro assert= (f1 f2) `(should (= ,f1 ,f2)))
 (defmacro assert/= (f1 f2) `(should (/= ,f1 ,f2)))
+(defmacro assert-eq (f1 f2) `(should (eq ,f1 ,f2)))
+(defmacro assert-neq (f1 f2) `(should (neq ,f1 ,f2)))
 (defmacro assert-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
 (defmacro assert-size (coll size) `(assert= (length ,coll) ,size))
+(defmacro assert-size= (coll1 coll2) `(should (= (length ,coll1) (length ,coll2))))
 
 
 
