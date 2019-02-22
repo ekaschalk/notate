@@ -113,7 +113,7 @@
   "Recenter MASK, ie. reset its end position based on ligs widths."
   (let* ((start (overlay-start mask))
          (width (aplig-mask->width mask))
-         (end   (1+ (+ start width))))  ; 1+ opens RHS to match overlay defs
+         (end   (+ 1 start width)))  ; 1+ opens RHS to match overlay defs
     (move-overlay mask start end)))
 
 (defun aplig-mask--render (mask)
@@ -179,12 +179,13 @@
       (aplig-mask--insert-at mask line)
       mask)))
 
-(defun aplig-masks--init ()
-  "Line-by-line buildup `aplig-mask-list'."
+(defun aplig-masks--init (&optional start-line end-line)
+  "Line-by-line buildup `aplig-mask-list', optionally [a b] bounded start/end."
   (save-excursion
-    (goto-char (point-min))
+    (aplig-base--goto-line (or start-line 1))
 
-    (while (not (eobp))
+    (while (and (not (eobp))
+                (if end-line (< (line-number-at-pos) end-line) t))
       (aplig-mask--init)
       (forward-line))))
 

@@ -165,8 +165,10 @@ confusing indexings.")
            (line-before-change (1- start-line))
 
            ;; Must init masks ASAP for `aplig-mask-list' integrity
-           (masks (-map #'aplig-mask--init
-                        (number-sequence start-line (1- end-line))))  ; incl.
+           (masks (aplig-masks--init start-line end-line)
+                  ;; (-map #'aplig-mask--init
+                  ;;       (number-sequence start-line (1- end-line)))
+                  )
 
            (mask-before-change (aplig-mask--at line-before-change))
            (ligs-before-change (overlay-get mask-before-change 'aplig-ligs))
