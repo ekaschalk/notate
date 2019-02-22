@@ -17,23 +17,43 @@
 (ert-deftest ligs:overlays:presence ()
   (aplig-test--with-context 'minimal
       "
-2 (string1 foo
-3          bar)
-4
-5 (string2 foo
-6          bar)
+1 (string1 foo
+2          bar)
+3
+4 (string2 foo
+5          bar)
 "
     (aplig-test--mock-ligs '(("string1" "lig1") ("string2" "lig2")))
 
     (should (aplig-ligs--present?
-             (aplig-base--line-start 2)
-             (aplig-base--line-end   2)))
+             (aplig-base--line-start 1)
+             (aplig-base--line-end   1)))
     (should-not (aplig-ligs--present?
-                 (aplig-base--line-start 3)
-                 (aplig-base--line-end   3)))
+                 (aplig-base--line-start 2)
+                 (aplig-base--line-end   2)))
     (should (aplig-ligs--present?
-             (aplig-base--line-start 4)
-             (aplig-base--line-end   6)))))
+             (aplig-base--line-start 3)
+             (aplig-base--line-end   5)))))
+
+(ert-deftest ligs:overlays:access-by-line ()
+  (aplig-test--with-context 'minimal
+      "
+1 (string1 string2
+2          bar)
+3
+4 (string2 foo
+5          bar)
+"
+    (aplig-test--mock-ligs '(("string1" "lig1") ("string2" "lig2")))
+
+    ;; Passing
+    (assert-size (aplig-ligs--at 1) 2)
+    (assert-size (aplig-ligs--at 2) 0)
+
+    ;; Failing
+    ;; (message "%s foo" (aplig-ligs--at 3))
+    ;; (assert-size (aplig-ligs--at 4) 1)
+    ))
 
 
 
@@ -44,8 +64,7 @@
            0))
 
 (ert-deftest ligs:transforms:width:one-lig ()
-  (aplig-test--with-context 'minimal
-      "(string foo bar)"
+  (aplig-test--with-context 'minimal "(string foo bar)"
     (assert= (->
               '(("string" "lig"))
               aplig-test--mock-ligs
@@ -53,8 +72,7 @@
              (- 5 2))))
 
 (ert-deftest ligs:transforms:width:some-ligs ()
-  (aplig-test--with-context 'minimal
-      "(string foo bar)"
+  (aplig-test--with-context 'minimal "(string foo bar)"
     (assert= (->
               '(("string" "lig")
                 ("foo" "!"))

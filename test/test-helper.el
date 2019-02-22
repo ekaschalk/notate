@@ -11,16 +11,17 @@
 
 ;; Aliases for (compose `should' predicate). Not required, I just like it.
 
-(defmacro assert= (o1 o2) `(should (= ,o1 ,o2)))
-(defmacro assert/= (o1 o2) `(should (/= ,o1 ,o2)))
+(defmacro assert= (f1 f2) `(should (= ,f1 ,f2)))
+(defmacro assert/= (f1 f2) `(should (/= ,f1 ,f2)))
 (defmacro assert-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
+(defmacro assert-size (coll size) `(assert= ,size (length ,coll)))
 
 
 
 ;;; Macros
 
 (defmacro aplig-test--with-context (kind buffer-contents &rest body)
-  "Execute BODY with aplig context KIND in temp-buffer with BUFFER-CONTENTS.
+  "Run BODY in context KIND in temp-buffer with (`s-trim'med) BUFFER-CONTENTS.
 
 KIND is a symbol identifying how local variables should be set:
 
@@ -37,7 +38,7 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
        (else (error "Supplied testing context KIND %s not implemented" kind)))
 
      (aplig-setup--agnostic)
-     (insert ,buffer-contents)
+     (insert (s-trim ,buffer-contents))
      ,@body
      (aplig-disable)))
 
