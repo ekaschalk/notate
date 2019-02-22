@@ -47,13 +47,13 @@
 (defun aplig-bounds--lisps (lig)
   "Calculate line boundary [a b) for LIG's masks."
   (let* ((start (overlay-start lig))
-         (line (line-number-at-pos start))
+         (line (1+ (line-number-at-pos start)))
          (max-line (line-number-at-pos (point-max))))
     (list (min line max-line)
           (save-excursion
             (goto-char start)
             (sp-end-of-sexp)
-            (line-number-at-pos)))))
+            (1+ (line-number-at-pos))))))
 
 (defun aplig-bounds?--lisps (lig)
   "Does LIG have an indentation boundary? Return back LIG if it does."

@@ -37,7 +37,7 @@
   "Collection of specs from `aplig-spec--make'.")
 
 (defvar-local aplig-bound-fn #'aplig-bounds--lisps
-  "A function that should return line boundaries given a LIG.")
+  "A function that should return line boundaries [a b) given a LIG.")
 
 (defvar-local aplig-bound?-fn #'aplig-bounds?--lisps
   "A subset of `aplig-bound-fn', whether LIG has a boundary.")
@@ -165,10 +165,11 @@ confusing indexings.")
            (line-before-change (1- start-line))
 
            ;; Must init masks ASAP for `aplig-mask-list' integrity
-           (masks (aplig-masks--init start-line end-line)
-                  ;; (-map #'aplig-mask--init
-                  ;;       (number-sequence start-line (1- end-line)))
-                  )
+           (masks
+            ;; (aplig-masks--init start-line end-line)
+            (-map #'aplig-mask--init
+                  (number-sequence start-line (1- end-line)))
+            )
 
            (mask-before-change (aplig-mask--at line-before-change))
            (ligs-before-change (overlay-get mask-before-change 'aplig-ligs))

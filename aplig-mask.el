@@ -180,12 +180,13 @@
       mask)))
 
 (defun aplig-masks--init (&optional start-line end-line)
-  "Line-by-line buildup `aplig-mask-list', optionally [a b] bounded start/end."
+  "Line-by-line buildup `aplig-mask-list', optionally [a b) bounded start/end."
   (save-excursion
     (aplig-base--goto-line (or start-line 1))
 
+    ;; Make sure to test the new optional start/end-line functionality
     (while (and (not (eobp))
-                (if end-line (< (line-number-at-pos) end-line) t))
+                (if end-line (<= (line-number-at-pos) end-line) t))
       (aplig-mask--init)
       (forward-line))))
 
