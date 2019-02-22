@@ -92,5 +92,6 @@ The text on the left is debugging information showing
 - Line movement needs to adjust for the indentation masks.
   - In above example, moving point up within a mask also has horizontal
     movement.
-- Boundary functions only implemented for lisps and cases remain.
+- Boundary functions (does and how much a ligature modify indentation) only
+  implemented for lisps and simple cases.
 - ... and many more challenges.

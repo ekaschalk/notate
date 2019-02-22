@@ -19,25 +19,29 @@
 
 ;;; Predicates
 
+(defun aplig-ov? (ov)
+  "Is OV made by `aplig'? Get it."
+  (and (overlay-get ov 'aplig?)
+       ov))
+
 (defun aplig-ov--lig? (ov)
-  "Is OV a ligature?"
-  (overlay-get ov 'aplig-lig?))
+  "Is OV a ligature? Get it."
+  (and (overlay-get ov 'aplig-lig?)
+       ov))
 
 (defun aplig-ov--mask? (ov)
-  "Is OV a mask?"
-  (overlay-get ov 'aplig-mask?))
+  "Is OV a mask? Get it."
+  (and (overlay-get ov 'aplig-mask?)
+       ov))
 
 (defun aplig-ov--in? (ov start end)
-  "Is OV contained within START and END?"
+  "Is OV contained within START and END? Get it."
   (and ov start end
        (<= start
           (overlay-start ov)
           (overlay-end ov)
-          end)))
-
-(defun aplig-ov--in-match? (ov subexp)
-  "Is OV contained in the SUBEXP matching group?"
-  (aplig--ov-in-bound? ov (match-beginning subexp) (match-end subexp)))
+          end)
+       ov))
 
 
 
@@ -47,14 +51,13 @@
   "Return list of each OVS PROP."
   (--map (overlay-get it prop) ovs))
 
-(defun aplig-ov--at (pos)
-  "Return first aplig overlay at POS."
-  (let ((ovs (overlays-at pos)))
-    (--any (when (overlay-get it 'aplig?) it) ovs)))
-
 (defun aplig-ov--goto (ov)
   "Goto start of OV."
   (goto-char (overlay-start ov)))
+
+(defun aplig-ov--at (pos)
+  "Return first aplig overlay at POS."
+  (-any #'aplig-ov? (overlays-at pos)))
 
 (defun aplig-ov--at-point ()
   "Execute `aplig-ov--at' point."
