@@ -36,6 +36,14 @@
        (length string))
     (error "Indentation expansions not supported yet."))))
 
+(defun aplig-specs--validate (specs)
+  "Throw error on egregious combinations of inputs."
+  ;; TODO Make sure no two string's can have RX's overlap, easier to have happen
+  ;; then you might first think, because we aren't matching symbols, we are
+  ;; matching strings. Eg. '(("foo" "x") ("foo2" "x")) -> got me twisted.
+  ;; Note that replacements and string-replacements can overlap all they want.
+  )
+
 ;;; Construction
 
 (defun aplig-spec--string->rx (string)
