@@ -34,14 +34,14 @@ example: render ~and~ as ~∧~, its symbol in mathematics.
 There are many examples: render ~alpha~ as ~ɑ~, ~in~ as ~∈~, [[https://github.com/Malabarba/Nameless][the
 "nameless" package]], and so on.
 
-*aplig displays strings as other strings, masking indentation*. Our working
-indentation is visually modified so that in the example above, we see example 3
-while the true text is example 1.
+*aplig visually-only replaces strings with other strings, masking indentation*.
+Our working indentation is visually modified so that in the example above, we
+see example 3 while the true text is example 1.
 
 /Note on terminology:/ [[https://helpful.knobs-dials.com/index.php/Morpheme,_Syllable,_Lexeme,_Grapheme,_Phoneme,_Character,_Glyph][graphemes, characters, ligatures, and glyphs]] can be
 confusing when used technically. I understand the least precise definition of
 ligatures to be: render consecutive characters as a specific character. I refer
-to "prettified-symbols" and "ligatures" interchangeably. /As far this work is
+to "prettified-symbols" and "ligatures" interchangeably. /As far as this work is
 concerned, there is no practical difference between the two/.
 
 Note that typographic ligatures are not supported natively by Emacs display
@@ -70,8 +70,9 @@ engine and require non-trivial modifications to Emacs C core.
     user cannot help themselves but to correct me (by extending Emac's C display
     engine with indentation metrics smarter than fixed-width columns).
 
-    I'm speaking in jest - this project would complement, not be made obsolete,
-    by an extension of Emac's indentation engine and native ligature support.
+    I'm speaking in jest - this project would complement, and hopefully inform,
+    an extension of Emac's indentation engine and native ligature support. And
+    in time, I hope to be that user.
 
 - Similar work? :: aplig is a novel extension of ~prettify-symbols~, which itself
                    has only a counterpart in ~vim-conceal~. Note aplig is
