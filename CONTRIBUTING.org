@@ -13,6 +13,7 @@ There are several conventions I'd like to maintain, enumerated here.
 
 - Name your functions: ~aplig-[module](s)--my-func~
 - Name your tests: ~[module]:[outline]:my-test~
+- Use ~dash~ for list manipulation (eg. use ~-each~ over ~mapc~)
 - Organize with outlines (;;; comments) when it is reasonable.
 - If your PR contains a new outline, insert a form feed and newline before it.
   - Done via ~C-x 8 RET~ (~insert-char~) and selecting ~FORM FEED~.
