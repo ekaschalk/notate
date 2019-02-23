@@ -86,6 +86,10 @@
   "Return all ligs on LINE."
   (apply #'aplig-ligs--present? (aplig-base--line-boundary line)))
 
+(defun aplig-ligs--in (start-line end-line)
+  "Return all ligs in [START-LINE END-LINE)."
+  (-mapcat (-applify #'aplig-ligs--at) (aplig-base--range start-line end-line)))
+
 (defun aplig-lig--delete (lig)
   "Delete LIG."
   (delq lig aplig-lig-list)

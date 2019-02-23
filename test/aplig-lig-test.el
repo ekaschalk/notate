@@ -26,15 +26,9 @@
 "
     (aplig-test--mock-ligs '(("string1" "lig1") ("string2" "lig2")))
 
-    (should (aplig-ligs--present?
-             (aplig-base--line-start 1)
-             (aplig-base--line-end   1)))
-    (should-not (aplig-ligs--present?
-                 (aplig-base--line-start 2)
-                 (aplig-base--line-end   2)))
-    (should (aplig-ligs--present?
-             (aplig-base--line-start 3)
-             (aplig-base--line-end   5)))))
+    (should (aplig-ligs--at 1))
+    (should-not (aplig-ligs--at 2))
+    (should (aplig-ligs--in 3 5))))
 
 (ert-deftest ligs:overlays:access-by-line ()
   (aplig-test--with-context 'any
@@ -69,13 +63,13 @@
 
 (ert-deftest ligs:transforms:width:some-ligs ()
   (aplig-test--with-context 'any "(string foo bar)"
-    (->
-     '(("string" "lig")
-       ("foo" "!"))
-     aplig-test--mock-ligs
-     aplig-ligs->width
-     (assert= (+ (- 5 2)
-                 (- 3 1))))))
+    (assert= (->
+              '(("string" "lig")
+                ("foo" "!"))
+              aplig-test--mock-ligs
+              aplig-ligs->width)
+             (+ (- 5 2)
+                (- 3 1)))))
 
 
 

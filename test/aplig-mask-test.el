@@ -21,8 +21,10 @@
 12345
      lig)
 "
-    (-> 3 aplig-mask--indent-at (assert= 5))
-    (-> 3 aplig-mask--at aplig-mask->indent (assert= 5))))
+    (assert= (-> 3 aplig-mask--indent-at)
+             5)
+    (assert= (-> 3 aplig-mask--at aplig-mask->indent)
+             5)))
 
 ;;;; Widths/Ligs
 
@@ -32,13 +34,14 @@
      bar
      bar)
 "
-    (-> 2 aplig-mask--at aplig-mask->width (assert= 0))
-    (-> 3 aplig-mask--at aplig-mask->width (assert= 0))
+    (should (-> 2 aplig-mask--at aplig-mask--empty?))
+    (should (-> 3 aplig-mask--at aplig-mask--empty?))
 
     (aplig-test--mock-ligs '(("foo" "f")))
 
-    (-> 2 aplig-mask--at aplig-mask->width (assert= (- 3 1)))
-    (-> 3 aplig-mask--at aplig-mask->width (assert= 0))))
+    (assert= (-> 2 aplig-mask--at aplig-mask->width)
+             (- 3 1))
+    (should (-> 3 aplig-mask--at aplig-mask--empty?))))
 
 (ert-deftest masks:transforms:widths:simple-2 ()
   (aplig-test--with-context 'simple-2 "
@@ -46,13 +49,12 @@
      bar
      bar)
 "
-    (-> 2 aplig-mask--at aplig-mask->width (assert= 0))
-    (-> 3 aplig-mask--at aplig-mask->width (assert= 0))
-
     (aplig-test--mock-ligs '(("foo" "f")))
 
-    (-> 2 aplig-mask--at aplig-mask->width (assert= (- 3 1)))
-    (-> 3 aplig-mask--at aplig-mask->width (assert= (- 3 1)))))
+    (assert= (-> 2 aplig-mask--at aplig-mask->width)
+             (- 3 1))
+    (assert= (-> 3 aplig-mask--at aplig-mask->width)
+             (- 3 1))))
 
 (ert-deftest masks:transforms:widths:complex ()
   "Multiple ligs updating multuple masks"
@@ -63,19 +65,16 @@
      bar
      bar)
 "
-    (-> 2 aplig-mask--at aplig-mask->width (assert= 0))
-    (-> 3 aplig-mask--at aplig-mask->width (assert= 0))
-
     (aplig-test--mock-ligs '(("foo" "f") ("bazz" "bro")))
 
-    (-> 2 aplig-mask--at aplig-mask->width
-       (assert= (+ (- 3 1)
-                   (- 4 3))))
-    (-> 3 aplig-mask--at aplig-mask->width
-       (assert= (+ (- 3 1)
-                   (- 4 3)
-                   (- 3 1))))
-    (-> 4 aplig-mask--at aplig-mask->width
-       (assert= (- 3 1)))
-    (-> 5 aplig-mask--at aplig-mask->width
-       (assert= 0))))
+    (assert= (-> 2 aplig-mask--at aplig-mask->width)
+             (+ (- 3 1)
+                (- 4 3)))
+
+    (assert= (-> 3 aplig-mask--at aplig-mask->width)
+             (+ (- 3 1)
+                (- 4 3)
+                (- 3 1)))
+    (assert= (-> 4 aplig-mask--at aplig-mask->width)
+             (- 3 1))
+    (should (-> 5 aplig-mask--at aplig-mask--empty?))))
