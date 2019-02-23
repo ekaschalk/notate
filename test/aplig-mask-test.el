@@ -5,6 +5,7 @@
 ;; Covered:
 ;; - True indent
 ;; - Ligs contributing to masks
+;; - Initiation
 
 ;; Not Covered:
 ;; - decompose hook

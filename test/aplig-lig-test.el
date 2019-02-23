@@ -5,7 +5,7 @@
 ;; Covered:
 ;; - overlay methods
 ;; - width transforms
-;; - lig init and mocking
+;; - Initiation and mocking
 
 ;; Not Covered:
 ;; - decompose hook
@@ -55,11 +55,11 @@
 
 (ert-deftest ligs:transforms:width:one-lig ()
   (aplig-test--with-context 'any "(string foo bar)"
-    (->
-     '(("string" "lig"))
-     aplig-test--mock-ligs
-     aplig-ligs->width
-     (assert= (- 5 2)))))
+    (assert= (->
+              '(("string" "lig"))
+              aplig-test--mock-ligs
+              aplig-ligs->width)
+             (- 5 2))))
 
 (ert-deftest ligs:transforms:width:some-ligs ()
   (aplig-test--with-context 'any "(string foo bar)"

@@ -6,7 +6,7 @@
 
 ;;; Commentary:
 
-;; Methods acting on yet-to-be specialized or regardless-of specialization
+;; Methods acting on yet-to-be-specialized or regardless-of-specialization
 ;; aplig overlays.
 
 
