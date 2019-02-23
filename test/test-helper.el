@@ -16,7 +16,7 @@
 (defmacro aplig-test--kind->context (kind)
   "See `aplig-test--with-context' for documentation on KIND."
   `(cl-case ,kind
-     (minimal
+     ((minimal no-setup)
       (setq aplig-bound?-fn (-const nil)))  ; `aplig-bound-fn' won't be reached
 
      (simple
@@ -57,6 +57,8 @@ KIND is a symbol identifying how ligs will contribute to masks:
 
    'lispy: Ligs use lisp boundary functions to contribute to masks.
 
+   'no-setup: Same as 'minimal but do not execute `aplig-setup--agnostic'.
+
    'any: Execute BODY for each of the following values of KIND:
            minimal, simple and lispy
 
@@ -71,13 +73,13 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
      (aplig-test--with-context 'simple buffer-contents ,@body)
      (aplig-test--with-context 'lispy buffer-contents ,@body))
 
-  ;; Collapsing into an if causes max-eval-depth err, haven't looked into why
   `(unless (eq 'any ,kind)
      (with-temp-buffer
        (aplig-disable)  ; just-in-case reset managed vars
        (aplig-test--kind->context ,kind)
        (insert (s-trim ,buffer-contents))  ; so test lines 1-idxed not 2-idxed
-       (aplig-setup--agnostic)
+       (unless (eq 'no-setup ,kind)
+         (aplig-setup--agnostic))
        ,@body
        (aplig-disable))))
 
