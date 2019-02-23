@@ -10,3 +10,11 @@
 
 
 
+
+;;; [outline]
+
+(ert-deftest module:outline:xxx ()
+  (aplig-test--with-context 'foo "
+foo
+"
+    ))
