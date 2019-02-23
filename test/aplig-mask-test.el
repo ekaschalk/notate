@@ -3,10 +3,11 @@
 ;; ~ Testing Status ~
 
 ;; Covered:
-;; -
+;; - True indent
+;; - Ligs contributing to masks
 
 ;; Not Covered:
-;; -
+;; - decompose hook
 
 
 
@@ -54,6 +55,7 @@
     (-> 3 aplig-mask--at aplig-mask->width (assert= (- 3 1)))))
 
 (ert-deftest masks:transforms:widths:complex ()
+  "Multiple ligs updating multuple masks"
   (aplig-test--with-context 'simple-2 "
 (foo bazz
      foo

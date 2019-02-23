@@ -6,7 +6,8 @@
 
 ;;; Commentary:
 
-;; Methods acting on yet-to-be specialized overlays.
+;; Methods acting on yet-to-be specialized or regardless-of specialization
+;; aplig overlays.
 
 
 
@@ -58,6 +59,16 @@
 (defun aplig-ov--at-point ()
   "Execute `aplig-ov--at' point."
   (aplig-ov--at (point)))
+
+
+
+;;; Management
+
+(defun aplig-ov--remove-all ()
+  "Remove all `aplig' overlays from current buffer."
+  (remove-overlays nil nil 'aplig? t)
+  (setq aplig-mask-list nil)
+  (setq aplig-lig-list nil))
 
 
 

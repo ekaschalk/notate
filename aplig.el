@@ -233,18 +233,13 @@ confusing indexings.")
   "Delete overlays managed by aplig."
   (interactive)
 
-  (-each aplig-mask-list #'aplig-mask--delete)
-  (-each aplig-lig-list #'aplig-lig--delete)
-  (setq aplig-mask-list nil)
-  (setq aplig-lig-list nil)
-
-  ;; Below aren't needed in normal use, resets buffer just in case
-  (setq aplig-mask--wait-for-refresh nil)
-  (remove-overlays nil nil 'aplig? t)
-
-  (setq font-lock-keywords nil)
+  (aplig-ov--remove-all)
   (remove-hook 'lisp-mode-hook #'aplig-kwds--add)
-  (remove-hook 'after-change-functions #'aplig-after-change-function 'local))
+  (remove-hook 'after-change-functions #'aplig-after-change-function 'local)
+
+  ;; just-in-case stuff
+  (setq aplig-mask--wait-for-refresh nil)
+  (setq font-lock-keywords nil))
 
 ;;;###autoload
 (defun aplig-enable ()
