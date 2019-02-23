@@ -46,6 +46,7 @@
 
 (defun aplig-base--range (from &optional to inc)
   "Open RHS variation of `number-sequence', see its documentation."
+  ;; Emacs's apis would've benefited from fixing an open/closed RHS convention...
   (number-sequence from (and to (1- to)) inc))
 
 

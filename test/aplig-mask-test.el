@@ -57,7 +57,7 @@
              (- 3 1))))
 
 (ert-deftest masks:transforms:widths:complex ()
-  "Multiple ligs updating multuple masks"
+  "Multiple ligs updating multiple masks"
   (aplig-test--with-context 'simple-2 "
 (foo bazz
      foo
@@ -78,3 +78,71 @@
     (assert= (-> 4 aplig-mask--at aplig-mask->width)
              (- 3 1))
     (should (-> 5 aplig-mask--at aplig-mask--empty?))))
+
+;;; Init
+;;;; Single
+
+(ert-deftest masks:init:buffer ()
+  (aplig-test--with-context 'no-setup
+      "
+1 foo
+2 foo
+3 foo
+4 foo
+"
+    (should-not aplig-mask-list)
+    (aplig-mask--init 2)
+    (assert-size aplig-mask-list 1)))
+
+;;;; Multiple
+
+(ert-deftest masks:init:buffer ()
+  (aplig-test--with-context 'no-setup
+      "
+1 foo
+2 foo
+3 foo
+4 foo
+"
+    (should-not aplig-mask-list)
+    (aplig-masks--init)
+    (assert-size aplig-mask-list 4)))
+
+(ert-deftest masks:init:ranges:start-only ()
+  (aplig-test--with-context 'no-setup
+      "
+1 foo
+2 foo
+3 foo
+4 foo
+"
+    (should-not aplig-mask-list)
+    (let ((start 2) end)
+      (aplig-masks--init start end))
+    (assert-size aplig-mask-list (- 4 1))))
+
+(ert-deftest masks:init:ranges:end-only ()
+  (aplig-test--with-context 'no-setup
+      "
+1 foo
+2 foo
+3 foo
+4 foo
+"
+    (should-not aplig-mask-list)
+    (let (start (end 4))  ; remember RHS open [a b)
+      (aplig-masks--init start end))
+    (assert-size aplig-mask-list (- 4 1))))
+
+(ert-deftest masks:init:ranges ()
+  (aplig-test--with-context 'no-setup
+      "
+1 foo
+2 foo
+3 foo
+4 foo
+"
+    (should-not aplig-mask-list)
+    (let ((start 2) (end 4))
+      (aplig-masks--init start end))
+    (assert-size aplig-mask-list (- 4 1 1))))
