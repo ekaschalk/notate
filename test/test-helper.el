@@ -21,13 +21,21 @@
 
      (simple
       (setq aplig-bound?-fn #'identity
-            aplig-bound-fn (-juxt #'line-number-at-pos
-                                  (-compose #'1+ #'line-number-at-pos))))
+            aplig-bound-fn (-juxt (-compose #'1+
+                                            #'line-number-at-pos
+                                            #'overlay-start)
+                                  (-compose #'1+ #'1+
+                                            #'line-number-at-pos
+                                            #'overlay-start))))
 
      (simple-2
       (setq aplig-bound?-fn #'identity
-            aplig-bound-fn (-juxt #'line-number-at-pos
-                                  (-compose #'1+ #'1+ #'line-number-at-pos))))
+            aplig-bound-fn (-juxt (-compose #'1+
+                                            #'line-number-at-pos
+                                            #'overlay-start)
+                                  (-compose #'1+ #'1+ #'1+
+                                            #'line-number-at-pos
+                                            #'overlay-start))))
 
      (lispy
       (setq aplig-bound?-fn #'aplig-bounds?--lisps
