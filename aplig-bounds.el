@@ -24,9 +24,8 @@
 
 (defun aplig-bounds?--in-string-or-comment? (lig)
   "Is LIG contained within a string or comment?"
-  (let ((state (syntax-ppss (overlay-start lig))))
-    (or (nth 3 state)
-        (nth 4 state))))
+  (let ((state (save-excursion (syntax-ppss (overlay-start lig)))))
+    (or (nth 3 state) (nth 4 state))))
 
 ;;; Lisps
 ;;;; Predicates
@@ -70,13 +69,14 @@ Does not have LIG contributing to indentation masks though it is a form opener."
   "Does LIG have an indentation boundary? If so give LIG."
   ;; This may or may not be exhaustive. Exhausting cases is lower priority than
   ;; getting this subset working. Same for performance optimizations.
-  (funcall
-   (-andfn (-not #'aplig-bounds?--in-string-or-comment?)
-           (-not #'aplig-bounds?--lisps-specially-indented?)
-           (-orfn #'aplig-bounds?--lisps-another-form-opener-same-line?
-                  #'aplig-bounds?--lisps-form-opener?)
-           (-not #'aplig-bounds?--lisps-terminal-sexp?)
-           #'identity)
+  (and
+   (funcall
+    (-andfn (-not #'aplig-bounds?--in-string-or-comment?)
+            (-not #'aplig-bounds?--lisps-specially-indented?)
+            (-not #'aplig-bounds?--lisps-terminal-sexp?)
+            (-orfn #'aplig-bounds?--lisps-another-form-opener-same-line?
+                   #'aplig-bounds?--lisps-form-opener?))
+    lig)
    lig))
 
 ;;;; Range

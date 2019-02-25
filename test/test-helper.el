@@ -38,8 +38,10 @@
                                             #'overlay-start))))
 
      (lispy
-      (setq aplig-bound?-fn #'aplig-bounds?--lisps
-            aplig-bound-fn #'aplig-bounds--lisps))
+      (progn
+        (setq aplig-bound?-fn #'aplig-bounds?--lisps
+              aplig-bound-fn #'aplig-bounds--lisps)
+        (set-syntax-table lisp-mode-syntax-table)))
 
      (otherwise
       (error "Supplied testing context KIND %s not implemented" kind))))
@@ -55,7 +57,8 @@ KIND is a symbol identifying how ligs will contribute to masks:
 
    'simple-2: Ligs will always contribute to following two line's masks.
 
-   'lispy: Ligs use lisp boundary functions to contribute to masks.
+   'lispy: Ligs use lisp boundary functions to contribute to masks
+           and inherit `lisp-mode-syntax-table'.
 
    'no-setup: Same as 'minimal but do not execute `aplig-setup--agnostic'.
 
@@ -77,10 +80,14 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
      (with-temp-buffer
        (aplig-disable)  ; just-in-case reset managed vars
        (aplig-test--kind->context ,kind)
+
        (insert (s-trim ,buffer-contents))  ; so test lines 1-idxed not 2-idxed
+
        (unless (eq 'no-setup ,kind)
          (aplig-setup--agnostic))
+
        ,@body
+
        (aplig-disable))))
 
 
