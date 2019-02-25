@@ -48,14 +48,21 @@
 
 
 ;;; Transforms
-
-(defun aplig-mask->indent (mask)
-  "Return true indent of line containing MASK."
-  (save-excursion (aplig-ov--goto mask) (aplig-mask--indent-col)))
+;;;; Aliases
 
 (defun aplig-mask->ligs (mask)
   "Wrapper to access ligs contributing to MASK."
   (overlay-get mask 'aplig-ligs))
+
+(defun aplig-mask->opaque-end (mask)
+  "Return MASK's 'opaque-end text property."
+  (overlay-get mask 'aplig-opaque-end))
+
+;;;; Methods
+
+(defun aplig-mask->indent (mask)
+  "Return true indent of line containing MASK."
+  (save-excursion (aplig-ov--goto mask) (aplig-mask--indent-col)))
 
 (defun aplig-mask->width (mask)
   "Calculate width of MASK's ligs."
@@ -74,27 +81,24 @@
   (= 0 (aplig-mask->width mask)))
 
 (defun aplig-mask--enough-space? (mask)
-  "Does MASK's line contain enough space for rendering? If so get MASK."
-  (let ((line-size (-> mask aplig-mask->line aplig-base--line-size))
-        (mask-size (aplig-mask->width mask)))
-    ;; (message "%s mask ov" mask)
-    ;; (message "%s line" line-size)
-    ;; (message "%s mask" mask-size)
-
-    ;; If this fails -> mask unrenderes -> mask has display nil
-
-    (and (<= line-size mask-size)
-         mask)))
+  "Does MASK's line contain enough space for rendering?"
+  (= (aplig-mask->line mask)
+     (-> mask aplig-mask->opaque-end line-number-at-pos)))
 
 (defun aplig-mask--contains? (lig mask)
-  "Does MASK already contain LIG? If so get MASK."
-  (and (-> mask aplig-mask->ligs (-contains? lig))
-       mask))
+  "Does MASK already contain LIG?"
+  (-> mask aplig-mask->ligs (-contains? lig)))
+
+(defun aplig-mask--ends-agree? (mask)
+  "Does MASK's opaque-end and actual end agree?"
+  (= (overlay-end mask)
+     (aplig-mask->opaque-end mask)))
 
 (defun aplig-mask--render? (mask)
   "Should MASK be rendered?"
   (and aplig-render-masks?
-       (aplig-mask--enough-space? mask)))
+       (not (aplig-mask--empty? mask))
+       (aplig-mask--ends-agree? mask)))
 
 
 
@@ -132,14 +136,12 @@
   (when aplig-display-prefixes?
     (->> mask aplig-mask--format-prefix (overlay-put mask 'line-prefix))))
 
-(defun aplig-mask--recenter (mask)
-  "Recenter MASK, ie. reset its end position based on ligs widths."
-  (let* ((start (overlay-start mask))
-         (width (aplig-mask->width mask))
-         (end   (+ 1 start width)))
-    (when (= (line-number-at-pos start)
-             (line-number-at-pos end))
-      (move-overlay mask start end))))
+(defun aplig-mask--recenter-maybe (mask)
+  "Recenter MASK if it won't cross lines doing so."
+  (when (aplig-mask--enough-space? mask)
+    (move-overlay mask
+                  (overlay-start mask)
+                  (aplig-mask->opaque-end mask))))
 
 (defun aplig-mask--render (mask)
   "Set display-based overlay properties for MASK."
@@ -175,10 +177,17 @@
       (aplig-mask--render mask)
     (aplig-mask--unrender mask)))
 
+(defun aplig-mask--reset-opaque-end (mask)
+  "Update MASK's 'opaque-end based on contributing ligatures."
+  (overlay-put mask 'aplig-opaque-end
+               (+ 1 (overlay-start mask) (aplig-mask->width mask))))
+
 (defun aplig-mask--refresh (mask)
   "Reset bounds and boundary-dependent properties of MASK based on its ligs."
+  ;; These mutations must occur in the order presented
   (-doto mask
-    (aplig-mask--recenter)
+    (aplig-mask--reset-opaque-end)
+    (aplig-mask--recenter-maybe)
     (aplig-mask--reset-prefix)
     (aplig-mask--reset-display)))
 
@@ -206,6 +215,7 @@
     (overlay-put 'aplig?      t)
     (overlay-put 'aplig-mask? t)
     (overlay-put 'aplig-ligs  nil)
+    (overlay-put 'aplig-opaque-end (overlay-end ov))
 
     (overlay-put 'modification-hooks '(aplig-mask--decompose-hook))))
 

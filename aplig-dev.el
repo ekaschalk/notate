@@ -92,14 +92,16 @@ masks: %s
   (let* ((start (overlay-start mask))
          (end (overlay-end mask))
          (line (line-number-at-pos start))
-         (ligs (overlay-get mask 'aplig-ligs)))
+         (ligs (aplig-mask->ligs mask))
+         (opaque-end (aplig-mask->opaque-end mask)))
     (format "Mask overlay:
 start: %s
 end: %s
 line: %s
 ligs: %s
+opaque-end: %s
 "
-            start end line ligs)))
+            start end line ligs opaque-end)))
 
 
 
