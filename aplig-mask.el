@@ -87,6 +87,7 @@
   "Overlay modification hook to delete indent ov upon modification within it."
   ;; NOTE probably need to handle deleting forward differently
   ;; NOTE probably need to handle visual deletion differently
+  ;; NOTE nearly certain this is interacting in a bad way with `undo-tree-undo'
   (when post-mod?
     (let* ((inhibit-modification-hooks t)
            (width                      (aplig-mask->width mask))
@@ -158,13 +159,14 @@
     (aplig-mask--reset-display)))
 
 (defun aplig-mask--refresh-maybe (mask)
-  "Perform `aplig-mask--refresh' when we should."
+  "Perform `aplig-mask--refresh' when we should and return back MASK."
   (unless aplig-mask--wait-for-refresh
-    (aplig-mask--refresh mask)))
+    (aplig-mask--refresh mask))
+  mask)
 
 (defun aplig-masks--refresh (masks)
   "Refresh MASKS."
-  (-each masks #'aplig-mask--refresh-maybe))
+  (-map #'aplig-mask--refresh-maybe masks))
 
 (defun aplig-masks--refresh-buffer ()
   "Refresh `aplig-mask-list'."

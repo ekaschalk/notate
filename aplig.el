@@ -101,35 +101,38 @@ confusing indexings.")
 
 (defun aplig--add-lig-to-mask (lig mask)
   "Add LIG to a MASK, possibly refresh mask, and return back mask."
-  (push lig (overlay-get mask 'apl-ligs))
-  (aplig-mask--refresh-maybe mask)
-  mask)
+  (push lig (overlay-get mask 'aplig-ligs))
+  (aplig-mask--refresh-maybe mask))
 
 (defun aplig--remove-lig-from-mask (lig mask)
   "Remove LIG from MASK, possibly refresh mask, and return back mask."
-  (delq lig (overlay-get mask 'apl-ligs))
-  (aplig-mask--refresh-maybe mask)
-  mask)
+  (delq lig (overlay-get mask 'aplig-ligs))
+  (aplig-mask--refresh-maybe mask))
 
-(defun aplig--map-over-masks (lig fn)
+(defun aplig--map-over-masks (fn lig)
   "Map FN over LIG's masks."
   (->> lig aplig--masks-for (-map (-partial fn lig))))
 
 (defun aplig--add-lig-to-masks (lig)
   "Add LIG to all masks it contributes to and return them."
-  (aplig--map-over-masks lig #'aplig--add-lig-to-mask))
+  (aplig--map-over-masks #'aplig--add-lig-to-mask lig))
 
 (defun aplig--remove-lig-from-masks (lig)
   "Remove LIG from all masks it contributes to."
-  (aplig--map-over-masks lig #'aplig--remove-lig-from-mask))
+  (aplig--map-over-masks #'aplig--remove-lig-from-mask lig))
 
 (defun aplig--add-ligs-to-masks (ligs)
   "Batch add LIGS to their masks refreshing upon completion."
-  (let ((aplig-mask--wait-for-refresh t))
-    (->> ligs
-       (-mapcat #'aplig--add-lig-to-masks)
-       -distinct
-       aplig-masks--refresh)))
+  ;; (let ((aplig-mask--wait-for-refresh t))
+  ;;   (-each ligs #'aplig--add-lig-to-masks))
+
+  ;; (aplig-masks--refresh-buffer)
+
+  ;; TODO Test this implementation compared to simpler version above
+  (let ((masks))
+    (let ((aplig-mask--wait-for-refresh t))
+      (setq masks (-mapcat #'aplig--add-lig-to-masks ligs)))
+    (-> masks -distinct aplig-masks--refresh)))
 
 (defun aplig--delete-lig (lig)
   "Delete LIG and refresh masks it contributed to."
