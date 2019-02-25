@@ -32,9 +32,10 @@
 
 
 ;;; Configuration
+;;;; Core
 
 (defconst aplig-specs (aplig-specs--make '(("hello" "∧") ("bye" "!∨")))
-  "Collection of specs from `aplig-spec--make'.")
+  "plist of ligature specifications resulting from `aplig-specs--make'.")
 
 (defvar-local aplig-bound-fn #'aplig-bounds--lisps
   "A function that should return line boundaries [a b) given a LIG.")
@@ -44,18 +45,18 @@
 
 ;;;; Debugging
 
-(defconst aplig-display-prefixes? t
+(defvar aplig-display-prefixes? t
   "Whether to add the `line-prefix' property to indentation overlays.")
 
-(defconst aplig-render-masks? t
+(defvar aplig-render-masks? t
   "Should masks render? Note that line-prefixes, if set to, still display.")
 
 ;;;; Managed
 
-(defconst aplig-lig-list nil
+(defvar aplig-lig-list nil
   "List of ligature overlays currently managed.")
 
-(defconst aplig-mask-list nil
+(defvar aplig-mask-list nil
   "List of indent overlays currently managed.
 
 This an ordered list s.t. aplig-mask-list[i] = mask-at-line-i+1.
@@ -63,7 +64,7 @@ This an ordered list s.t. aplig-mask-list[i] = mask-at-line-i+1.
 Accessing this should be done through `aplig-mask--at' and friends to avoid
 confusing indexings.")
 
-(defconst aplig-mask--wait-for-refresh nil
+(defvar aplig-mask--wait-for-refresh nil
   "Let-bind true to hold off on refreshing masks during batch modifications.")
 
 

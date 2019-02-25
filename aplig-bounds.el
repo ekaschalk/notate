@@ -24,7 +24,8 @@
 
 (defun aplig-bounds?--in-string-or-comment? (lig)
   "Is LIG contained within a string or comment?"
-  (let ((state (save-excursion (syntax-ppss (overlay-start lig)))))
+  (let ((state (save-excursion
+                 (syntax-ppss (overlay-start lig)))))
     (or (nth 3 state) (nth 4 state))))
 
 ;;; Lisps
@@ -32,7 +33,12 @@
 ;;;;; Conditions
 
 (defun aplig-bounds?--lisps-form-opener? (lig)
-  "Does LIG open a form?"
+  "Does LIG open a form?
+
+(lig foo
+     bar)
+
+Simplest case that has LIG contributing to indentation masks."
   (save-excursion
     (aplig-ov--goto lig)
     (null (ignore-errors (backward-sexp) t))))
@@ -83,6 +89,8 @@ Does not have LIG contributing to indentation masks though it is a form opener."
 
 (defun aplig-bounds--lisps (lig)
   "Calculate line boundary [a b) for LIG's masks."
+  ;; It is potentially more involved than this, but this /should/ work unless
+  ;; you are going out of your way to format in a breaking manner
   (let* ((start (overlay-start lig))
          (line (1+ (line-number-at-pos start)))
          (max-line (line-number-at-pos (point-max))))

@@ -3,11 +3,13 @@
 ;; ~ Testing Status ~
 
 ;; Covered:
+;; - General
+;;   - comments/strings
 ;; - Lisps
 ;;   - Form opener?
 
 ;; Not Covered:
-;; -
+;; - Alot (restricting to simple cases atm until change functions finished)
 
 
 

@@ -34,7 +34,7 @@
 
    ((> (length replacement)
        (length string))
-    (error "Indentation expansions not supported yet."))))
+    (error "Indentation expansions not supported yet, but I would like to."))))
 
 (defun aplig-specs--validate (specs)
   "Throw error on egregious combinations of inputs."
