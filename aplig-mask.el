@@ -128,6 +128,22 @@
     (overlay-put 'face    nil)
     (overlay-put 'display nil)))
 
+(defun aplig-masks--render (masks)
+  "Set display-based overlay properties for MASKS."
+  (-each masks #'aplig-mask--render))
+
+(defun apligs-masks--unrender (masks)
+  "Remove display-based overlay properties for MASKS."
+  (-each masks #'aplig-mask--unrender))
+
+(defun aplig-masks--render-buffer ()
+  "Set display-based overlay properties for masks in buffer."
+  (aplig-masks--render aplig-mask-list))
+
+(defun alpig-masks--unrender-buffer ()
+  "Remove display-based overlay properties for masks in buffer."
+  (aplig-masks--unrender aplig-mask-list))
+
 (defun aplig-mask--reset-display (mask)
   "Reset display and face text properties of MASK."
   (if (aplig-mask--render? mask)

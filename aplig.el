@@ -256,7 +256,12 @@ confusing indexings.")
     (font-lock-ensure))
 
   (aplig-masks--refresh-buffer)
-  (add-hook 'after-change-functions #'aplig-after-change-function nil 'local))
+  (add-hook 'after-change-functions #'aplig-after-change-function nil 'local)
+
+  ;; Haven't tried it yet but should be fine...
+  ;; (advice-add 'undo-tree-undo :before #'aplig-mask--unrender-buffer)
+  ;; (advice-add 'undo-tree-undo :after #'aplig-mask--render-buffer)
+  )
 
 ;;;; Commands
 
