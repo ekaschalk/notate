@@ -53,7 +53,7 @@
 (defun aplig-lig--decompose-hook (lig post-modification? start end &optional _)
   "Decompose LIG upon modification as a modification-hook."
   (when post-modification?
-    (aplig-lig-mask--remove-lig-from-masks lig)
+    (aplig--remove-lig-from-masks lig)
     (aplig-lig--delete lig)))
 
 
@@ -93,7 +93,7 @@
   (let* ((ov    (make-overlay start end))
          (lig   (aplig-lig--init-ov ov string replacement)))
     (push lig aplig-lig-list)
-    (aplig-lig-mask--add-lig-to-masks lig)
+    (aplig--add-lig-to-masks lig)
     lig))
 
 

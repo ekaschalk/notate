@@ -69,19 +69,22 @@ confusing indexings.")
 
 
 
-;;; Lig-Mask Interface
+;;; Lig-Mask Interactions
 
-(defun aplig-lig-mask--masks-for (lig)
+(defun aplig--masks-for (lig)
   "Return all masks LIG contributes to."
   (-some->>
    lig
    (funcall (symbol-value #'aplig-bound?-fn))
    (funcall (symbol-value #'aplig-bound-fn))
    (apply #'aplig-masks--in)
-   (-remove (-partial #'aplig-lig-mask--skip? lig))))
+   (-remove (-partial #'aplig--skip? lig))))
 
-(defun aplig-lig-mask--skip? (lig mask)
+(defun aplig--skip? (lig mask)
   "Should MASK in boundary of LIG be skipped when adding LIG to its masks?"
+  ;; (message "Looking at lig %s mask %s. Potential: %s. Has: %s"
+  ;;          lig mask mask-potential-width lig-already-in-mask?)
+
   (save-excursion
     (aplig-ov--goto mask)
 
@@ -93,40 +96,42 @@ confusing indexings.")
            (lig-already-in-mask? (-> mask aplig-mask->ligs (-contains? lig)))
            (line-too-small? (<= line-width mask-potential-width)))
 
-      ;; (message "Looking at lig %s mask %s. Potential: %s. Has: %s"
-      ;;          lig mask mask-potential-width lig-already-in-mask?)
+      (or lig-already-in-mask?
+          line-too-small?))))
 
-      (or lig-already-in-mask? line-too-small?))))
+(defun aplig--add-lig-to-mask (lig mask)
+  "Add LIG to a MASK, possibly refresh mask, and return back mask."
+  (push lig (overlay-get mask 'apl-ligs))
+  (aplig-mask--refresh-maybe mask)
+  mask)
 
-(defun aplig-lig-mask--add-lig-to-mask (lig mask)
-  "Add LIG to a MASK and possibly refresh it."
-  (push lig (overlay-get mask 'aplig-ligs))
-  (aplig-mask--refresh-maybe mask))
+(defun aplig--remove-lig-from-mask (lig mask)
+  "Remove LIG from MASK, possibly refresh mask, and return back mask."
+  (delq lig (overlay-get mask 'apl-ligs))
+  (aplig-mask--refresh-maybe mask)
+  mask)
 
-(defun aplig-lig-mask--remove-lig-from-mask (lig mask)
-  "Remove LIG from MASK."
-  (delq lig (aplig-mask->ligs mask))
-  (aplig-mask--refresh-maybe mask))
+(defun aplig--map-over-masks (lig fn)
+  "Map FN over LIG's masks."
+  (->> lig aplig--masks-for (-map (-partial fn lig))))
 
-(defun aplig-lig-mask--add-lig-to-masks (lig)
-  "Add LIG to all masks it contributes to."
-  (-each (aplig-lig-mask--masks-for lig)
-    (-partial #'aplig-lig-mask--add-lig-to-mask lig)))
+(defun aplig--add-lig-to-masks (lig)
+  "Add LIG to all masks it contributes to and return them."
+  (aplig--map-over-masks lig #'aplig--add-lig-to-mask))
 
-(defun aplig-lig-mask--remove-lig-from-masks (lig)
+(defun aplig--remove-lig-from-masks (lig)
   "Remove LIG from all masks it contributes to."
-  (-each (aplig-lig-mask--masks-for lig)
-    (-partial #'aplig-lig-mask--remove-lig-from-mask lig)))
+  (aplig--map-over-masks lig #'aplig--remove-lig-from-mask))
 
-(defun aplig-lig-mask--add-ligs-to-masks (ligs)
+(defun aplig--add-ligs-to-masks (ligs)
   "Batch add LIGS to their masks refreshing upon completion."
   (let ((aplig-mask--wait-for-refresh t))
-    (-each ligs #'aplig-lig-mask--add-lig-to-masks))
+    (->> ligs
+       (-mapcat #'aplig--add-lig-to-masks)
+       -distinct
+       aplig-masks--refresh)))
 
-  ;; NOTE Easier atm to just refresh the buffer than the correct intervals
-  (aplig-masks--refresh-buffer))
-
-(defun aplig-lig-mask--delete-lig (lig)
+(defun aplig--delete-lig (lig)
   "Delete LIG and refresh masks it contributed to."
   (when lig
 
@@ -145,7 +150,7 @@ confusing indexings.")
     ;; if deleting a single lig
 
     (-doto lig
-      (aplig-lig-mask--remove-lig-from-masks)
+      (aplig--remove-lig-from-masks)
       (aplig-lig--delete))))
 
 
@@ -195,8 +200,8 @@ confusing indexings.")
 
       ;; The lig is being added to mask but it takes 2 insertions to "kick in"
       ;; for some reason?
-      ;; (aplig-lig-mask--add-ligs-to-masks ligs)
-      (-each ligs #'aplig-lig-mask--add-lig-to-masks)
+      ;; (aplig--add-ligs-to-masks ligs)
+      (-each ligs #'aplig--add-lig-to-masks)
 
       (message "%s %s" start end)
       )))
@@ -269,7 +274,7 @@ confusing indexings.")
 
 (defun aplig-remove-lig-at-point ()
   "Delete lig at point if it exists and update masks."
-  (interactive) (aplig-lig-mask--delete-lig (aplig-lig--at-point)))
+  (interactive) (aplig--delete-lig (aplig-lig--at-point)))
 
 
 

@@ -75,7 +75,7 @@
          (string (buffer-substring-no-properties start end))
          (replacement (overlay-get lig 'display))
          (width (- (length string) (length replacement)))
-         (masks (aplig-lig-mask--masks-for lig)))
+         (masks (aplig--masks-for lig)))
     (format "Lig overlay:
 start: %s
 end: %s

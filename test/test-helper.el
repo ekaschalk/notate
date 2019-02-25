@@ -12,6 +12,7 @@
 
 
 ;;; Macros
+;;;; Contexts
 
 (defmacro aplig-test--kind->context (kind)
   "See `aplig-test--with-context' for documentation on KIND."
