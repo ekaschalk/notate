@@ -13,8 +13,8 @@
 
 ;;; Lig-Mask Interactions
 
-;; (ert-deftest aplig:xxx ()
-;;   (aplig-test--with-context 'foo "
-;; foo
-;; "
-;;     ))
+(ert-deftest aplig:xxx ()
+  (aplig-test--with-context 'simple "
+foo
+"
+    ))

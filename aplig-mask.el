@@ -61,6 +61,10 @@
   "Calculate width of MASK's ligs."
   (-> mask aplig-mask->ligs aplig-ligs->width))
 
+(defun aplig-mask->line (mask)
+  "Return MASK's line."
+  (-> mask overlay-start line-number-at-pos))
+
 
 
 ;;; Predicates
@@ -69,10 +73,28 @@
   "Is MASK currently empty of ligatures?"
   (= 0 (aplig-mask->width mask)))
 
+(defun aplig-mask--enough-space? (mask)
+  "Does MASK's line contain enough space for rendering? If so get MASK."
+  (let ((line-size (-> mask aplig-mask->line aplig-base--line-size))
+        (mask-size (aplig-mask->width mask)))
+    ;; (message "%s mask ov" mask)
+    ;; (message "%s line" line-size)
+    ;; (message "%s mask" mask-size)
+
+    ;; If this fails -> mask unrenderes -> mask has display nil
+
+    (and (<= line-size mask-size)
+         mask)))
+
+(defun aplig-mask--contains? (lig mask)
+  "Does MASK already contain LIG? If so get MASK."
+  (and (-> mask aplig-mask->ligs (-contains? lig))
+       mask))
+
 (defun aplig-mask--render? (mask)
   "Should MASK be rendered?"
   (and aplig-render-masks?
-       (not (aplig-mask--empty? mask))))
+       (aplig-mask--enough-space? mask)))
 
 
 
@@ -114,8 +136,10 @@
   "Recenter MASK, ie. reset its end position based on ligs widths."
   (let* ((start (overlay-start mask))
          (width (aplig-mask->width mask))
-         (end   (+ 1 start width)))  ; 1+ opens RHS to match overlay defs
-    (move-overlay mask start end)))
+         (end   (+ 1 start width)))
+    (when (= (line-number-at-pos start)
+             (line-number-at-pos end))
+      (move-overlay mask start end))))
 
 (defun aplig-mask--render (mask)
   "Set display-based overlay properties for MASK."

@@ -45,7 +45,7 @@
         (set-syntax-table lisp-mode-syntax-table)))
 
      (otherwise
-      (error "Supplied testing context KIND %s not implemented" kind))))
+      (error "Supplied testing context KIND %s not implemented" ,kind))))
 
 (defmacro aplig-test--with-context (kind buffer-contents &rest body)
   "Run BODY in context KIND in temp-buffer with (`s-trim'med) BUFFER-CONTENTS.

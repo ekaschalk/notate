@@ -78,26 +78,7 @@ confusing indexings.")
    (funcall (symbol-value #'aplig-bound?-fn))
    (funcall (symbol-value #'aplig-bound-fn))
    (apply #'aplig-masks--in)
-   (-remove (-partial #'aplig--skip? lig))))
-
-(defun aplig--skip? (lig mask)
-  "Should MASK in boundary of LIG be skipped when adding LIG to its masks?"
-  ;; (message "Looking at lig %s mask %s. Potential: %s. Has: %s"
-  ;;          lig mask mask-potential-width lig-already-in-mask?)
-
-  (save-excursion
-    (aplig-ov--goto mask)
-
-    (let* ((line-width (- (line-end-position)
-                          (line-beginning-position)))
-           (mask-width (aplig-mask->width mask))
-           (mask-potential-width (-> lig aplig-lig->width (+ mask-width)))
-
-           (lig-already-in-mask? (-> mask aplig-mask->ligs (-contains? lig)))
-           (line-too-small? (<= line-width mask-potential-width)))
-
-      (or lig-already-in-mask?
-          line-too-small?))))
+   (-remove (-partial #'aplig-mask--contains? lig))))
 
 (defun aplig--add-lig-to-mask (lig mask)
   "Add LIG to a MASK, possibly refresh mask, and return back mask."
