@@ -60,13 +60,13 @@ Does not have LIG contributing to indentation masks though it is a form opener."
 
 (defun aplig-bounds?--lisps (lig)
   "Does LIG have an indentation boundary? If so give LIG."
-  (funcall
-   (-andfn (-orfn #'aplig-bounds?--lisps-another-form-opener-same-line?
-                  #'aplig-bounds?--lisps-form-opener?)
-           (-not #'aplig-bounds?--lisps-terminal-sexp?)
-           (-not #'aplig-bounds?--lisps-specially-indented?)
-           #'identity)
-   lig))
+  (unless (aplig-bounds?--lisps-specially-indented? lig)
+    (funcall
+     (-andfn (-orfn #'aplig-bounds?--lisps-another-form-opener-same-line?
+                    #'aplig-bounds?--lisps-form-opener?)
+             (-not #'aplig-bounds?--lisps-terminal-sexp?)
+             #'identity)
+     lig)))
 
 ;;;; Range
 
