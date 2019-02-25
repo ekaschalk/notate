@@ -57,6 +57,7 @@
 Without a RX given, default to matching entire STRING.
 The RX, if given, should set the first group for the match to replace."
   (aplig-spec--validate string replacement)
+
   `(:string
     ,string
     :rx          ,(or rx (aplig-spec--string->rx string))
@@ -64,6 +65,8 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun aplig-specs--make (specs)
   "Apply `aplig-spec--make' to each SPEC."
+  (aplig-specs--validate specs)
+
   (-map (-applify #'aplig-spec--make) specs))
 
 

@@ -21,28 +21,54 @@
 
 
 ;;; Lisps
+;;;; Predicates
+;;;;; Conditions
 
-(defun aplig-bounds?--lisps-heuristic (lig)
-  "Hueristic version of boundary predicate."
+(defun aplig-bounds?--lisps-form-opener? (lig)
+  "Does LIG open a form?"
   (save-excursion
     (aplig-ov--goto lig)
+    (null (ignore-errors (backward-sexp) t))))
 
-    (let* ((at-form-opener? (null (ignore-errors (backward-sexp) t)))
+;; TODO Straightforward (descend and check line)
+(defun aplig-bounds?--lisps-another-form-opener-same-line? (lig)
+  "Does LIG have another form opener on the same line?
 
-           ;; (declare indent)
-           in-specially-indented-body?
+(foo lig (foo foo
+              foo))
 
-           ;; (foo lig (foo foo
-           ;;               foo))
-           another-form-opener-same-line?
+Has LIG contributing to indentation masks even though it is not a form opener."
+  nil)
 
-           ;; (lig
-           ;;  foo)
-           only-sexp-on-its-line?)
-      (and at-form-opener?
-           (not in-specially-indented-body?)
-           (not another-form-opener-same-line?)
-           (not only-sexp-on-its-line?)))))
+;; TODO Straightforward (next and check line)
+(defun aplig-bounds?--lisps-terminal-sexp? (lig)
+  "Is LIG the terminal sexp on its line?
+
+(lig
+ foo)
+
+Does not have LIG contributing to indentation masks though it is a form opener."
+  nil)
+
+;; TODO Not sure where to start on this one Might have to learn how to inspect
+;; function properties and how (declare indent) works in-depth
+(defun aplig-bounds?--lisps-specially-indented? (lig)
+  "Do we have to account for indentation declarations?"
+  nil)
+
+;;;;; Composition
+
+(defun aplig-bounds?--lisps (lig)
+  "Does LIG have an indentation boundary? If so give LIG."
+  (funcall
+   (-andfn (-orfn #'aplig-bounds?--lisps-another-form-opener-same-line?
+                  #'aplig-bounds?--lisps-form-opener?)
+           (-not #'aplig-bounds?--lisps-terminal-sexp?)
+           (-not #'aplig-bounds?--lisps-specially-indented?)
+           #'identity)
+   lig))
+
+;;;; Range
 
 (defun aplig-bounds--lisps (lig)
   "Calculate line boundary [a b) for LIG's masks."
@@ -54,14 +80,6 @@
             (goto-char start)
             (sp-end-of-sexp)
             (1+ (line-number-at-pos))))))
-
-(defun aplig-bounds?--lisps (lig)
-  "Does LIG have an indentation boundary? Return back LIG if it does."
-  ;; Always-correct boundary-fn much more involved than a good-enough heuristic
-  ;; It must correspond to `lisp-indent-function', but given its calling
-  ;; convention, likely difficult to emulate in a non-temp-buffer-based impl.
-  (and (aplig-bounds?--lisps-heuristic lig)
-       lig))
 
 
 
