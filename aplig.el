@@ -258,9 +258,11 @@ confusing indexings.")
   (aplig-masks--refresh-buffer)
   (add-hook 'after-change-functions #'aplig-after-change-function nil 'local)
 
-  ;; Haven't tried it yet but should be fine...
-  ;; (advice-add 'undo-tree-undo :before #'aplig-mask--unrender-buffer)
-  ;; (advice-add 'undo-tree-undo :after #'aplig-mask--render-buffer)
+  ;; This isn't working yet, not highest priority
+  ;; (advice-remove 'undo-tree-undo #'aplig-masks--unrender-buffer)
+  ;; (advice-remove 'undo-tree-undo #'aplig-masks--render-buffer)
+  ;; (advice-add 'undo-tree-undo :before #'aplig-masks--unrender-buffer)
+  ;; (advice-add 'undo-tree-undo :after #'aplig-masks--render-buffer)
   )
 
 ;;;; Commands

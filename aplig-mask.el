@@ -132,16 +132,16 @@
   "Set display-based overlay properties for MASKS."
   (-each masks #'aplig-mask--render))
 
-(defun apligs-masks--unrender (masks)
+(defun aplig-masks--unrender (masks)
   "Remove display-based overlay properties for MASKS."
   (-each masks #'aplig-mask--unrender))
 
-(defun aplig-masks--render-buffer ()
-  "Set display-based overlay properties for masks in buffer."
+(defun aplig-masks--render-buffer (&rest _)
+  "Set display-based overlay properties for masks in buffer (as a hook)."
   (aplig-masks--render aplig-mask-list))
 
-(defun alpig-masks--unrender-buffer ()
-  "Remove display-based overlay properties for masks in buffer."
+(defun aplig-masks--unrender-buffer (&rest _)
+  "Remove display-based overlay properties for masks in buffer (as a hook)."
   (aplig-masks--unrender aplig-mask-list))
 
 (defun aplig-mask--reset-display (mask)
