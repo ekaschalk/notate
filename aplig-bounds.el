@@ -6,8 +6,8 @@
 
 ;;; Commentary:
 
-;; Major-mode-dependent functions for calculating boundaries of ligature's
-;; effects on indentation masks.
+;; Calculate boundaries of ligatures effects on indentation masks. Major-mode
+;; dependent functions are implemented here.
 
 
 
@@ -19,6 +19,14 @@
 (require 'aplig-ov)
 
 
+
+;;; General
+
+(defun aplig-bounds?--in-string-or-comment? (lig)
+  "Is LIG contained within a string or comment?"
+  (let ((state (syntax-ppss (overlay-start lig))))
+    (or (nth 3 state)
+        (nth 4 state))))
 
 ;;; Lisps
 ;;;; Predicates
@@ -60,13 +68,16 @@ Does not have LIG contributing to indentation masks though it is a form opener."
 
 (defun aplig-bounds?--lisps (lig)
   "Does LIG have an indentation boundary? If so give LIG."
-  (unless (aplig-bounds?--lisps-specially-indented? lig)
-    (funcall
-     (-andfn (-orfn #'aplig-bounds?--lisps-another-form-opener-same-line?
-                    #'aplig-bounds?--lisps-form-opener?)
-             (-not #'aplig-bounds?--lisps-terminal-sexp?)
-             #'identity)
-     lig)))
+  ;; This may or may not be exhaustive. Exhausting cases is lower priority than
+  ;; getting this subset working. Same for performance optimizations.
+  (funcall
+   (-andfn (-not #'aplig-bounds?--in-string-or-comment?)
+           (-not #'aplig-bounds?--lisps-specially-indented?)
+           (-orfn #'aplig-bounds?--lisps-another-form-opener-same-line?
+                  #'aplig-bounds?--lisps-form-opener?)
+           (-not #'aplig-bounds?--lisps-terminal-sexp?)
+           #'identity)
+   lig))
 
 ;;;; Range
 
