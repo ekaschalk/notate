@@ -42,11 +42,11 @@
 
 (defun nt-notes--at (line)
   "Return all notes on LINE."
-  (apply #'nt-notes--present? (nt-base--line-boundary line)))
+  (apply #'nt-notes--present? (nt-base--line-bounds line)))
 
 (defun nt-notes--in (start-line end-line)
   "Return all notes in [START-LINE END-LINE)."
-  (-mapcat (-applify #'nt-notes--at) (nt-base--range start-line end-line)))
+  (-mapcat #'nt-notes--at (nt-base--range start-line end-line)))
 
 (defun nt-note--delete (note)
   "Delete NOTE."

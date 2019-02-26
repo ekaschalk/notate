@@ -49,7 +49,7 @@ simple as a toggle.
           in the value of notation, as a graduate in math (go gators). The
           aesthetic of my programs are important to me.
 
-- Does notate.el support all programming languages? :: Yes-ish.
+- Does Notate support all programming languages? :: Yes-ish.
   - /Details/: notate is major-mode agnostic except for a fn to calculate the
     range of an indentation mask. This too can be made major-mode agnostic,
     however, a general implementation will be slower, more complex and

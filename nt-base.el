@@ -37,7 +37,7 @@
   "Return pos at end of LINE."
   (save-excursion (nt-base--goto-line line) (line-end-position)))
 
-(defun nt-base--line-boundary (line)
+(defun nt-base--line-bounds (line)
   "Return (start end) points of LINE."
   (save-excursion
     (nt-base--goto-line line)
@@ -45,14 +45,12 @@
           (line-end-position))))
 
 (defun nt-base--line-size (line)
-  "Return size of LINE."
-  (-let (((start end)
-          (nt-base--line-boundary line)))
-    (- end start)))
+  "Return number of characters composing LINE."
+  (apply #'- (-> line nt-base--line-bounds reverse)))
 
 (defun nt-base--range (from &optional to inc)
   "Open RHS variation of `number-sequence', see its documentation."
-  ;; Emacs's apis don't fix an open/closed RHS convention, so I will...
+  ;; Emacs's apis don't fix an open/closed RHS convention, so I will
   (number-sequence from (and to (1- to)) inc))
 
 

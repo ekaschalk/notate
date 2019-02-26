@@ -113,15 +113,18 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
 
 
 
-;;; Asserts
+;;; Expanded Shoulds
 
-;; Aliases for `should' variations. Not required, but I like it, as it makes
-;; assertions captured in threads snotehtly cleaner.
+(defmacro should* (&rest fi)
+  "Expands to (progn (should f1) (should f2) ...) for forms in FI."
+  (when fi
+    `(progn (should ,(car fi))
+            (should* ,@(cdr fi)))))
 
-(defmacro assert= (f1 f2) `(should (= ,f1 ,f2)))
-(defmacro assert/= (f1 f2) `(should (/= ,f1 ,f2)))
-(defmacro assert-eq (f1 f2) `(should (eq ,f1 ,f2)))
-(defmacro assert-neq (f1 f2) `(should-not (eq ,f1 ,f2)))
-(defmacro assert-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
-(defmacro assert-size (coll size) `(assert= (length ,coll) ,size))
-(defmacro assert-size= (coll1 coll2) `(assert= (length ,coll1) (length ,coll2)))
+(defmacro should= (f1 &rest fi) `(should (= ,f1 ,@fi)))
+(defmacro should/= (f1 f2) `(should (/= ,f1 ,f2)))
+(defmacro should-eq (f1 f2) `(should (eq ,f1 ,f2)))
+(defmacro should-neq (f1 f2) `(should-not (eq ,f1 ,f2)))
+(defmacro should-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
+(defmacro should-size (coll size) `(should= (length ,coll) ,size))
+(defmacro should-size= (coll1 coll2) `(should= (length ,coll1) (length ,coll2)))
