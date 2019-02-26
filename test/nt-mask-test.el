@@ -34,16 +34,12 @@
      bar
      bar)
 "
-    (should* (-> 1 nt-mask--at nt-mask--empty?)
-             (-> 2 nt-mask--at nt-mask--empty?)
-             (-> 3 nt-mask--at nt-mask--empty?))
-
     (nt-test--mock-notes '(("foo" "f")))
 
     (should* (-> 1 nt-mask--at nt-mask--empty?)
-             (= (-> 2 nt-mask--at nt-mask->width)
-                (- 3 1))
-             (-> 3 nt-mask--at nt-mask--empty?))))
+             (-> 3 nt-mask--at nt-mask--empty?))
+    (should= (-> 2 nt-mask--at nt-mask->width)
+             (- 3 1))))
 
 (ert-deftest masks:transforms:widths:simple-2 ()
   (nt-test--with-context 'simple-2 "
@@ -53,9 +49,9 @@
 "
     (nt-test--mock-notes '(("foo" "f")))
 
+    (should (-> 1 nt-mask--at nt-mask--empty?))
     (should= (-> 2 nt-mask--at nt-mask->width)
-             (- 3 1))
-    (should= (-> 3 nt-mask--at nt-mask->width)
+             (-> 3 nt-mask--at nt-mask->width)
              (- 3 1))))
 
 (ert-deftest masks:transforms:widths:complex ()
@@ -69,22 +65,23 @@
 "
     (nt-test--mock-notes '(("foo" "f") ("bazz" "bro")))
 
-    (should= (-> 2 nt-mask--at nt-mask->width)
-             (+ (- 3 1)
-                (- 4 3)))
-
-    (should= (-> 3 nt-mask--at nt-mask->width)
-             (+ (- 3 1)
-                (- 4 3)
-                (- 3 1)))
-    (should= (-> 4 nt-mask--at nt-mask->width)
-             (- 3 1))
-    (should (-> 5 nt-mask--at nt-mask--empty?))))
+    (let ((note-1-width (- 3 1))
+          (note-2-width (- 4 3)))
+      (should* (= (-> 2 nt-mask--at nt-mask->width)
+                  (+ note-1-width
+                     note-2-width))
+               (= (-> 3 nt-mask--at nt-mask->width)
+                  (+ note-1-width
+                     note-2-width
+                     note-1-width))
+               (= (-> 4 nt-mask--at nt-mask->width)
+                  note-1-width)
+               (-> 5 nt-mask--at nt-mask--empty?)))))
 
 ;;; Init
 ;;;; Single
 
-(ert-deftest masks:init:buffer ()
+(ert-deftest masks:init:single ()
   (nt-test--with-context 'no-setup
       "
 1 foo
@@ -132,7 +129,7 @@
 4 foo
 "
     (should-not nt-mask-list)
-    (let (start (end 4))  ; remember RHS open [a b)
+    (let (start (end 4))
       (nt-masks--init start end))
     (should-size nt-mask-list (- 4 1))))
 

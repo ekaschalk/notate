@@ -45,7 +45,7 @@
         (set-syntax-table lisp-mode-syntax-table)))
 
      (otherwise
-      (error "Supplied testing context KIND %s not implemented" ,kind))))
+      (error "Supplied testing context KIND '%s' not implemented" ,kind))))
 
 (defmacro nt-test--with-context (kind buffer-contents &rest body)
   "Run BODY in context KIND in temp-buffer with (`s-trim'med) BUFFER-CONTENTS.
@@ -66,18 +66,15 @@ KIND is a symbol identifying how notes will contribute to masks:
    'any: Execute BODY for each of the following values of KIND:
            minimal, simple and lispy
 
-         Useful when mask-note interaction is present but doesn't matter.
+         Useful when note-mask interaction is present but doesn't
+         modify the tested values, like note creation.
 
 After setting the context, `nt-setup--agnostic' is executed. At the time of
 writing, it instantiates empty masks for the buffer and sets up managed vars."
   (declare (indent 2))
 
   (if (eval `(equal 'any ,kind))
-      `(progn
-         (nt-test--with-context 'minimal ,buffer-contents ,@body)
-         (nt-test--with-context 'simple ,buffer-contents ,@body)
-         (nt-test--with-context 'lispy ,buffer-contents ,@body))
-
+      `(nt-test--with-contexts ('minimal 'simple 'lispy) ,buffer-contents ,@body)
     `(with-temp-buffer
        (nt-disable)  ; just-in-case reset managed vars
        (nt-test--kind->context ,kind)
@@ -86,10 +83,14 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
 
        (unless (eq 'no-setup ,kind)
          (nt-setup--agnostic))
-
        ,@body
-
        (nt-disable))))
+
+(defmacro nt-test--with-contexts (kinds buffer-contents &rest body)
+  "Perform `nt-test--with-context' for all KINDS."
+  (when kinds
+    `(progn (nt-test--with-context ,(car kinds) ,buffer-contents ,@body)
+            (nt-test--with-contexts ,(cdr kinds) ,buffer-contents ,@body))))
 
 
 
@@ -122,9 +123,11 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
             (should* ,@(cdr fi)))))
 
 (defmacro should= (f1 &rest fi) `(should (= ,f1 ,@fi)))
-(defmacro should/= (f1 f2) `(should (/= ,f1 ,f2)))
-(defmacro should-eq (f1 f2) `(should (eq ,f1 ,f2)))
-(defmacro should-neq (f1 f2) `(should-not (eq ,f1 ,f2)))
-(defmacro should-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
 (defmacro should-size (coll size) `(should= (length ,coll) ,size))
-(defmacro should-size= (coll1 coll2) `(should= (length ,coll1) (length ,coll2)))
+
+;; Below variations not used yet, undecided on including
+;; (defmacro should/= (f1 f2) `(should (/= ,f1 ,f2)))
+;; (defmacro should-eq (f1 f2) `(should (eq ,f1 ,f2)))
+;; (defmacro should-neq (f1 f2) `(should-not (eq ,f1 ,f2)))
+;; (defmacro should-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
+;; (defmacro should-size= (coll1 coll2) `(should= (length ,coll1) (length ,coll2)))

@@ -23,8 +23,8 @@
 "
     (-let (((foo bar)
             (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
-      (should (nt-bounds?--in-string-or-comment? bar))
-      (should-not (nt-bounds?--in-string-or-comment? foo)))))
+      (should* (nt-bounds?--in-string-or-comment? bar)
+               (not (nt-bounds?--in-string-or-comment? foo))))))
 
 (ert-deftest bounds:general:strings ()
   (nt-test--with-context 'lispy "
@@ -33,8 +33,8 @@
 "
     (-let (((foo bar)
             (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
-      (should (nt-bounds?--in-string-or-comment? bar))
-      (should-not (nt-bounds?--in-string-or-comment? foo)))))
+      (should* (nt-bounds?--in-string-or-comment? bar)
+               (not (nt-bounds?--in-string-or-comment? foo))))))
 
 
 
@@ -47,5 +47,5 @@
 "
     (-let (((foo bar)
             (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
-      (should (nt-bounds?--lisps-form-opener? foo))
-      (should-not (nt-bounds?--lisps-form-opener? bar)))))
+      (should* (nt-bounds?--lisps-form-opener? foo)
+               (not (nt-bounds?--lisps-form-opener? bar))))))

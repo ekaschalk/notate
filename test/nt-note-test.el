@@ -56,17 +56,21 @@
            0))
 
 (ert-deftest notes:transforms:width:one-note ()
-  (nt-test--with-context 'any "(string foo bar)"
-    (should= (-> '(("string" "note"))
-                nt-test--mock-notes
-                nt-notes->width)
+  (nt-test--with-context 'any "
+(string foo bar)
+"
+    (nt-test--mock-notes '(("string" "note")))
+
+    (should= (-> 1 nt-notes--at nt-notes->width)
              (- 6 4))))
 
 (ert-deftest notes:transforms:width:some-notes ()
-  (nt-test--with-context 'any "(string foo bar)"
-    (should= (-> '(("string" "note") ("foo" "!"))
-                nt-test--mock-notes
-                nt-notes->width)
+  (nt-test--with-context 'any "
+(string foo bar)
+"
+    (nt-test--mock-notes '(("string" "note") ("foo" "!")))
+
+    (should= (-> 1 nt-notes--at nt-notes->width)
              (+ (- 6 4)
                 (- 3 1)))))
 
@@ -75,7 +79,9 @@
 ;;; Init
 
 (ert-deftest notes:init:simple ()
-  (nt-test--with-context 'any "(string foo bar)"
+  (nt-test--with-context 'any "
+(string foo bar)
+"
     (should-size (nt-test--mock-notes '(("string" "note")))
                  1)))
 
