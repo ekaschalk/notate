@@ -1,6 +1,6 @@
-#+TITLE: aplig Notes
+#+TITLE: nt Notes
 
-Serves as a scratch buffer for thoughts and other notes related to aplig.
+Serves as a scratch buffer for thoughts and other notes related to nt.
 
 * Notes
 

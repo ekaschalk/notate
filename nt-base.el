@@ -1,4 +1,4 @@
-;;; aplig-base.el --- Common requires and utilities -*- lexical-binding: t; -*-
+;;; nt-base.el --- Common requires and utilities -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
@@ -21,44 +21,44 @@
 
 ;;; Utils
 
-(defun aplig-base--s-diff (s1 s2)
+(defun nt-base--s-diff (s1 s2)
   "Return difference of lengths of strings S1 and S2."
   (- (length s1) (length s2)))
 
-(defun aplig-base--goto-line (line)
+(defun nt-base--goto-line (line)
   "Non-interactive version of `goto-line'."
   (forward-line (- line (line-number-at-pos))))
 
-(defun aplig-base--line-start (line)
+(defun nt-base--line-start (line)
   "Return pos at start of LINE."
-  (save-excursion (aplig-base--goto-line line) (line-beginning-position)))
+  (save-excursion (nt-base--goto-line line) (line-beginning-position)))
 
-(defun aplig-base--line-end (line)
+(defun nt-base--line-end (line)
   "Return pos at end of LINE."
-  (save-excursion (aplig-base--goto-line line) (line-end-position)))
+  (save-excursion (nt-base--goto-line line) (line-end-position)))
 
-(defun aplig-base--line-boundary (line)
+(defun nt-base--line-boundary (line)
   "Return (start end) points of LINE."
   (save-excursion
-    (aplig-base--goto-line line)
+    (nt-base--goto-line line)
     (list (line-beginning-position)
           (line-end-position))))
 
-(defun aplig-base--line-size (line)
+(defun nt-base--line-size (line)
   "Return size of LINE."
   (-let (((start end)
-          (aplig-base--line-boundary line)))
+          (nt-base--line-boundary line)))
     (- end start)))
 
-(defun aplig-base--range (from &optional to inc)
+(defun nt-base--range (from &optional to inc)
   "Open RHS variation of `number-sequence', see its documentation."
-  ;; Emacs's apis would've benefited from fixing an open/closed RHS convention...
+  ;; Emacs's apis don't fix an open/closed RHS convention, so I will...
   (number-sequence from (and to (1- to)) inc))
 
 
 
-(provide 'aplig-base)
+(provide 'nt-base)
 
 
 
-;;; aplig-base.el ends here
+;;; nt-base.el ends here

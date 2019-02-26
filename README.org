@@ -1,4 +1,4 @@
-* aplig - Always Program with Ligatures (in emacs)
+* nt - Always Program with Ligatures (in emacs)
 
 (In-progress)
 
@@ -6,7 +6,7 @@ Indentation-correcting visual replacements of symbols with other symbols.
 
 Ligature's generalization, known as ~prettified-symbols~, can cause alignment
 and indentation issues, preventing one from always rendering ~for~ as ~∀~ and
-~int~ as ~ℤ~ in their code. aplig attempts to bring the joy and readability
+~int~ as ~ℤ~ in their code. nt attempts to bring the joy and readability
 of APL to every language!
 
 ** Details
@@ -34,7 +34,7 @@ example: render ~and~ as ~∧~, its symbol in mathematics.
 There are many examples: render ~alpha~ as ~ɑ~, ~in~ as ~∈~, [[https://github.com/Malabarba/Nameless][the
 "nameless" package]], and so on.
 
-*aplig visually-only replaces strings with other strings, masking indentation*.
+*nt visually-only replaces strings with other strings, masking indentation*.
 Our working indentation is visually modified so that in the example above, we
 see example 3 while the true text is example 1.
 
@@ -53,11 +53,11 @@ engine and require non-trivial modifications to Emacs C core.
           in the value of notation, as a graduate in math (go gators). The
           aesthetics of my programs are important to me.
 
-- Does aplig support all programming languages? :: Yes-ish.
-  - /Details/: aplig is major-mode agnostic except for a fn to calculate the
+- Does nt support all programming languages? :: Yes-ish.
+  - /Details/: nt is major-mode agnostic except for a fn to calculate the
     range of an indentation mask. This too can be made major-mode agnostic,
     however, a general implementation will be slower, more complex and
-    potentially brittle. See ~aplig-bounds.el~.
+    potentially brittle. See ~nt-bounds.el~.
 
 - How does it work? :: By (ab)using particular properties of emacs's ~display~
      and ~modification-hooks~ text properties.
@@ -66,7 +66,7 @@ engine and require non-trivial modifications to Emacs C core.
     display engine does is *fundamentally wrong*, and is not what these features
     were designed for."
 
-    aplig attempts to so egregiously abuse Emac's display engine that a skilled
+    nt attempts to so egregiously abuse Emac's display engine that a skilled
     user cannot help themselves but to correct me (by extending Emac's C display
     engine with indentation metrics smarter than fixed-width columns).
 
@@ -74,8 +74,8 @@ engine and require non-trivial modifications to Emacs C core.
     an extension of Emac's indentation engine and native ligature support. And
     in time, I hope to be that user.
 
-- Similar work? :: aplig is a novel extension of ~prettify-symbols~, which itself
-                   has only a counterpart in ~vim-conceal~. Note aplig is
+- Similar work? :: nt is a novel extension of ~prettify-symbols~, which itself
+                   has only a counterpart in ~vim-conceal~. Note nt is
                    self-contained and doesn't/can't use Emac's
                    ~prettify-symbols-mode~.
 

@@ -1,9 +1,9 @@
 (source gnu)
 (source melpa)
 
-(package-file "aplig.el")
+(package-file "nt.el")
 
-(files "aplig*.el")
+(files "nt*.el")
 
 (depends-on "cl")
 (depends-on "dash")

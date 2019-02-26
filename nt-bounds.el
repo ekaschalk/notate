@@ -1,4 +1,4 @@
-;;; aplig-bounds.el --- Indent Boundaries -*- lexical-binding: t; -*-
+;;; nt-bounds.el --- Indent Boundaries -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
@@ -14,15 +14,15 @@
 ;;; Code:
 ;;;; Requires
 
-(require 'aplig-base)
+(require 'nt-base)
 
-(require 'aplig-ov)
+(require 'nt-ov)
 
 
 
 ;;; General
 
-(defun aplig-bounds?--in-string-or-comment? (lig)
+(defun nt-bounds?--in-string-or-comment? (lig)
   "Is LIG contained within a string or comment?"
   (let ((state (save-excursion
                  (syntax-ppss (overlay-start lig)))))
@@ -32,7 +32,7 @@
 ;;;; Predicates
 ;;;;; Conditions
 
-(defun aplig-bounds?--lisps-form-opener? (lig)
+(defun nt-bounds?--lisps-form-opener? (lig)
   "Does LIG open a form?
 
 (lig foo
@@ -40,11 +40,11 @@
 
 Simplest case that has LIG contributing to indentation masks."
   (save-excursion
-    (aplig-ov--goto lig)
+    (nt-ov--goto lig)
     (null (ignore-errors (backward-sexp) t))))
 
 ;; TODO Straightforward (descend and check line)
-(defun aplig-bounds?--lisps-another-form-opener-same-line? (lig)
+(defun nt-bounds?--lisps-another-form-opener-same-line? (lig)
   "Does LIG have another form opener on the same line?
 
 (foo lig (foo foo
@@ -54,7 +54,7 @@ Has LIG contributing to indentation masks even though it is not a form opener."
   nil)
 
 ;; TODO Straightforward (next and check line)
-(defun aplig-bounds?--lisps-terminal-sexp? (lig)
+(defun nt-bounds?--lisps-terminal-sexp? (lig)
   "Is LIG the terminal sexp on its line?
 
 (lig
@@ -65,29 +65,29 @@ Does not have LIG contributing to indentation masks though it is a form opener."
 
 ;; TODO Not sure where to start on this one Might have to learn how to inspect
 ;; function properties and how (declare indent) works in-depth
-(defun aplig-bounds?--lisps-specially-indented? (lig)
+(defun nt-bounds?--lisps-specially-indented? (lig)
   "Do we have to account for indentation declarations?"
   nil)
 
 ;;;;; Composition
 
-(defun aplig-bounds?--lisps (lig)
+(defun nt-bounds?--lisps (lig)
   "Does LIG have an indentation boundary? If so give LIG."
   ;; This may or may not be exhaustive. Exhausting cases is lower priority than
   ;; getting this subset working. Same for performance optimizations.
   (and
    (funcall
-    (-andfn (-not #'aplig-bounds?--in-string-or-comment?)
-            (-not #'aplig-bounds?--lisps-specially-indented?)
-            (-not #'aplig-bounds?--lisps-terminal-sexp?)
-            (-orfn #'aplig-bounds?--lisps-another-form-opener-same-line?
-                   #'aplig-bounds?--lisps-form-opener?))
+    (-andfn (-not #'nt-bounds?--in-string-or-comment?)
+            (-not #'nt-bounds?--lisps-specially-indented?)
+            (-not #'nt-bounds?--lisps-terminal-sexp?)
+            (-orfn #'nt-bounds?--lisps-another-form-opener-same-line?
+                   #'nt-bounds?--lisps-form-opener?))
     lig)
    lig))
 
 ;;;; Range
 
-(defun aplig-bounds--lisps (lig)
+(defun nt-bounds--lisps (lig)
   "Calculate line boundary [a b) for LIG's masks."
   ;; It is potentially more involved than this, but this /should/ work unless
   ;; you are going out of your way to format in a breaking manner
@@ -102,8 +102,8 @@ Does not have LIG contributing to indentation masks though it is a form opener."
 
 
 
-(provide 'aplig-bounds)
+(provide 'nt-bounds)
 
 
 
-;;; aplig-bounds.el ends here
+;;; nt-bounds.el ends here

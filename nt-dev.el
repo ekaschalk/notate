@@ -1,4 +1,4 @@
-;;; aplig-dev.el --- Commands helping aplig development -*- lexical-binding: t; -*-
+;;; nt-dev.el --- Commands helping nt development -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
@@ -6,7 +6,7 @@
 
 ;;; Commentary:
 
-;; Extend `aplig' with development and debugging utilities like pprints,
+;; Extend `nt' with development and debugging utilities like pprints,
 ;; toggles, keybindings, and testing buffer commands.
 
 
@@ -14,32 +14,32 @@
 ;;; Code:
 ;;;; Requires
 
-(require 'aplig)
+(require 'nt)
 
 
 
 ;;; Configuration
 
-(defconst aplig-dev--modules
-  '("aplig-dev.el"
+(defconst nt-dev--modules
+  '("nt-dev.el"
 
     ;; Modules
-    "aplig-bounds.el"
-    "aplig-lig.el"
-    "aplig-mask.el"
-    "aplig-ov.el"
-    "aplig-spec.el"
+    "nt-bounds.el"
+    "nt-lig.el"
+    "nt-mask.el"
+    "nt-ov.el"
+    "nt-spec.el"
 
     ;; Core
-    "aplig.el"
-    "aplig-base.el")
-  "A list of aplig's elisp file names, for reloading dev utility.")
+    "nt.el"
+    "nt-base.el")
+  "A list of nt's elisp file names, for reloading dev utility.")
 
-(defconst aplig-dev--test-buffer "*aplig-development*"
-  "Buffer name to contain `aplig-dev--test-text' for experimenting with aplig.")
+(defconst nt-dev--test-buffer "*nt-development*"
+  "Buffer name to contain `nt-dev--test-text' for experimenting with nt.")
 
-(defconst aplig-dev--test-text
-  ";; Test-bed for aplig
+(defconst nt-dev--test-text
+  ";; Test-bed for nt
 
 (hello hello
        (bye foo
@@ -57,17 +57,17 @@
 
 ;;; Printing
 
-(defun aplig-dev--print (ov)
+(defun nt-dev--print (ov)
   "Dispatch formater for OV and message."
   (message
    (cond ((null ov)
           "No ov found.")
-         ((aplig-ov--lig? ov)
-          (aplig-lig--format ov))
-         ((aplig-ov--mask? ov)
-          (aplig-mask--format ov)))))
+         ((nt-ov--lig? ov)
+          (nt-lig--format ov))
+         ((nt-ov--mask? ov)
+          (nt-mask--format ov)))))
 
-(defun aplig-lig--format (lig)
+(defun nt-lig--format (lig)
   "Format LIG for pprinting."
   (let* ((start (overlay-start lig))
          (end (overlay-end lig))
@@ -75,7 +75,7 @@
          (string (buffer-substring-no-properties start end))
          (replacement (overlay-get lig 'display))
          (width (- (length string) (length replacement)))
-         (masks (aplig--masks-for lig)))
+         (masks (nt--masks-for lig)))
     (format "Lig overlay:
 start: %s
 end: %s
@@ -87,13 +87,13 @@ masks: %s
 "
             start end line width string replacement masks)))
 
-(defun aplig-mask--format (mask)
+(defun nt-mask--format (mask)
   "Format MASK for pprinting."
   (let* ((start (overlay-start mask))
          (end (overlay-end mask))
          (line (line-number-at-pos start))
-         (ligs (aplig-mask->ligs mask))
-         (opaque-end (aplig-mask->opaque-end mask)))
+         (ligs (nt-mask->ligs mask))
+         (opaque-end (nt-mask->opaque-end mask)))
     (format "Mask overlay:
 start: %s
 end: %s
@@ -109,33 +109,33 @@ opaque-end: %s
 ;;;; Definitions
 
 ;;;###autoload
-(defun aplig-dev--switch-to-test-buffer ()
-  "Get or create an aplig test buffer with `aplig-dev--test-text' inserted.
+(defun nt-dev--switch-to-test-buffer ()
+  "Get or create an nt test buffer with `nt-dev--test-text' inserted.
 
 We can easily find ourselves with the error:
   'Changes to be undone are outside visible portion of buffer'.
 
-When working on aplig, necessitating a transient testing buffer."
+When working on nt, necessitating a transient testing buffer."
   (interactive)
 
-  (switch-to-buffer-other-window (get-buffer-create aplig-dev--test-buffer))
+  (switch-to-buffer-other-window (get-buffer-create nt-dev--test-buffer))
 
   (delete-region (point-min) (point-max))
-  (insert aplig-dev--test-text)
+  (insert nt-dev--test-text)
   (goto-char (point-min))
 
   (local-set-key "q" 'quit-window)
   (when (fboundp 'evil-local-set-key)
     (evil-local-set-key 'normal "q" 'quit-window)))
 
-(defun aplig-dev--print-at-point ()
-  "Print aplig OV at point."
-  (interactive) (aplig-dev--print (aplig-ov--at-point)))
+(defun nt-dev--print-at-point ()
+  "Print nt OV at point."
+  (interactive) (nt-dev--print (nt-ov--at-point)))
 
 ;;;###autoload
-(defun aplig-dev--reload ()
-  "(Re)load all `aplig-dev--modules'."
-  (interactive) (-each aplig-dev--modules #'load-file))
+(defun nt-dev--reload ()
+  "(Re)load all `nt-dev--modules'."
+  (interactive) (-each nt-dev--modules #'load-file))
 
 ;;;; Bind Keys
 
@@ -144,20 +144,20 @@ When working on aplig, necessitating a transient testing buffer."
     "d" "dev")
   (spacemacs/set-leader-keys
     ;; Toggles
-    "de" #'aplig-enable
-    "dd" #'aplig-disable
+    "de" #'nt-enable
+    "dd" #'nt-disable
 
     ;; Develop Commmands
-    "dr" #'aplig-dev--reload
-    "db" #'aplig-dev--switch-to-test-buffer
+    "dr" #'nt-dev--reload
+    "db" #'nt-dev--switch-to-test-buffer
 
     ;; Debug Commands
-    "dp" #'aplig-dev--print-at-point))
+    "dp" #'nt-dev--print-at-point))
 
 
 
-(provide 'aplig-dev)
+(provide 'nt-dev)
 
 
 
-;;; aplig-dev.el ends here
+;;; nt-dev.el ends here

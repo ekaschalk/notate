@@ -1,7 +1,7 @@
-#+TITLE: Contributing to aplig
+#+TITLE: Contributing to nt
 
 
-aplig needs and appreciates contributors!
+nt needs and appreciates contributors!
 
 This document will be fleshed out closer to a alpha/beta release.
 
@@ -11,7 +11,7 @@ This document will be fleshed out closer to a alpha/beta release.
 
 There are several conventions I'd like to maintain, enumerated here.
 
-- Name your functions: ~aplig-[module](s)--my-func~
+- Name your functions: ~nt-[module](s)--my-func~
 - Name your tests: ~[module]:[outline]:my-test~
 - Use ~dash~ for list manipulation (eg. use ~-each~ over ~mapc~)
 - Organize with outlines (;;; comments) when it is reasonable.

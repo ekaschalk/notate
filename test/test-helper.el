@@ -7,22 +7,22 @@
 (require 'f)
 
 (progn (add-to-list 'load-path (-> (f-this-file) (f-parent) (f-parent)))
-       (require 'aplig))
+       (require 'nt))
 
 
 
 ;;; Macros
 ;;;; Contexts
 
-(defmacro aplig-test--kind->context (kind)
-  "See `aplig-test--with-context' for documentation on KIND."
+(defmacro nt-test--kind->context (kind)
+  "See `nt-test--with-context' for documentation on KIND."
   `(cl-case ,kind
      ((minimal no-setup)
-      (setq aplig-bound?-fn (-const nil)))  ; `aplig-bound-fn' won't be reached
+      (setq nt-bound?-fn (-const nil)))  ; `nt-bound-fn' won't be reached
 
      (simple
-      (setq aplig-bound?-fn #'identity
-            aplig-bound-fn (-juxt (-compose #'1+
+      (setq nt-bound?-fn #'identity
+            nt-bound-fn (-juxt (-compose #'1+
                                             #'line-number-at-pos
                                             #'overlay-start)
                                   (-compose #'1+ #'1+
@@ -30,8 +30,8 @@
                                             #'overlay-start))))
 
      (simple-2
-      (setq aplig-bound?-fn #'identity
-            aplig-bound-fn (-juxt (-compose #'1+
+      (setq nt-bound?-fn #'identity
+            nt-bound-fn (-juxt (-compose #'1+
                                             #'line-number-at-pos
                                             #'overlay-start)
                                   (-compose #'1+ #'1+ #'1+
@@ -40,14 +40,14 @@
 
      (lispy
       (progn
-        (setq aplig-bound?-fn #'aplig-bounds?--lisps
-              aplig-bound-fn #'aplig-bounds--lisps)
+        (setq nt-bound?-fn #'nt-bounds?--lisps
+              nt-bound-fn #'nt-bounds--lisps)
         (set-syntax-table lisp-mode-syntax-table)))
 
      (otherwise
       (error "Supplied testing context KIND %s not implemented" ,kind))))
 
-(defmacro aplig-test--with-context (kind buffer-contents &rest body)
+(defmacro nt-test--with-context (kind buffer-contents &rest body)
   "Run BODY in context KIND in temp-buffer with (`s-trim'med) BUFFER-CONTENTS.
 
 KIND is a symbol identifying how ligs will contribute to masks:
@@ -61,55 +61,55 @@ KIND is a symbol identifying how ligs will contribute to masks:
    'lispy: Ligs use lisp boundary functions to contribute to masks
            and inherit `lisp-mode-syntax-table'.
 
-   'no-setup: Same as 'minimal but do not execute `aplig-setup--agnostic'.
+   'no-setup: Same as 'minimal but do not execute `nt-setup--agnostic'.
 
    'any: Execute BODY for each of the following values of KIND:
            minimal, simple and lispy
 
          Useful when mask-lig interaction is present but doesn't matter.
 
-After setting the context, `aplig-setup--agnostic' is executed. At the time of
+After setting the context, `nt-setup--agnostic' is executed. At the time of
 writing, it instantiates empty masks for the buffer and sets up managed vars."
   (declare (indent 2))
 
   `(when (eq 'any ,kind)
-     (aplig-test--with-context 'minimal buffer-contents ,@body)
-     (aplig-test--with-context 'simple buffer-contents ,@body)
-     (aplig-test--with-context 'lispy buffer-contents ,@body))
+     (nt-test--with-context 'minimal buffer-contents ,@body)
+     (nt-test--with-context 'simple buffer-contents ,@body)
+     (nt-test--with-context 'lispy buffer-contents ,@body))
 
   `(unless (eq 'any ,kind)
      (with-temp-buffer
-       (aplig-disable)  ; just-in-case reset managed vars
-       (aplig-test--kind->context ,kind)
+       (nt-disable)  ; just-in-case reset managed vars
+       (nt-test--kind->context ,kind)
 
        (insert (s-trim ,buffer-contents))  ; so test lines 1-idxed not 2-idxed
 
        (unless (eq 'no-setup ,kind)
-         (aplig-setup--agnostic))
+         (nt-setup--agnostic))
 
        ,@body
 
-       (aplig-disable))))
+       (nt-disable))))
 
 
 
 ;;; Mocks
 ;;;; Ligs
 
-(defun aplig-test--mock-lig (string replacement)
+(defun nt-test--mock-lig (string replacement)
   "Mock ligs for STRING to REPLACEMENT."
   (save-excursion
     (goto-char (point-min))
 
-    (let ((rx (aplig-spec--string->rx string))
+    (let ((rx (nt-spec--string->rx string))
           ligs)
       (while (re-search-forward rx nil 'noerror)
-        (push (aplig-lig--init string replacement) ligs))
+        (push (nt-lig--init string replacement) ligs))
       ligs)))
 
-(defun aplig-test--mock-ligs (string-replacement-alist)
-  "Map `aplig-test--mock-lig' over list STRING-REPLACEMENT-ALIST."
-  (-mapcat (-applify #'aplig-test--mock-lig) string-replacement-alist))
+(defun nt-test--mock-ligs (string-replacement-alist)
+  "Map `nt-test--mock-lig' over list STRING-REPLACEMENT-ALIST."
+  (-mapcat (-applify #'nt-test--mock-lig) string-replacement-alist))
 
 
 

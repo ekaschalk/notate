@@ -1,4 +1,4 @@
-;;; aplig-[module]-test.el --- Tests -*- lexical-binding: t -*-
+;;; nt-[module]-test.el --- Tests -*- lexical-binding: t -*-
 
 ;; ~ Testing Status ~
 
@@ -14,7 +14,7 @@
 ;;; [outline]
 
 (ert-deftest module:outline:xxx ()
-  (aplig-test--with-context 'foo "
+  (nt-test--with-context 'foo "
 foo
 "
     ))

@@ -1,4 +1,4 @@
-;;; aplig-spec.el --- Specs -*- lexical-binding: t; -*-
+;;; nt-spec.el --- Specs -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
@@ -13,15 +13,15 @@
 ;;; Code:
 ;;;; Requires
 
-(require 'aplig-base)
+(require 'nt-base)
 
-(require 'aplig-lig)
+(require 'nt-lig)
 
 
 
 ;;; Validation
 
-(defun aplig-spec--validate (string replacement)
+(defun nt-spec--validate (string replacement)
   "Throw error on egregious inputs."
   (cond
    ((or (s-contains? "\n" string)
@@ -36,7 +36,7 @@
        (length string))
     (error "Indentation expansions not supported yet, but I would like to."))))
 
-(defun aplig-specs--validate (specs)
+(defun nt-specs--validate (specs)
   "Throw error on egregious combinations of inputs."
   ;; TODO Make sure no two string's can have RX's overlap, easier to have happen
   ;; then you might first think, because we aren't matching symbols, we are
@@ -46,56 +46,56 @@
 
 ;;; Construction
 
-(defun aplig-spec--string->rx (string)
-  "Convert string to an expected aplig-spec RX."
+(defun nt-spec--string->rx (string)
+  "Convert string to an expected nt-spec RX."
   (rx-to-string `(group ,string)
                 'no-shy-group))
 
-(defun aplig-spec--make (string replacement &optional rx)
+(defun nt-spec--make (string replacement &optional rx)
   "Create spec plist for STRING to REPLACEMENT optionally with custom RX.
 
 Without a RX given, default to matching entire STRING.
 The RX, if given, should set the first group for the match to replace."
-  (aplig-spec--validate string replacement)
+  (nt-spec--validate string replacement)
 
   `(:string
     ,string
-    :rx          ,(or rx (aplig-spec--string->rx string))
+    :rx          ,(or rx (nt-spec--string->rx string))
     :replacement ,replacement))
 
-(defun aplig-specs--make (specs)
-  "Apply `aplig-spec--make' to each SPEC."
-  (aplig-specs--validate specs)
+(defun nt-specs--make (specs)
+  "Apply `nt-spec--make' to each SPEC."
+  (nt-specs--validate specs)
 
-  (-map (-applify #'aplig-spec--make) specs))
+  (-map (-applify #'nt-spec--make) specs))
 
 
 
 ;;; Font Locks
 
-(defun aplig-spec--kwd-match (string replacement)
+(defun nt-spec--kwd-match (string replacement)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
-  (unless (aplig-ligs--present?)
-    (aplig-lig--init string replacement)))
+  (unless (nt-ligs--present?)
+    (nt-lig--init string replacement)))
 
-(defun aplig-spec--kwd-build (spec)
-  "Compose the font-lock-keyword for SPEC in `aplig-specs'."
+(defun nt-spec--kwd-build (spec)
+  "Compose the font-lock-keyword for SPEC in `nt-specs'."
   (-let (((&plist :string string
                   :replacement replacement
                   :rx rx)
           spec))
-    `(,rx (0 (prog1 nil (aplig-spec--kwd-match ,string ,replacement))))))
+    `(,rx (0 (prog1 nil (nt-spec--kwd-match ,string ,replacement))))))
 
-(defun aplig-spec--kwds-add ()
-  "Build kwds from `aplig-specs' and add to `font-lock-keywords'."
-  (->> aplig-specs
-     (-map #'aplig-spec--kwd-build)
+(defun nt-spec--kwds-add ()
+  "Build kwds from `nt-specs' and add to `font-lock-keywords'."
+  (->> nt-specs
+     (-map #'nt-spec--kwd-build)
      (font-lock-add-keywords nil)))
 
 
 
-(provide 'aplig-spec)
+(provide 'nt-spec)
 
 
 
-;;; aplig-spec.el ends here
+;;; nt-spec.el ends here
