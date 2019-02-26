@@ -2,7 +2,7 @@
 
 (In-progress, current-progress screenshot)
 
-[[./img/progress-2-stdized-height.png]]
+[[./img/progress-2-stdize-height.png]]
 
 Notate your programs with indentation-correcting visual replacements of symbols
 with other symbols.
