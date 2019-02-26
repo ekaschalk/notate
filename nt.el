@@ -50,7 +50,10 @@
 ;;;; Debugging
 
 (defvar nt-display-prefixes? t
-  "Whether to add the `line-prefix' property to indentation overlays.")
+  "Whether to add the 'line-prefix property to indentation overlays.")
+
+(defvar nt-display-render-status? t
+  "Whether to add a 'face property to rendered indentation overlays.")
 
 (defvar nt-render-masks? t
   "Should masks render? Note that line-prefixes, if set to, still display.")

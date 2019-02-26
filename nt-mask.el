@@ -146,7 +146,7 @@
 (defun nt-mask--render (mask)
   "Set display-based overlay properties for MASK."
   (-doto mask
-    (overlay-put 'face    'underline)
+    (overlay-put 'face    (if nt-display-render-status? 'underline nil))
     (overlay-put 'display " ")))
 
 (defun nt-mask--unrender (mask)

@@ -23,20 +23,20 @@
      (simple
       (setq nt-bound?-fn #'identity
             nt-bound-fn (-juxt (-compose #'1+
-                                            #'line-number-at-pos
-                                            #'overlay-start)
-                                  (-compose #'1+ #'1+
-                                            #'line-number-at-pos
-                                            #'overlay-start))))
+                                         #'line-number-at-pos
+                                         #'overlay-start)
+                               (-compose #'1+ #'1+
+                                         #'line-number-at-pos
+                                         #'overlay-start))))
 
      (simple-2
       (setq nt-bound?-fn #'identity
             nt-bound-fn (-juxt (-compose #'1+
-                                            #'line-number-at-pos
-                                            #'overlay-start)
-                                  (-compose #'1+ #'1+ #'1+
-                                            #'line-number-at-pos
-                                            #'overlay-start))))
+                                         #'line-number-at-pos
+                                         #'overlay-start)
+                               (-compose #'1+ #'1+ #'1+
+                                         #'line-number-at-pos
+                                         #'overlay-start))))
 
      (lispy
       (progn

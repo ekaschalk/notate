@@ -52,8 +52,6 @@
 "
   "Text to use for ad-hoc testing.")
 
-
-
 ;;; Printing
 
 (defun nt-dev--print (ov)
@@ -105,7 +103,10 @@ opaque-end: %s
 
 
 ;;; Commands
-;;;; Definitions
+
+(defun nt-dev--print-at-point ()
+  "Print nt OV at point."
+  (interactive) (nt-dev--print (nt-ov--at-point)))
 
 ;;;###autoload
 (defun nt-dev--switch-to-test-buffer ()
@@ -127,9 +128,29 @@ When working on nt, necessitating a transient testing buffer."
   (when (fboundp 'evil-local-set-key)
     (evil-local-set-key 'normal "q" 'quit-window)))
 
-(defun nt-dev--print-at-point ()
-  "Print nt OV at point."
-  (interactive) (nt-dev--print (nt-ov--at-point)))
+;;;###autoload
+(defun nt-dev--switch-to-screenshot-buffer ()
+  "Perform `nt-dev--switch-to-test-buffer' with screenshot friendly settings."
+  (interactive)
+
+  (let (nt-display-prefixes?
+        nt-display-render-status?
+
+        (nt-notes
+         (nt-notes--make '(("and" "∧") ("or" "∨") ("int" "ℤ")))
+         ;; (nt-notes--make '(("and" "&&") ("or" "||") ("int" "ℤ")))
+         )
+        (nt-dev--test-text
+         (s-trim "
+(and notation is
+     (or great
+         and
+         amazing)
+
+     agreed?)
+")))
+    (nt-dev--switch-to-test-buffer)
+    (nt-enable)))
 
 ;;;###autoload
 (defun nt-dev--reload ()
@@ -149,6 +170,7 @@ When working on nt, necessitating a transient testing buffer."
     ;; Develop Commmands
     "dr" #'nt-dev--reload
     "db" #'nt-dev--switch-to-test-buffer
+    "dB" #'nt-dev--switch-to-screenshot-buffer
 
     ;; Debug Commands
     "dp" #'nt-dev--print-at-point))
