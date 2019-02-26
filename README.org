@@ -33,8 +33,8 @@ For example, render ~and~ as ~∧~:
    bar)
 #+END_SRC
 
-There are many examples: render ~alpha~ as ~ɑ~, ~in~ as ~∈~, [[https://github.com/Malabarba/Nameless][the
-"nameless" package]], and so on.
+There are many examples: render ~beta~ as ~β~, ~in~ as ~∈~, ~compose~ as ~∘~,
+[[https://github.com/Malabarba/Nameless][the "nameless" package]], and so on.
 
 *Notate visually-only replaces strings with other strings, masking indentation*.
 
