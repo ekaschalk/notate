@@ -8,6 +8,10 @@
 
 ;; Notation overlay management, instantiation, etc.
 
+;; For `hl-todo' users, consider:
+;; (setq hl-todo-keyword-faces (--remove (s-equals? (car it) "NOTE") hl-todo-keyword-faces))
+;; To remove highlighting of NOTE in documentation strings
+
 
 
 ;;; Code:
