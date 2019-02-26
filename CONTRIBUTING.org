@@ -1,7 +1,7 @@
-#+TITLE: Contributing to nt
+#+TITLE: Contributing to Notate
 
 
-nt needs and appreciates contributors!
+Notate needs and appreciates contributors!
 
 This document will be fleshed out closer to a alpha/beta release.
 

@@ -1,4 +1,4 @@
-* Notate.el - Program with Personalized Notation
+* Notate - Program with Personalized Notation
 
 (In-progress)
 
@@ -57,7 +57,7 @@ simple as a toggle.
 
 - How does it work? :: By (ab)using particular properties of emacs's ~display~
      and ~modification-hooks~ text properties.
-  - /Details/: My approach [[https://old.reddit.com/r/emacs/comments/74jni0/fixing_ligature_indentation_proof_of_concept/][has received 'praise' from Emac's maintainer in the
+  - /Details/: My approach [[https://old.reddit.com/r/emacs/comments/74jni0/fixing_note_indentation_proof_of_concept/][has received 'praise' from Emac's maintainer in the
     past]]: "Using display properties and overlay strings to "fix" what the
     display engine does is *fundamentally wrong*, and is not what these features
     were designed for."
@@ -72,7 +72,7 @@ simple as a toggle.
 
 - Similar work? :: Notate is a novel extension of the concept of
                    ~prettify-symbols~, which itself has only a counterpart in
-                   ~vim-conceal~. Note nt is self-contained and cannot leverage
+                   ~vim-conceal~. Notate is self-contained and cannot leverage
                    prior work around the concept of prettifying.
 
 - Contributing? :: Would be greatly appreciated! Non-coding materials like

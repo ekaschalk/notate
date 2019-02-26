@@ -25,7 +25,7 @@
 
     ;; Modules
     "nt-bounds.el"
-    "nt-lig.el"
+    "nt-note.el"
     "nt-mask.el"
     "nt-ov.el"
     "nt-spec.el"
@@ -62,21 +62,21 @@
   (message
    (cond ((null ov)
           "No ov found.")
-         ((nt-ov--lig? ov)
-          (nt-lig--format ov))
+         ((nt-ov--note? ov)
+          (nt-note--format ov))
          ((nt-ov--mask? ov)
           (nt-mask--format ov)))))
 
-(defun nt-lig--format (lig)
-  "Format LIG for pprinting."
-  (let* ((start (overlay-start lig))
-         (end (overlay-end lig))
+(defun nt-note--format (note)
+  "Format NOTE for pprinting."
+  (let* ((start (overlay-start note))
+         (end (overlay-end note))
          (line (line-number-at-pos start))
          (string (buffer-substring-no-properties start end))
-         (replacement (overlay-get lig 'display))
+         (replacement (overlay-get note 'display))
          (width (- (length string) (length replacement)))
-         (masks (nt--masks-for lig)))
-    (format "Lig overlay:
+         (masks (nt--masks-for note)))
+    (format "Note overlay:
 start: %s
 end: %s
 line: %s
@@ -92,16 +92,16 @@ masks: %s
   (let* ((start (overlay-start mask))
          (end (overlay-end mask))
          (line (line-number-at-pos start))
-         (ligs (nt-mask->ligs mask))
+         (notes (nt-mask->notes mask))
          (opaque-end (nt-mask->opaque-end mask)))
     (format "Mask overlay:
 start: %s
 end: %s
 line: %s
-ligs: %s
+notes: %s
 opaque-end: %s
 "
-            start end line ligs opaque-end)))
+            start end line notes opaque-end)))
 
 
 

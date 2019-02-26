@@ -4,7 +4,7 @@
 
 ;; Covered:
 ;; - True indent
-;; - Ligs contributing to masks
+;; - Notes contributing to masks
 ;; - Initiation
 
 ;; Not Covered:
@@ -20,14 +20,14 @@
   (nt-test--with-context 'minimal "
 (foo bar
 12345
-     lig)
+     note)
 "
     (assert= (-> 3 nt-mask--indent-at)
              5)
     (assert= (-> 3 nt-mask--at nt-mask->indent)
              5)))
 
-;;;; Widths/Ligs
+;;;; Widths/Notes
 
 (ert-deftest masks:transforms:widths:simple-1 ()
   (nt-test--with-context 'simple "
@@ -38,7 +38,7 @@
     (should (-> 2 nt-mask--at nt-mask--empty?))
     (should (-> 3 nt-mask--at nt-mask--empty?))
 
-    (nt-test--mock-ligs '(("foo" "f")))
+    (nt-test--mock-notes '(("foo" "f")))
 
     (assert= (-> 2 nt-mask--at nt-mask->width)
              (- 3 1))
@@ -50,7 +50,7 @@
      bar
      bar)
 "
-    (nt-test--mock-ligs '(("foo" "f")))
+    (nt-test--mock-notes '(("foo" "f")))
 
     (assert= (-> 2 nt-mask--at nt-mask->width)
              (- 3 1))
@@ -58,7 +58,7 @@
              (- 3 1))))
 
 (ert-deftest masks:transforms:widths:complex ()
-  "Multiple ligs updating multiple masks"
+  "Multiple notes updating multiple masks"
   (nt-test--with-context 'simple-2 "
 (foo bazz
      foo
@@ -66,7 +66,7 @@
      bar
      bar)
 "
-    (nt-test--mock-ligs '(("foo" "f") ("bazz" "bro")))
+    (nt-test--mock-notes '(("foo" "f") ("bazz" "bro")))
 
     (assert= (-> 2 nt-mask--at nt-mask->width)
              (+ (- 3 1)

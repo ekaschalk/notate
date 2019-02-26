@@ -25,9 +25,9 @@
   (and (overlay-get ov 'nt?)
        ov))
 
-(defun nt-ov--lig? (ov)
-  "Is OV a ligature? Get it."
-  (and (overlay-get ov 'nt-lig?)
+(defun nt-ov--note? (ov)
+  "Is OV a note? Get it."
+  (and (overlay-get ov 'nt-note?)
        ov))
 
 (defun nt-ov--mask? (ov)
@@ -68,7 +68,7 @@
   "Remove all `nt' overlays from current buffer."
   (remove-overlays nil nil 'nt? t)
   (setq nt-mask-list nil)
-  (setq nt-lig-list nil))
+  (setq nt-note-list nil))
 
 
 

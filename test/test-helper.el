@@ -50,15 +50,15 @@
 (defmacro nt-test--with-context (kind buffer-contents &rest body)
   "Run BODY in context KIND in temp-buffer with (`s-trim'med) BUFFER-CONTENTS.
 
-KIND is a symbol identifying how ligs will contribute to masks:
+KIND is a symbol identifying how notes will contribute to masks:
 
-   'minimal: Ligs will not contribute to any mask.
+   'minimal: Notes will not contribute to any mask.
 
-   'simple: Ligs will always contribute to following line's mask.
+   'simple: Notes will always contribute to following line's mask.
 
-   'simple-2: Ligs will always contribute to following two line's masks.
+   'simple-2: Notes will always contribute to following two line's masks.
 
-   'lispy: Ligs use lisp boundary functions to contribute to masks
+   'lispy: Notes use lisp boundary functions to contribute to masks
            and inherit `lisp-mode-syntax-table'.
 
    'no-setup: Same as 'minimal but do not execute `nt-setup--agnostic'.
@@ -66,7 +66,7 @@ KIND is a symbol identifying how ligs will contribute to masks:
    'any: Execute BODY for each of the following values of KIND:
            minimal, simple and lispy
 
-         Useful when mask-lig interaction is present but doesn't matter.
+         Useful when mask-note interaction is present but doesn't matter.
 
 After setting the context, `nt-setup--agnostic' is executed. At the time of
 writing, it instantiates empty masks for the buffer and sets up managed vars."
@@ -94,29 +94,29 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
 
 
 ;;; Mocks
-;;;; Ligs
+;;;; Notes
 
-(defun nt-test--mock-lig (string replacement)
-  "Mock ligs for STRING to REPLACEMENT."
+(defun nt-test--mock-note (string replacement)
+  "Mock notes for STRING to REPLACEMENT."
   (save-excursion
     (goto-char (point-min))
 
     (let ((rx (nt-spec--string->rx string))
-          ligs)
+          notes)
       (while (re-search-forward rx nil 'noerror)
-        (push (nt-lig--init string replacement) ligs))
-      ligs)))
+        (push (nt-note--init string replacement) notes))
+      notes)))
 
-(defun nt-test--mock-ligs (string-replacement-alist)
-  "Map `nt-test--mock-lig' over list STRING-REPLACEMENT-ALIST."
-  (-mapcat (-applify #'nt-test--mock-lig) string-replacement-alist))
+(defun nt-test--mock-notes (string-replacement-alist)
+  "Map `nt-test--mock-note' over list STRING-REPLACEMENT-ALIST."
+  (-mapcat (-applify #'nt-test--mock-note) string-replacement-alist))
 
 
 
 ;;; Asserts
 
 ;; Aliases for `should' variations. Not required, but I like it, as it makes
-;; assertions captured in threads slightly cleaner.
+;; assertions captured in threads snotehtly cleaner.
 
 (defmacro assert= (f1 f2) `(should (= ,f1 ,f2)))
 (defmacro assert/= (f1 f2) `(should (/= ,f1 ,f2)))

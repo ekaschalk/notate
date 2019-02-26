@@ -5,14 +5,14 @@
 ;; Authors: Eric Kaschalk <ekaschalk@gmail.com>
 ;; URL: http://github.com/ekaschalk/nt
 ;; Version: 0.1
-;; Keywords: indentation, display, ligatures, major-modes
+;; Keywords: indentation, display, notes, major-modes
 ;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (s "1.12.0") (emacs "26.1"))
 
 
 
 ;;; Commentary:
 
-;; Alignment and indentation issues hamper ligature's generalization, known as
+;; Anotenment and indentation issues hamper ligature's generalization, known as
 ;; prettified-symbols in Emacs, from adoption. nt attempts to bring the joy
 ;; and readability of apl to every language!
 
@@ -24,7 +24,7 @@
 (require 'nt-base)
 
 (require 'nt-bounds)
-(require 'nt-lig)
+(require 'nt-note)
 (require 'nt-mask)
 (require 'nt-ov)
 (require 'nt-spec)
@@ -35,13 +35,13 @@
 ;;;; Core
 
 (defconst nt-specs (nt-specs--make '(("hello" "∧") ("bye" "!∨")))
-  "plist of ligature specifications resulting from `nt-specs--make'.")
+  "plist of note specifications resulting from `nt-specs--make'.")
 
 (defvar-local nt-bound-fn #'nt-bounds--lisps
-  "A function that should return line boundaries [a b) given a LIG.")
+  "A function that should return line boundaries [a b) given a NOTE.")
 
 (defvar-local nt-bound?-fn #'nt-bounds?--lisps
-  "A subset of `nt-bound-fn', whether LIG has a boundary.")
+  "A subset of `nt-bound-fn', whether NOTE has a boundary.")
 
 ;;;; Debugging
 
@@ -53,8 +53,8 @@
 
 ;;;; Managed
 
-(defvar nt-lig-list nil
-  "List of ligature overlays currently managed.")
+(defvar nt-note-list nil
+  "List of note overlays currently managed.")
 
 (defvar nt-mask-list nil
   "List of indent overlays currently managed.
@@ -69,73 +69,73 @@ confusing indexings.")
 
 
 
-;;; Lig-Mask Interactions
+;;; Note-Mask Interactions
 
-(defun nt--masks-for (lig)
-  "Return all masks LIG contributes to."
+(defun nt--masks-for (note)
+  "Return all masks NOTE contributes to."
   (-some->>
-   lig
+   note
    (funcall (symbol-value #'nt-bound?-fn))
    (funcall (symbol-value #'nt-bound-fn))
    (apply #'nt-masks--in)
-   (-remove (-partial #'nt-mask--contains? lig))))
+   (-remove (-partial #'nt-mask--contains? note))))
 
-(defun nt--add-lig-to-mask (lig mask)
-  "Add LIG to a MASK, possibly refresh mask, and return back mask."
-  (push lig (overlay-get mask 'nt-ligs))
+(defun nt--add-note-to-mask (note mask)
+  "Add NOTE to a MASK, possibly refresh mask, and return back mask."
+  (push note (overlay-get mask 'nt-notes))
   (nt-mask--refresh-maybe mask))
 
-(defun nt--remove-lig-from-mask (lig mask)
-  "Remove LIG from MASK, possibly refresh mask, and return back mask."
-  (delq lig (overlay-get mask 'nt-ligs))
+(defun nt--remove-note-from-mask (note mask)
+  "Remove NOTE from MASK, possibly refresh mask, and return back mask."
+  (delq note (overlay-get mask 'nt-notes))
   (nt-mask--refresh-maybe mask))
 
-(defun nt--map-over-masks (fn lig)
-  "Map FN over LIG's masks."
-  (->> lig nt--masks-for (-map (-partial fn lig))))
+(defun nt--map-over-masks (fn note)
+  "Map FN over NOTE's masks."
+  (->> note nt--masks-for (-map (-partial fn note))))
 
-(defun nt--add-lig-to-masks (lig)
-  "Add LIG to all masks it contributes to and return them."
-  (nt--map-over-masks #'nt--add-lig-to-mask lig))
+(defun nt--add-note-to-masks (note)
+  "Add NOTE to all masks it contributes to and return them."
+  (nt--map-over-masks #'nt--add-note-to-mask note))
 
-(defun nt--remove-lig-from-masks (lig)
-  "Remove LIG from all masks it contributes to."
-  (nt--map-over-masks #'nt--remove-lig-from-mask lig))
+(defun nt--remove-note-from-masks (note)
+  "Remove NOTE from all masks it contributes to."
+  (nt--map-over-masks #'nt--remove-note-from-mask note))
 
-(defun nt--add-ligs-to-masks (ligs)
-  "Batch add LIGS to their masks refreshing upon completion."
+(defun nt--add-notes-to-masks (notes)
+  "Batch add NOTES to their masks refreshing upon completion."
   ;; (let ((nt-mask--wait-for-refresh t))
-  ;;   (-each ligs #'nt--add-lig-to-masks))
+  ;;   (-each notes #'nt--add-note-to-masks))
 
   ;; (nt-masks--refresh-buffer)
 
   ;; TODO Test this implementation compared to simpler version above
   (let ((masks))
     (let ((nt-mask--wait-for-refresh t))
-      (setq masks (-mapcat #'nt--add-lig-to-masks ligs)))
+      (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
-(defun nt--delete-lig (lig)
-  "Delete LIG and refresh masks it contributed to."
-  (when lig
+(defun nt--delete-note (note)
+  "Delete NOTE and refresh masks it contributed to."
+  (when note
 
-    ;; FIXME we skip masks that lig already is placed in in masks-for
-    ;; so when we remove-lig-from-masks, it will skip the ones it needs
-    ;; When we delete the lig ov, the ligs are still contained in the masks,
+    ;; FIXME we skip masks that note already is placed in in masks-for
+    ;; so when we remove-note-from-masks, it will skip the ones it needs
+    ;; When we delete the note ov, the notes are still contained in the masks,
     ;; but are for no buffer now.
 
     ;; Perhaps as an optimization (and simpler implementation) we do this:
-    ;; 1. Delete the lig
+    ;; 1. Delete the note
     ;; 2. forward line deleting all overlays for no buffers
     ;; 3. once we hit a line without a no buffer, we got to the end
 
     ;; Note this also allows for efficient batch removal as if we remove many
-    ;; ligs in some contiguous region, we don't do any more work than if
-    ;; if deleting a single lig
+    ;; notes in some contiguous region, we don't do any more work than if
+    ;; if deleting a single note
 
-    (-doto lig
-      (nt--remove-lig-from-masks)
-      (nt-lig--delete))))
+    (-doto note
+      (nt--remove-note-from-masks)
+      (nt-note--delete))))
 
 
 
@@ -177,17 +177,17 @@ confusing indexings.")
             )
 
            (mask-before-change (nt-mask--at line-before-change))
-           (ligs-before-change (overlay-get mask-before-change 'nt-ligs))
+           (notes-before-change (overlay-get mask-before-change 'nt-notes))
 
-           (ligs (-union ligs-before-change
-                         (nt-ligs--at line-before-change))))
+           (notes (-union notes-before-change
+                          (nt-notes--at line-before-change))))
 
-      ;; The lig is being added to mask but it takes 2 insertions to "kick in"
+      ;; The note is being added to mask but it takes 2 insertions to "kick in"
       ;; for some reason?
-      ;; (nt--add-ligs-to-masks ligs)
-      (-each ligs #'nt--add-lig-to-masks)
+      ;; (nt--add-notes-to-masks notes)
+      (-each notes #'nt--add-note-to-masks)
 
-      (message "%s %s" start end)
+      ;; (message "%s %s" start end)
       )))
 
 ;;;; Deletion
@@ -217,7 +217,7 @@ confusing indexings.")
   (nt-masks--init)
   (nt-masks--refresh nt-mask-list))
 
-;;;; Toggling
+;;;; Commands
 
 (defun nt-disable ()
   "Delete overlays managed by nt."
@@ -254,11 +254,11 @@ confusing indexings.")
   ;; (advice-add 'undo-tree-undo :after #'nt-masks--render-buffer)
   )
 
-;;;; Commands
+(defun nt-remove-note-at-point ()
+  "Delete note at point if it exists and update masks."
+  (interactive)
 
-(defun nt-remove-lig-at-point ()
-  "Delete lig at point if it exists and update masks."
-  (interactive) (nt--delete-lig (nt-lig--at-point)))
+  (nt--delete-note (nt-note--at-point)))
 
 
 

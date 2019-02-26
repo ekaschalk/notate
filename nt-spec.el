@@ -6,7 +6,7 @@
 
 ;;; Commentary:
 
-;; Define and validate ligatures and add to `font-lock-mode'
+;; Define and validate notes and add to `font-lock-mode'
 
 
 
@@ -15,7 +15,7 @@
 
 (require 'nt-base)
 
-(require 'nt-lig)
+(require 'nt-note)
 
 
 
@@ -74,9 +74,9 @@ The RX, if given, should set the first group for the match to replace."
 ;;; Font Locks
 
 (defun nt-spec--kwd-match (string replacement)
-  "The form for FACENAME in font-lock-keyword's MATCH-HIGHLIGHT."
-  (unless (nt-ligs--present?)
-    (nt-lig--init string replacement)))
+  "The form for FACENAME in font-lock-keyword's MATCH-HIGHNOTEHT."
+  (unless (nt-notes--present?)
+    (nt-note--init string replacement)))
 
 (defun nt-spec--kwd-build (spec)
   "Compose the font-lock-keyword for SPEC in `nt-specs'."

@@ -22,7 +22,7 @@
      baz)
 "
     (-let (((foo bar)
-            (nt-test--mock-ligs '(("foo" "f") ("bar" "b")))))
+            (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
       (should (nt-bounds?--in-string-or-comment? bar))
       (should-not (nt-bounds?--in-string-or-comment? foo)))))
 
@@ -32,7 +32,7 @@
      baz)
 "
     (-let (((foo bar)
-            (nt-test--mock-ligs '(("foo" "f") ("bar" "b")))))
+            (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
       (should (nt-bounds?--in-string-or-comment? bar))
       (should-not (nt-bounds?--in-string-or-comment? foo)))))
 
@@ -46,6 +46,6 @@
      baz)
 "
     (-let (((foo bar)
-            (nt-test--mock-ligs '(("foo" "f") ("bar" "b")))))
+            (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
       (should (nt-bounds?--lisps-form-opener? foo))
       (should-not (nt-bounds?--lisps-form-opener? bar)))))

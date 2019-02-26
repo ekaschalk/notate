@@ -11,7 +11,7 @@
 
 
 
-;;; Lig-Mask Interactions
+;;; Note-Mask Interactions
 
 (ert-deftest nt:xxx ()
   (nt-test--with-context 'simple "

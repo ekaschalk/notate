@@ -50,9 +50,9 @@
 ;;; Transforms
 ;;;; Aliases
 
-(defun nt-mask->ligs (mask)
-  "Wrapper to access ligs contributing to MASK."
-  (overlay-get mask 'nt-ligs))
+(defun nt-mask->notes (mask)
+  "Wrapper to access notes contributing to MASK."
+  (overlay-get mask 'nt-notes))
 
 (defun nt-mask->opaque-end (mask)
   "Return MASK's 'opaque-end text property."
@@ -65,8 +65,8 @@
   (save-excursion (nt-ov--goto mask) (nt-mask--indent-col)))
 
 (defun nt-mask->width (mask)
-  "Calculate width of MASK's ligs."
-  (-> mask nt-mask->ligs nt-ligs->width))
+  "Calculate width of MASK's notes."
+  (-> mask nt-mask->notes nt-notes->width))
 
 (defun nt-mask->line (mask)
   "Return MASK's line."
@@ -77,7 +77,7 @@
 ;;; Predicates
 
 (defun nt-mask--empty? (mask)
-  "Is MASK currently empty of ligatures?"
+  "Is MASK currently empty of notes?"
   (= 0 (nt-mask->width mask)))
 
 (defun nt-mask--enough-space? (mask)
@@ -85,9 +85,9 @@
   (= (nt-mask->line mask)
      (-> mask nt-mask->opaque-end line-number-at-pos)))
 
-(defun nt-mask--contains? (lig mask)
-  "Does MASK already contain LIG?"
-  (-> mask nt-mask->ligs (-contains? lig)))
+(defun nt-mask--contains? (note mask)
+  "Does MASK already contain NOTE?"
+  (-> mask nt-mask->notes (-contains? note)))
 
 (defun nt-mask--ends-agree? (mask)
   "Does MASK's opaque-end and actual end agree?"
@@ -127,7 +127,7 @@
   (->>
    (list (-> "%02d" (format (nt-mask->indent mask)))
          (-> "%02d" (format (nt-mask->width mask)))
-         (-> "+%d " (format (length (nt-mask->ligs mask)))))
+         (-> "+%d " (format (length (nt-mask->notes mask)))))
    (-interpose "|")
    (apply #'s-concat)))
 
@@ -178,12 +178,12 @@
     (nt-mask--unrender mask)))
 
 (defun nt-mask--reset-opaque-end (mask)
-  "Update MASK's 'opaque-end based on contributing ligatures."
+  "Update MASK's 'opaque-end based on contributing notes."
   (overlay-put mask 'nt-opaque-end
                (+ 1 (overlay-start mask) (nt-mask->width mask))))
 
 (defun nt-mask--refresh (mask)
-  "Reset bounds and boundary-dependent properties of MASK based on its ligs."
+  "Reset bounds and boundary-dependent properties of MASK based on its notes."
   ;; These mutations must occur in the order presented
   (-doto mask
     (nt-mask--reset-opaque-end)
@@ -214,7 +214,7 @@
   (-doto ov
     (overlay-put 'nt?      t)
     (overlay-put 'nt-mask? t)
-    (overlay-put 'nt-ligs  nil)
+    (overlay-put 'nt-notes  nil)
     (overlay-put 'nt-opaque-end (overlay-end ov))
 
     (overlay-put 'modification-hooks '(nt-mask--decompose-hook))))

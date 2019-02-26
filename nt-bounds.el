@@ -6,7 +6,7 @@
 
 ;;; Commentary:
 
-;; Calculate boundaries of ligatures effects on indentation masks. Major-mode
+;; Calculate boundaries of notes effects on indentation masks. Major-mode
 ;; dependent functions are implemented here.
 
 
@@ -22,57 +22,57 @@
 
 ;;; General
 
-(defun nt-bounds?--in-string-or-comment? (lig)
-  "Is LIG contained within a string or comment?"
+(defun nt-bounds?--in-string-or-comment? (note)
+  "Is NOTE contained within a string or comment?"
   (let ((state (save-excursion
-                 (syntax-ppss (overlay-start lig)))))
+                 (syntax-ppss (overlay-start note)))))
     (or (nth 3 state) (nth 4 state))))
 
 ;;; Lisps
 ;;;; Predicates
 ;;;;; Conditions
 
-(defun nt-bounds?--lisps-form-opener? (lig)
-  "Does LIG open a form?
+(defun nt-bounds?--lisps-form-opener? (note)
+  "Does NOTE open a form?
 
-(lig foo
+(note foo
      bar)
 
-Simplest case that has LIG contributing to indentation masks."
+Simplest case that has NOTE contributing to indentation masks."
   (save-excursion
-    (nt-ov--goto lig)
+    (nt-ov--goto note)
     (null (ignore-errors (backward-sexp) t))))
 
 ;; TODO Straightforward (descend and check line)
-(defun nt-bounds?--lisps-another-form-opener-same-line? (lig)
-  "Does LIG have another form opener on the same line?
+(defun nt-bounds?--lisps-another-form-opener-same-line? (note)
+  "Does NOTE have another form opener on the same line?
 
-(foo lig (foo foo
+(foo note (foo foo
               foo))
 
-Has LIG contributing to indentation masks even though it is not a form opener."
+Has NOTE contributing to indentation masks even though it is not a form opener."
   nil)
 
 ;; TODO Straightforward (next and check line)
-(defun nt-bounds?--lisps-terminal-sexp? (lig)
-  "Is LIG the terminal sexp on its line?
+(defun nt-bounds?--lisps-terminal-sexp? (note)
+  "Is NOTE the terminal sexp on its line?
 
-(lig
+(note
  foo)
 
-Does not have LIG contributing to indentation masks though it is a form opener."
+Does not have NOTE contributing to indentation masks though it is a form opener."
   nil)
 
 ;; TODO Not sure where to start on this one Might have to learn how to inspect
 ;; function properties and how (declare indent) works in-depth
-(defun nt-bounds?--lisps-specially-indented? (lig)
+(defun nt-bounds?--lisps-specially-indented? (note)
   "Do we have to account for indentation declarations?"
   nil)
 
 ;;;;; Composition
 
-(defun nt-bounds?--lisps (lig)
-  "Does LIG have an indentation boundary? If so give LIG."
+(defun nt-bounds?--lisps (note)
+  "Does NOTE have an indentation boundary? If so give NOTE."
   ;; This may or may not be exhaustive. Exhausting cases is lower priority than
   ;; getting this subset working. Same for performance optimizations.
   (and
@@ -82,16 +82,16 @@ Does not have LIG contributing to indentation masks though it is a form opener."
             (-not #'nt-bounds?--lisps-terminal-sexp?)
             (-orfn #'nt-bounds?--lisps-another-form-opener-same-line?
                    #'nt-bounds?--lisps-form-opener?))
-    lig)
-   lig))
+    note)
+   note))
 
 ;;;; Range
 
-(defun nt-bounds--lisps (lig)
-  "Calculate line boundary [a b) for LIG's masks."
+(defun nt-bounds--lisps (note)
+  "Calculate line boundary [a b) for NOTE's masks."
   ;; It is potentially more involved than this, but this /should/ work unless
   ;; you are going out of your way to format in a breaking manner
-  (let* ((start (overlay-start lig))
+  (let* ((start (overlay-start note))
          (line (1+ (line-number-at-pos start)))
          (max-line (line-number-at-pos (point-max))))
     (list (min line max-line)
