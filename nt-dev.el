@@ -25,10 +25,9 @@
 
     ;; Modules
     "nt-bounds.el"
-    "nt-note.el"
     "nt-mask.el"
+    "nt-note.el"
     "nt-ov.el"
-    "nt-spec.el"
 
     ;; Core
     "nt.el"

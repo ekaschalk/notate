@@ -12,9 +12,14 @@
 
 ;;; Commentary:
 
-;; Anotenment and indentation issues hamper ligature's generalization, known as
-;; prettified-symbols in Emacs, from adoption. nt attempts to bring the joy
-;; and readability of apl to every language!
+;; Notate your programs with indentation-correcting visual replacements of
+;; symbols with other symbols.
+
+;; Ligature's generalization, known to Emacs as ~prettified-symbols~, causes
+;; alignment and indentation issues, preventing one from rendering ~for~ as ~∀~
+;; and ~int~ as ~ℤ~ in their code
+
+;; With notate, you can selectively APL-ize your code.
 
 
 
@@ -24,18 +29,17 @@
 (require 'nt-base)
 
 (require 'nt-bounds)
-(require 'nt-note)
 (require 'nt-mask)
+(require 'nt-note)
 (require 'nt-ov)
-(require 'nt-spec)
 
 
 
 ;;; Configuration
 ;;;; Core
 
-(defconst nt-specs (nt-specs--make '(("hello" "∧") ("bye" "!∨")))
-  "plist of note specifications resulting from `nt-specs--make'.")
+(defconst nt-notes (nt-notes--make '(("hello" "∧") ("bye" "!∨")))
+  "plist of note specifications resulting from `nt-notes--make'.")
 
 (defvar-local nt-bound-fn #'nt-bounds--lisps
   "A function that should return line boundaries [a b) given a NOTE.")
@@ -239,7 +243,7 @@ confusing indexings.")
   (nt-disable)
   (nt-setup--agnostic)
 
-  (add-hook 'lisp-mode-hook #'nt-spec--kwds-add)
+  (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
   (let ((nt-mask--wait-for-refresh t))
     (lisp-mode)
     (font-lock-ensure))

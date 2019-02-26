@@ -9,6 +9,7 @@
 
 ;; Not Covered:
 ;; - decompose hook
+;; - font lock kwd construction and spec methods
 
 
 
