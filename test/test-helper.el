@@ -72,13 +72,13 @@ After setting the context, `nt-setup--agnostic' is executed. At the time of
 writing, it instantiates empty masks for the buffer and sets up managed vars."
   (declare (indent 2))
 
-  `(when (eq 'any ,kind)
-     (nt-test--with-context 'minimal buffer-contents ,@body)
-     (nt-test--with-context 'simple buffer-contents ,@body)
-     (nt-test--with-context 'lispy buffer-contents ,@body))
+  (if (eval `(equal 'any ,kind))
+      `(progn
+         (nt-test--with-context 'minimal ,buffer-contents ,@body)
+         (nt-test--with-context 'simple ,buffer-contents ,@body)
+         (nt-test--with-context 'lispy ,buffer-contents ,@body))
 
-  `(unless (eq 'any ,kind)
-     (with-temp-buffer
+    `(with-temp-buffer
        (nt-disable)  ; just-in-case reset managed vars
        (nt-test--kind->context ,kind)
 
@@ -116,7 +116,7 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
 ;;; Expanded Shoulds
 
 (defmacro should* (&rest fi)
-  "Expands to (progn (should f1) (should f2) ...) for forms in FI."
+  "Expands to (progn (should f1) (should f2) ...) for forms FI."
   (when fi
     `(progn (should ,(car fi))
             (should* ,@(cdr fi)))))

@@ -60,14 +60,14 @@
     (should= (-> '(("string" "note"))
                 nt-test--mock-notes
                 nt-notes->width)
-             (- 5 2))))
+             (- 6 4))))
 
 (ert-deftest notes:transforms:width:some-notes ()
   (nt-test--with-context 'any "(string foo bar)"
     (should= (-> '(("string" "note") ("foo" "!"))
                 nt-test--mock-notes
                 nt-notes->width)
-             (+ (- 5 2)
+             (+ (- 6 4)
                 (- 3 1)))))
 
 
