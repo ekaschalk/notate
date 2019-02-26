@@ -1,6 +1,8 @@
 * Notate - Program with Personalized Notation
 
-(In-progress)
+(In-progress, current-progress screenshot)
+
+[[./img/progress-2.png]]
 
 Notate your programs with indentation-correcting visual replacements of symbols
 with other symbols.
@@ -82,20 +84,13 @@ simple as a toggle.
 
 ** Status
 
-Given ~hello -> ∧~ and ~bye -> !∨~ (a two-character replacement):
-
-[[./img/progress-1.png]]
-
-The text on the left is debugging information showing
-~true-indent|spaces-masked|#-symbols-contributing-to-mask~.
-
 - Doesn't yet recalculate masks on buffer modifications.
-  - Insertion almost working, deletion not started.
+  - Insertion close to working, deletion not started.
 - Line movement needs to adjust for the indentation masks.
-  - In above example, moving point up within a mask also has horizontal
-    movement.
-- Boundary functions implemented for only lisps at the moment and boundary
-  checks are non-exhaustive.
+  - Moving point vertically across masks of different sizes will have horizontal
+    movement as difference of the sizes.
+- Boundary functions implemented for only lisps at the moment and indentation
+  cases not exhausted yet.
 
 ** Details
 
