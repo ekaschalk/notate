@@ -106,7 +106,8 @@ render consecutive characters as a specific character.
 Emac's built-in ~prettified-symbols-mode~ implements the natural generalization
 of this definition: render symbols as other symbols. This prior work cannot be
 used due to technical details surrounding choice of text properties. The term
-~pretty-symbols~ is also unique to Emacs and not widely known.
+~pretty-symbols~ is unique to Emacs, not widely known, and in my opinion, not
+serious enough for the possibilities it opens.
 
-*So I have chosen to shift discourse of this concept from "prettifying" to
-"notating" programming buffers.*
+*I wish to shift discourse from "prettifying" to "notating" programming
+buffers.*
