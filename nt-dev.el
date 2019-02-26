@@ -136,10 +136,16 @@ When working on nt, necessitating a transient testing buffer."
   (let (nt-display-prefixes?
         nt-display-render-status?
 
+        ;; both nil and t are valid choices here
+        (nt-normalize-height? nil)
+
+        ;; The notation!
         (nt-notes
          (nt-notes--make '(("and" "∧") ("or" "∨") ("int" "ℤ")))
          ;; (nt-notes--make '(("and" "&&") ("or" "||") ("int" "ℤ")))
          )
+
+        ;; The text to apply the notation to
         (nt-dev--test-text
          (s-trim "
 (and notation is
@@ -150,6 +156,7 @@ When working on nt, necessitating a transient testing buffer."
      agreed?)
 ")))
     (nt-dev--switch-to-test-buffer)
+    ;; the screenshot configuration is let-bound so must enable within the cmd
     (nt-enable)))
 
 ;;;###autoload

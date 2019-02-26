@@ -24,6 +24,10 @@
 
 ;;; Overlays
 
+(defface nt-note--face
+  `((t (:height 1)))
+  "Face applied to notes.")
+
 (defun nt-notes--present? (&optional start end)
   "Are notes present within START and END, defaulting to `match-data'? Get them."
   (let ((start (or start (match-beginning 1)))
@@ -153,7 +157,9 @@ The RX, if given, should set the first group for the match to replace."
                   :replacement replacement
                   :rx rx)
           spec))
-    `(,rx (0 (prog1 nil (nt-note--kwd-match ,string ,replacement))))))
+    `(,rx (0 (prog1 `,(and nt-normalize-height?
+                           'nt-note--face)
+               (nt-note--kwd-match ,string ,replacement))))))
 
 (defun nt-note--kwds-add ()
   "Build kwds from `nt-notes' and add to `font-lock-keywords'."

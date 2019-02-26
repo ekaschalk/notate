@@ -47,6 +47,22 @@
 (defvar-local nt-bound?-fn #'nt-bounds?--lisps
   "A subset of `nt-bound-fn', whether NOTE has a boundary.")
 
+(defvar nt-normalize-height? t
+  "Force notated buffer's line heights to match true buffer?
+
+For notated/true-buffer to be viewable side-by-side, this must be
+true. However depending on font for note, it might be rendered
+smaller than normal and widths might not match (so visual
+indentation might be slightly off even with correct spaces).
+
+A (possible) solution is to use 'specified spaces':
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Specified-Space.html
+
+The problem is complex enough as is, so while a significant
+upgrade, not the #1 priority at time of writing.
+
+I'm honestly not sure which is the better default here in the meantime.")
+
 ;;;; Debugging
 
 (defvar nt-display-prefixes? t
@@ -233,6 +249,8 @@ confusing indexings.")
   (nt-ov--remove-all)
   (remove-hook 'lisp-mode-hook #'nt-kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
+
+  ;; TODO remove all 'nt-note--face
 
   ;; just-in-case stuff
   (setq nt-mask--wait-for-refresh nil)
