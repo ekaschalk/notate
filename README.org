@@ -89,13 +89,13 @@ simple as a toggle.
 - Line movement needs to adjust for the indentation masks.
   - Moving point vertically across masks of different sizes will have horizontal
     movement as difference of the sizes.
-- Boundary functions implemented for only lisps at the moment and indentation
-  cases not exhausted yet.
-- Either height or width is normalized, not both. To see what I mean, compare
-  the two progress-2 images in [[./img]]. See the ~nt-normalize-height?~ variable
-  for commentary.
+- Boundary functions need fleshing out.
+  - Only for lisps at the moment and indentation cases not exhausted yet.
+- Either height or width is normalized, not both.
+  - To see what I mean, compare the two progress-2 images in [[./img]]. See the
+    ~nt-normalize-height?~ variable for commentary.
 
-** Details
+** Goals
 
 [[https://helpful.knobs-dials.com/index.php/Morpheme,_Syllable,_Lexeme,_Grapheme,_Phoneme,_Character,_Glyph][Graphemes, characters, ligatures, and glyphs]] can be confusing when used
 technically. I understand the least precise definition of ligatures to be:
@@ -107,5 +107,9 @@ used due to technical details surrounding choice of text properties. The term
 ~pretty-symbols~ is unique to Emacs, not widely known, and in my opinion, not
 serious enough for the possibilities it opens.
 
-*I wish to shift discourse from "prettifying" to "notating" programming
-buffers.*
+I want:
+- Discourse to switch from "prettifying" to "notating" programming buffers.
+- More imaginative notation, supported languages, and awareness of the
+  possibilities Emacs offers and encourages.
+- Emac's C display engine to eventually benefit from the challenges, performance
+  considerations, and ideas presented in this work.
