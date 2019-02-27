@@ -142,30 +142,10 @@ confusing indexings.")
       (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
-;; NOTE DELETION ALGORITHM rough draft
-
-;; Given notes n_i ordered descending by indent, let m_i be the mask at line(n_i)
-;; with the masks notes denoted n_m_i.
-
-;; Intersect n_m_0 with each n_m_1.. Add n_0 and call it note-chain C_0 maintaining order.
-;; Repeat above for next note not contained in C_0 and call it C_1.
-;; Repeat until each n_i is a member of some chain.
-
-;; For each chain C_i, let l_i be the line of C_i[0] and then:
-;; 1. Delete notes in C_i
-;; 2. Goto line 1+l_i
-;; 3. Remove any deleted notes from mask at line
-;; 4. Forward-line and repeat step 3 until mask at line has no deleted notes
-
 (defun nt--delete-notes (notes)
   "Delete NOTES and refresh the masks they contributed to."
-
-  ;; (->> notes
-  ;;    (-group-by #'nt-note->chain)
-  ;;    (-map (-partial #'-sort
-  ;;                    (-on #'< #'nt-note->indent))))
-  ;; (nt-note--delete note)
-
+  ;; SEE `nt-alg', implementation is substanitally more complex when avoiding
+  ;; running boundary functions and batch deleting notes
   (-doto note
     (nt--remove-note-from-masks)
     (nt-note--delete)))

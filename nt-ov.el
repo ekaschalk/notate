@@ -70,6 +70,10 @@
   (setq nt-mask-list nil)
   (setq nt-note-list nil))
 
+;; TODO for note deletion
+(defun nt-ov--deleted? (ov))
+(defun nt-ov--clear-deleted (ov))
+
 
 
 (provide 'nt-ov)
