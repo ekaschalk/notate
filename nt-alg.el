@@ -47,6 +47,13 @@
 
 ;;;; Implementation (Rough Draft)
 
+;; None of below is tested yet not necessarily correct.
+;; Starting point for figuring out batch deletion.
+
+;; notes = n_i,         note = n_0
+;; masks-notes = n_m_i, mask-notes = n_m_0
+;; chains = C,          chain = C_0
+
 (defun nt-alg--construct-chains-1 (notes notes-masks &optional chains)
   (-if-let* (((note notes-rest)
               notes)
