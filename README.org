@@ -108,8 +108,8 @@ used due to technical details surrounding choice of text properties. The term
 serious enough for the possibilities it opens.
 
 I want:
-- Discourse to switch from "prettifying" to "notating" programming buffers.
-- More imaginative notation, supported languages, and awareness of the
-  possibilities Emacs offers and encourages.
+- Discourse to move from "prettifying" to "notating" programming buffers.
 - Emac's C display engine to eventually benefit from the challenges, performance
   considerations, and ideas presented in this work.
+- More imaginative notation, supported languages, and awareness of the
+  possibilities Emacs offers and encourages.

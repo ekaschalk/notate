@@ -47,7 +47,7 @@
 (defvar-local nt-bound?-fn #'nt-bounds?--lisps
   "A subset of `nt-bound-fn', whether NOTE has a boundary.")
 
-(defvar nt-normalize-height? t
+(defvar nt-normalize-height? nil
   "Force notated buffer's line heights to match true buffer?
 
 For notated/true-buffer to be viewable side-by-side, this must be
@@ -61,7 +61,11 @@ https://www.gnu.org/software/emacs/manual/html_node/elisp/Specified-Space.html
 The problem is complex enough as is, so while a significant
 upgrade, not the #1 priority at time of writing.
 
-I'm honestly not sure which is the better default here in the meantime.")
+For development purposes, it is recommended to have false to
+evaluate indenation more reliably.
+
+For screenshot purposes, it is recommended to have true for
+side-by-side comparisons.")
 
 ;;;; Debugging
 
