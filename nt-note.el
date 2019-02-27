@@ -60,6 +60,8 @@
 (defun nt-note--decompose-hook (note post-modification? start end &optional _)
   "Decompose NOTE upon modification as a modification-hook."
   (when post-modification?
+    ;; TODO Below will be replaced with the new deletion implementation that
+    ;; doesn't require calling masks-for.
     (nt--remove-note-from-masks note)
     (nt-note--delete note)))
 
@@ -70,6 +72,14 @@
 (defun nt-note->width (note)
   "Wrapper to access width of NOTE."
   (overlay-get note 'nt-width))
+
+(defun nt-note->line (note)
+  "Return line containing NOTE."
+  (-> note overlay-start line-number-at-pos))
+
+(defun nt-note->indent (note)
+  "Return indent of line containing NOTE."
+  (-> note nt-note->line nt-base--indent-at))
 
 (defun nt-notes->width (notes)
   "Sum widths of NOTES."

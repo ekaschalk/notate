@@ -21,14 +21,6 @@
 
 ;;; Lines
 
-(defun nt-mask--indent-col (&optional n)
-  "Get indentation col, of line forward N-1 times if given."
-  (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
-
-(defun nt-mask--indent-at (line)
-  "Get indentation col of LINE."
-  (save-excursion (nt-base--goto-line line) (nt-mask--indent-col)))
-
 (defun nt-mask--at (line)
   "Retrieve mask at LINE."
   (nth (1- line) nt-mask-list))
@@ -62,7 +54,7 @@
 
 (defun nt-mask->indent (mask)
   "Return true indent of line containing MASK."
-  (save-excursion (nt-ov--goto mask) (nt-mask--indent-col)))
+  (save-excursion (nt-ov--goto mask) (nt-base--indent-col)))
 
 (defun nt-mask->width (mask)
   "Calculate width of MASK's notes."

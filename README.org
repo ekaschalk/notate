@@ -9,9 +9,9 @@ with other symbols.
 
 Ligature's generalization, known to Emacs as ~prettified-symbols~, causes
 alignment and indentation issues, preventing one from rendering ~for~ as ~∀~ and
-~int~ as ~ℤ~ in their code
+~int~ as ~ℤ~ in their code.
 
-With notate, you can selectively APL-ize your code.
+With notate, selectively APL-ize your code.
 
 ** Introduction
 

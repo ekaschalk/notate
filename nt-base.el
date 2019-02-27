@@ -19,11 +19,21 @@
 (require 's)
 (require 'smartparens)
 
-;;; Utils
+
+
+;;; General Purpose
 
 (defun nt-base--s-diff (s1 s2)
   "Return difference of lengths of strings S1 and S2."
   (- (length s1) (length s2)))
+
+(defun nt-base--range (from &optional to inc)
+  "Open RHS variation of `number-sequence', see its documentation."
+  (number-sequence from (and to (1- to)) inc))
+
+
+
+;;; Line Methods
 
 (defun nt-base--goto-line (line)
   "Non-interactive version of `goto-line'."
@@ -48,10 +58,13 @@
   "Return number of characters composing LINE."
   (apply #'- (-> line nt-base--line-bounds reverse)))
 
-(defun nt-base--range (from &optional to inc)
-  "Open RHS variation of `number-sequence', see its documentation."
-  ;; Emacs's apis don't fix an open/closed RHS convention, so I will
-  (number-sequence from (and to (1- to)) inc))
+(defun nt-base--indent-col (&optional n)
+  "Get indentation col, of line forward N-1 times if given."
+  (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
+
+(defun nt-base--indent-at (line)
+  "Get indentation col of LINE."
+  (save-excursion (nt-base--goto-line line) (nt-base--indent-col)))
 
 
 
