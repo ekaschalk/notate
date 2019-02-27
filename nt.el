@@ -107,6 +107,10 @@ confusing indexings.")
    (apply #'nt-masks--in)
    (-remove (-partial #'nt-mask--contains? note))))
 
+(defun nt--map-over-masks (fn note)
+  "Map FN partially applied on NOTE over masks for NOTE."
+  (->> note nt--masks-for (-map (-partial fn note))))
+
 (defun nt--add-note-to-mask (note mask)
   "Add NOTE to a MASK, possibly refresh mask, and return back mask."
   (push note (overlay-get mask 'nt-notes))
@@ -116,10 +120,6 @@ confusing indexings.")
   "Remove NOTE from MASK, possibly refresh mask, and return back mask."
   (delq note (overlay-get mask 'nt-notes))
   (nt-mask--refresh-maybe mask))
-
-(defun nt--map-over-masks (fn note)
-  "Map FN over NOTE's masks."
-  (->> note nt--masks-for (-map (-partial fn note))))
 
 (defun nt--add-note-to-masks (note)
   "Add NOTE to all masks it contributes to and return them."
@@ -142,27 +142,33 @@ confusing indexings.")
       (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
-(defun nt--delete-note (note)
-  "Delete NOTE and refresh masks it contributed to."
-  (when note
+;; NOTE DELETION ALGORITHM rough draft
 
-    ;; FIXME we skip masks that note already is placed in in masks-for
-    ;; so when we remove-note-from-masks, it will skip the ones it needs
-    ;; When we delete the note ov, the notes are still contained in the masks,
-    ;; but are for no buffer now.
+;; Given notes n_i ordered descending by indent, let m_i be the mask at line(n_i)
+;; with the masks notes denoted n_m_i.
 
-    ;; Perhaps as an optimization (and simpler implementation) we do this:
-    ;; 1. Delete the note
-    ;; 2. forward line deleting all overlays for no buffers
-    ;; 3. once we hit a line without a no buffer, we got to the end
+;; Intersect n_m_0 with each n_m_1.. Add n_0 and call it note-chain C_0 maintaining order.
+;; Repeat above for next note not contained in C_0 and call it C_1.
+;; Repeat until each n_i is a member of some chain.
 
-    ;; Note this also allows for efficient batch removal as if we remove many
-    ;; notes in some contiguous region, we don't do any more work than if
-    ;; if deleting a single note
+;; For each chain C_i, let l_i be the line of C_i[0] and then:
+;; 1. Delete notes in C_i
+;; 2. Goto line 1+l_i
+;; 3. Remove any deleted notes from mask at line
+;; 4. Forward-line and repeat step 3 until mask at line has no deleted notes
 
-    (-doto note
-      (nt--remove-note-from-masks)
-      (nt-note--delete))))
+(defun nt--delete-notes (notes)
+  "Delete NOTES and refresh the masks they contributed to."
+
+  ;; (->> notes
+  ;;    (-group-by #'nt-note->chain)
+  ;;    (-map (-partial #'-sort
+  ;;                    (-on #'< #'nt-note->indent))))
+  ;; (nt-note--delete note)
+
+  (-doto note
+    (nt--remove-note-from-masks)
+    (nt-note--delete)))
 
 
 
