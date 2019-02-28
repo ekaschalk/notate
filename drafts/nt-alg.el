@@ -11,6 +11,8 @@
 
 ;; Code that isn't easy reading is quarantined here.
 
+;; NOW A ROUGH DRAFT SECTION FOR MORE INVOLVED UPDATES IM EXPLORING
+
 
 
 ;;; Code:
@@ -25,7 +27,7 @@
 
 
 
-;;; Note Deletion
+;;; Note Deletion (list-based)
 ;;;; Commentary
 
 ;; Batch note deletion without recalculating bounds:
@@ -105,6 +107,40 @@
 
 ;; Is it *really* worth all this complexity for "efficient" batch deletion?
 ;; Have to think through this deeper
+
+
+
+;;; Note Deletion (alist based)
+
+;; These are non-overlapping by definition
+;; (a_0 b_0) (1 2)
+;; (a_1 b_1) (5 10)
+
+;; new note: (6 7)
+;; a_1=5<=6
+;; b_1=10>=7
+
+;; new note: (12 15)
+;; a_1=5<=12
+;; b_1=10<15
+
+;; new note: (3 10)
+;; Still must check if there is another interval afterwards
+
+;; new note: (3 7)
+;; should never happen, things mustve gotten desynced somewhere
+
+;; nt-notes-alist has key=bound with val=notes-in-bound
+
+(defun nt-init-note ()
+  (let ((start
+         end))
+    (-when-let* ((notes-idx (-find-index (and (<= a_1 start)
+                                              (>= b_1 start))))
+                 (notes (nth notes-idx notes-alist)))
+      (when (<= (1+ notes-idxs a) end)
+        (setcar notes '(start end)))
+      (push note (cdr notes)))))
 
 
 

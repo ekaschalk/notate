@@ -9,3 +9,6 @@ must wrap `evil-line-move' to preserve column +- mask offsets
 
 https://emacs.stackexchange.com/questions/14420/how-can-i-fix-incorrect-character-width
 has potential for standardizing widths of all the icons fonts
+
+
+* Notes for an implementation of note deletion
