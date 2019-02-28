@@ -101,6 +101,12 @@
   (delq mask nt-mask-list)
   (delete-overlay mask))
 
+(defun nt-mask--refresh-notes (mask)
+  "Remove deleted notes from MASK."
+  ;; TODO Check this properly sets
+  (setf (overlay-get mask 'nt-notes)
+        (->> mask nt-mask->notes (-filter #'nt-ov--deleted?))))
+
 (defun nt-mask--decompose-hook (mask post-mod? start end &optional _)
   "Overlay modification hook to delete indent ov upon modification within it."
   ;; NOTE probably need to handle deleting forward differently

@@ -22,27 +22,25 @@
 
 (defun nt-ov? (ov)
   "Is OV made by `nt'? Get it."
-  (and (overlay-get ov 'nt?)
-       ov))
+  (-> ov (overlay-get 'nt?) (and ov)))
 
 (defun nt-ov--note? (ov)
   "Is OV a note? Get it."
-  (and (overlay-get ov 'nt-note?)
-       ov))
+  (-> ov (overlay-get 'nt-note?) (and ov)))
 
 (defun nt-ov--mask? (ov)
   "Is OV a mask? Get it."
-  (and (overlay-get ov 'nt-mask?)
-       ov))
+  (-> ov (overlay-get 'nt-mask?) (and ov)))
 
 (defun nt-ov--in? (ov start end)
   "Is OV contained within START and END? Get it."
   (and ov start end
-       (<= start
-          (overlay-start ov)
-          (overlay-end ov)
-          end)
+       (<= start (overlay-start ov) (overlay-end ov) end)
        ov))
+
+(defun nt-ov--deleted? (ov)
+  "Has OV been deleted?"
+  (-> ov overlay-buffer null))
 
 
 
@@ -69,10 +67,6 @@
   (remove-overlays nil nil 'nt? t)
   (setq nt-mask-list nil)
   (setq nt-note-list nil))
-
-;; TODO for note deletion
-(defun nt-ov--deleted? (ov))
-(defun nt-ov--clear-deleted (ov))
 
 
 
