@@ -142,6 +142,36 @@
         (setcar notes '(start end)))
       (push note (cdr notes)))))
 
+;; Another thought, is it useful to store all bounds or just the maxmost bound?
+
+;;; Note Deletion (hierarchy based)
+
+;; make tree
+(setq nt-notes (hierarchy-new))
+(hierarchy-add-tree
+ nt-notes=hierarchy
+ item=(bound mask)
+ parent-fn=is-subset+car
+ children-fn=is-superset+car
+ )
+
+;; sort by bounds
+(hierarchy-sort
+ nt-notes
+ sortfn=less-than+car+car (< a_0 a_1))
+
+;; return regions of text with notes present
+(hierarchy-roots
+ nt-notes
+ )
+
+;; Get all notes modifying a region
+(hierarchy-children
+ nt-notes
+ root
+ )
+;; https://github.com/DamienCassou/hierarchy
+
 
 
 (provide 'nt-alg)
