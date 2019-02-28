@@ -103,6 +103,9 @@
      nt-alg--construct-chains
      (-each #'nt-alg--delete-chain)))
 
+;; Is it *really* worth all this complexity for "efficient" batch deletion?
+;; Have to think through this deeper
+
 
 
 (provide 'nt-alg)
