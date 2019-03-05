@@ -25,27 +25,35 @@
 ;;; Configuration
 ;;;; Managed
 
-(defconst nt-tree-hierarchy (hierarchy-new)
-  "Manage NOTE nodes in a `hierarchy'.
+(defconst nt-tree (hierarchy-new)
+  "Manage NOTE nodes in a `hierarchy' tree.
 
 Roots are non-overlapping line-intervals with P-C relationship defined as:
-  A note n_c is a child of note n_p if masks(n_p) contains masks(n_c).")
+  A note n_c is a child of note n_p if masks(n_p) contains masks(n_c).
+
+Notes are sorted as follows:
+- n_1 < n_2 if n_1 is a child of n_2
+- otherwise, n_1 < n_2 if start(n_1) < start(n_2)
+
+So notes aren't line-ordered. Instead:
+- Sort roots by buffer position.
+- Insert before each root its children ordered by increasing size.")
 
 ;;; Aliases
 
 (defun nt-tree->list ()
-  "Return list of managed notes by `nt-tree-hierarchy'."
-  (hierarchy-items nt-tree-hierarchy))
+  "Return list of managed notes by `nt-tree'."
+  (hierarchy-items nt-tree))
 
 (defun nt-tree->roots ()
-  "Return roots of `nt-tree-hierarchy'."
-  (hierarchy-roots nt-tree-hierarchy))
+  "Return roots of `nt-tree'."
+  (hierarchy-roots nt-tree))
 
 ;;; Hierarchy Management
 
 (defun nt-tree--add (note)
-  "Place NOTE into the `nt-tree-hierarchy'."
-  (hierarchy-add-tree nt-tree-hierarchy note
+  "Place NOTE into the `nt-tree'."
+  (hierarchy-add-tree nt-tree note
                       #'nt-tree--parent-fn
                       #'nt-tree--child-fn))
 
@@ -62,8 +70,10 @@ Roots are non-overlapping line-intervals with P-C relationship defined as:
 (defun nt-tree--parent-fn (note)
   "Try to get NOTE's parent."
   (-when-let (root (nt-tree--root-fn note))
-    (-if-let (candidates (hierarchy-children nt-tree-hierarchy root))
-        ;; TODO -first-item assumes a sorting
+    (-if-let (candidates (hierarchy-children nt-tree root))
+        ;; Check if first-item (the smallest bound) contains NOTE
+        ;; otherwise check next-smallest bound
+        ;; If no candidate is acceptable, return root.
         (-first-item candidates)
       root)))
 
