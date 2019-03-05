@@ -32,17 +32,17 @@
     (and (<= a_2 a_1)
          (<= b_1 b_2))))
 
-(defun nt-bound--cmp-uncaptured (bound-1 bound-2)
-  "Return non-nil if BOUND-1 starts before BOUND-2."
-  (-let (((a_1 _) bound-1)
-         ((a_2 _) bound-2))
-    (<= a_2 a_1)))
-
 (defun nt-bounds--pos-captured? (pos bound)
   "Is POS captured in BOUND?"
   (-let ((a b) bound)
     (and (<= pos a)
          (< pos b))))
+
+(defun nt-bound--cmp-uncaptured (bound-1 bound-2)
+  "Return non-nil if BOUND-1 starts before BOUND-2."
+  (-let (((a_1 _) bound-1)
+         ((a_2 _) bound-2))
+    (<= a_2 a_1)))
 
 (defun nt-bounds--pos-cmp-uncaptured (pos bound)
   "Does POS come before BOUND?"
