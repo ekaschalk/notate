@@ -8,8 +8,6 @@
 ;; Keywords: indentation, display, notes, major-modes
 ;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (s "1.12.0") (emacs "26.1"))
 
-
-
 ;;; Commentary:
 
 ;; Notate your programs with indentation-correcting visual replacements of
@@ -21,8 +19,6 @@
 
 ;; With notate, you can selectively APL-ize your code.
 
-
-
 ;;; Code:
 ;;;; Requires
 
@@ -32,8 +28,6 @@
 (require 'nt-mask)
 (require 'nt-note)
 (require 'nt-ov)
-
-
 
 ;;; Configuration
 ;;;; Core
@@ -94,8 +88,6 @@ confusing indexings.")
 (defvar nt-mask--wait-for-refresh nil
   "Let-bind true to hold off on refreshing masks during batch modifications.")
 
-
-
 ;;; Note-Mask Interactions
 
 (defun nt--masks-for (note)
@@ -149,8 +141,6 @@ confusing indexings.")
   (-doto note
     (nt--remove-note-from-masks)
     (nt-note--delete)))
-
-
 
 ;;; Change Functions
 ;;;; Utils
@@ -220,8 +210,6 @@ confusing indexings.")
       (nt-change--insertion start end)
     (nt-change--deletion start chars-deleted)))
 
-
-
 ;;; Interactive
 ;;;; Setup
 
@@ -275,10 +263,6 @@ confusing indexings.")
 
   (nt--delete-note (nt-note--at-point)))
 
-
-
 (provide 'nt)
-
-
 
 ;;; nt.el ends here

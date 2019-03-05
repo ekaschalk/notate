@@ -2,8 +2,6 @@
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
-
-
 ;;; Commentary:
 
 ;; Notation overlay management, instantiation, etc.
@@ -11,16 +9,12 @@
 ;; `hl-todo' users, remove highlighting of NOTE in docstrings with:
 ;;   (setq hl-todo-keyword-faces (--remove (s-equals? (car it) "NOTE") hl-todo-keyword-faces))
 
-
-
 ;;; Code:
 ;;;; Requires
 
 (require 'nt-base)
 
 (require 'nt-ov)
-
-
 
 ;;; Overlays
 
@@ -65,8 +59,6 @@
     (nt--remove-note-from-masks note)
     (nt-note--delete note)))
 
-
-
 ;;; Transforms
 
 (defun nt-note->width (note)
@@ -84,8 +76,6 @@
 (defun nt-notes->width (notes)
   "Sum widths of NOTES."
   (->> notes (-map #'nt-note->width) -sum))
-
-
 
 ;;; Init
 
@@ -112,8 +102,6 @@
     (push note nt-note-list)
     (nt--add-note-to-masks note)
     note))
-
-
 
 ;;; Font Locks
 ;;;; Spec Handling
@@ -177,10 +165,6 @@ The RX, if given, should set the first group for the match to replace."
      (-map #'nt-note--kwd-build)
      (font-lock-add-keywords nil)))
 
-
-
 (provide 'nt-note)
-
-
 
 ;;; nt-note.el ends here

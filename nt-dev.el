@@ -2,21 +2,15 @@
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
-
-
 ;;; Commentary:
 
 ;; Extend `nt' with development and debugging utilities like pprints,
 ;; toggles, keybindings, and testing buffer commands.
 
-
-
 ;;; Code:
 ;;;; Requires
 
 (require 'nt)
-
-
 
 ;;; Configuration
 
@@ -100,8 +94,6 @@ opaque-end: %s
 "
             start end line notes opaque-end)))
 
-
-
 ;;; Commands
 
 (defun nt-dev--print-at-point ()
@@ -182,10 +174,6 @@ When working on nt, necessitating a transient testing buffer."
     ;; Debug Commands
     "dp" #'nt-dev--print-at-point))
 
-
-
 (provide 'nt-dev)
-
-
 
 ;;; nt-dev.el ends here

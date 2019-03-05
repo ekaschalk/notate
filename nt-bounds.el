@@ -2,14 +2,10 @@
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
-
-
 ;;; Commentary:
 
 ;; Calculate boundaries of notes effects on indentation masks. Major-mode
 ;; dependent functions are implemented here.
-
-
 
 ;;; Code:
 ;;;; Requires
@@ -17,8 +13,6 @@
 (require 'nt-base)
 
 (require 'nt-ov)
-
-
 
 ;;; General
 
@@ -100,10 +94,6 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
             (sp-end-of-sexp)
             (1+ (line-number-at-pos))))))
 
-
-
 (provide 'nt-bounds)
-
-
 
 ;;; nt-bounds.el ends here

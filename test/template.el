@@ -8,9 +8,6 @@
 ;; Not Covered:
 ;; -
 
-
-
-
 ;;; [outline]
 
 (ert-deftest module:outline:xxx ()

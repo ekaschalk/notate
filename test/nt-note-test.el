@@ -11,9 +11,6 @@
 ;; - decompose hook
 ;; - font lock kwd construction and spec methods
 
-
-
-
 ;;; Overlays
 
 (ert-deftest notes:overlays:presence ()
@@ -47,8 +44,6 @@
     (should-not  (nt-notes--at 3))
     (should-size (nt-notes--at 4) 1)))
 
-
-
 ;;; Transforms
 
 (ert-deftest notes:transforms:width:base-case ()
@@ -73,8 +68,6 @@
     (should= (-> 1 nt-notes--at nt-notes->width)
              (+ (- 6 4)
                 (- 3 1)))))
-
-
 
 ;;; Init
 

@@ -1,15 +1,11 @@
 ;;; test-helper.el --- Testing Macros -*- lexical-binding: t -*-
 
-
-
 (require 'ert)
 (require 'faceup)
 (require 'f)
 
 (progn (add-to-list 'load-path (-> (f-this-file) (f-parent) (f-parent)))
        (require 'nt))
-
-
 
 ;;; Macros
 ;;;; Contexts
@@ -92,8 +88,6 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
     `(progn (nt-test--with-context ,(car kinds) ,buffer-contents ,@body)
             (nt-test--with-contexts ,(cdr kinds) ,buffer-contents ,@body))))
 
-
-
 ;;; Mocks
 ;;;; Notes
 
@@ -111,8 +105,6 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
 (defun nt-test--mock-notes (string-replacement-alist)
   "Map `nt-test--mock-note' over list STRING-REPLACEMENT-ALIST."
   (-mapcat (-applify #'nt-test--mock-note) string-replacement-alist))
-
-
 
 ;;; Expanded Shoulds
 

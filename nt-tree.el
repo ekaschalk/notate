@@ -2,14 +2,10 @@
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
-
-
 ;;; Commentary:
 
-;; Module will replace current `nt-note.el' list-based note management with
+;; Module will replace current `nt-tree.el' list-based note management with
 ;; `hierarchy' tree-based management.
-
-
 
 ;;; Code:
 ;;;; Requires
@@ -21,21 +17,19 @@
 (require 'nt-note)
 (require 'nt-ov)
 
-
-
 ;;; Hierarchy
 
-(defconst nt-notes-hierarchy (hierarchy-new)
+(defconst nt-tree-hierarchy (hierarchy-new)
   "Manage NOTE nodes in a `hierarchy'.
 
 Roots are non-overlapping line-intervals with P-C relationship defined as:
   A note n_c is a child of note n_p if masks(n_p) contains masks(n_c).")
 
-(defun nt-notes--roots ()
-  "Return roots of `nt-notes-hierarchy'."
-  (hierarchy-roots nt-notes-hierarchy))
+(defun nt-tree--roots ()
+  "Return roots of `nt-tree-hierarchy'."
+  (hierarchy-roots nt-tree-hierarchy))
 
-(defun nt-note->bound (note)
+(defun nt-tree->bound (note)
   "Return NOTE's bound."
   (overlay-get note 'nt-bound))
 
@@ -58,65 +52,61 @@ Roots are non-overlapping line-intervals with P-C relationship defined as:
          ((a_2 _) bound-2))
     (<= a_2 a_1)))
 
-(defun nt-note--captured? (note-1 note-2)
+(defun nt-tree--captured? (note-1 note-2)
   "Is NOTE-1's boundary captured in NOTE-2's boundary? If so, give NOTE-2."
-  (when (nt-bound--captured? (nt-note->bound note-1) (nt-note->bound note-2))
+  (when (nt-bound--captured? (nt-tree->bound note-1) (nt-tree->bound note-2))
     note-2))
 
-(defun nt-note--cmp-uncaptured (note-1 note-2)
+(defun nt-tree--cmp-uncaptured (note-1 note-2)
   "Return non-nil if NOTE-1 comes before NOTE-2."
-  (when (nt-bound--cmp-uncaptured (nt-note->bound note-1) (nt-note->bound note-2))
+  (when (nt-bound--cmp-uncaptured (nt-tree->bound note-1) (nt-tree->bound note-2))
     note-2))
 
-(defun nt-notes--root-for (pos)
+(defun nt-tree--root-for (pos)
   "Get root containing POS, if there is one."
   (-first (-partial #'nt-bound--pos-captured? pos)
-          (nt-notes--roots)))
+          (nt-tree--roots)))
 
-(defun nt-notes--root-fn (note)
+(defun nt-tree--root-fn (note)
   "Try to get NOTE's largest parent, its root."
-  (-first (-partial #'nt-note--captured? note)
-          (nt-notes--roots)))
+  (-first (-partial #'nt-tree--captured? note)
+          (nt-tree--roots)))
 
-(defun nt-notes--parent-fn (note)
+(defun nt-tree--parent-fn (note)
   "Try to get NOTE's parent."
-  (-when-let (root (nt-notes--root-fn note))
-    (-if-let (candidates (hierarchy-children nt-notes-hierarchy root))
+  (-when-let (root (nt-tree--root-fn note))
+    (-if-let (candidates (hierarchy-children nt-tree-hierarchy root))
         ;; TODO -first-item assumes a sorting
         (-first-item candidates)
       root)))
 
-(defun nt-notes--child-fn (note)
+(defun nt-tree--child-fn (note)
   "Try to get NOTE's children."
-  (-filter (-when-let (parent (nt-note--captured? note it)) parent)
-           (nt-notes--roots)))
+  (-filter (-when-let (parent (nt-tree--captured? note it)) parent)
+           (nt-tree--roots)))
 
-(defun nt-notes--sort-fn (note-1 note-2)
+(defun nt-tree--sort-fn (note-1 note-2)
   "Return non-nil if NOTE-1 is captured in NOTE-2."
-  (cond (nt-note--captured? note-1 note-2)
-        (nt-note--cmp-uncaptured note-1 note-2)))
+  (cond (nt-tree--captured? note-1 note-2)
+        (nt-tree--cmp-uncaptured note-1 note-2)))
 
-(defun nt-notes--add (note)
-  "Place NOTE into the `nt-notes-hierarchy'."
-  (hierarchy-add-tree nt-notes-hierarchy note
-                      #'nt-notes--parent-fn
-                      #'nt-notes--child-fn))
+(defun nt-tree--add (note)
+  "Place NOTE into the `nt-tree-hierarchy'."
+  (hierarchy-add-tree nt-tree-hierarchy note
+                      #'nt-tree--parent-fn
+                      #'nt-tree--child-fn))
 
-(defun nt-notes ()
-  "Return list of managed notes by `nt-notes-hierarchy'."
-  (hierarchy-items nt-notes-hierarchy))
+(defun nt-tree ()
+  "Return list of managed notes by `nt-tree-hierarchy'."
+  (hierarchy-items nt-tree-hierarchy))
 
 ;; return regions of text with notes present
 ;; (hierarchy-roots
-;;  nt-notes
+;;  nt-tree
 ;;  )
 ;; https://github.com/DamienCassou/hierarchy
 
 
-
-
 (provide 'nt-tree)
-
-
 
 ;;; nt-tree.el ends here

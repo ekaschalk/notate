@@ -2,13 +2,9 @@
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
-
-
 ;;; Commentary:
 
 ;; Collect pkg-wide imports and utils
-
-
 
 ;;; Code:
 ;;;; Requires
@@ -19,8 +15,6 @@
 (require 's)
 (require 'smartparens)
 
-
-
 ;;; General Purpose
 
 (defun nt-base--s-diff (s1 s2)
@@ -30,8 +24,6 @@
 (defun nt-base--range (from &optional to inc)
   "Open RHS variation of `number-sequence', see its documentation."
   (number-sequence from (and to (1- to)) inc))
-
-
 
 ;;; Line Methods
 
@@ -66,10 +58,6 @@
   "Get indentation col of LINE."
   (save-excursion (nt-base--goto-line line) (nt-base--indent-col)))
 
-
-
 (provide 'nt-base)
-
-
 
 ;;; nt-base.el ends here

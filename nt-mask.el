@@ -2,13 +2,9 @@
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
-
-
 ;;; Commentary:
 
 ;; Indentation mask management, instantiation, transforms, etc.
-
-
 
 ;;; Code:
 ;;;; Requires
@@ -16,8 +12,6 @@
 (require 'nt-base)
 
 (require 'nt-ov)
-
-
 
 ;;; Lines
 
@@ -36,8 +30,6 @@
 (defun nt-mask--insert-at (mask line)
   "Insert MASK at LINE into `nt-mask-list'."
   (setq nt-mask-list (-insert-at (1- line) mask nt-mask-list)))
-
-
 
 ;;; Transforms
 ;;;; Aliases
@@ -64,8 +56,6 @@
   "Return MASK's line."
   (-> mask overlay-start line-number-at-pos))
 
-
-
 ;;; Predicates
 
 (defun nt-mask--empty? (mask)
@@ -91,8 +81,6 @@
   (and nt-render-masks?
        (not (nt-mask--empty? mask))
        (nt-mask--ends-agree? mask)))
-
-
 
 ;;; Overlays
 
@@ -203,8 +191,6 @@
   "Refresh `nt-mask-list'."
   (nt-masks--refresh nt-mask-list))
 
-
-
 ;;; Init
 
 (defun nt-mask--init-ov (ov)
@@ -239,10 +225,6 @@
       (nt-mask--init)
       (forward-line))))
 
-
-
 (provide 'nt-mask)
-
-
 
 ;;; nt-mask.el ends here

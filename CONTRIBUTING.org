@@ -11,11 +11,7 @@ This document will be fleshed out closer to a alpha/beta release.
 
 There are several conventions I'd like to maintain, enumerated here.
 
+- Use ~dash~ for list manipulation (eg. use ~-each~ over ~mapc~)
+- Organize code in outlines (;;;-prefixed comments) when reasonable
 - Name your functions: ~nt-[module](s)--my-func~
 - Name your tests: ~[module]:[outline]:my-test~
-- Use ~dash~ for list manipulation (eg. use ~-each~ over ~mapc~)
-- Organize with outlines (;;; comments) when it is reasonable.
-- If your PR contains a new outline, insert a form feed and newline before it.
-  - Done via ~C-x 8 RET~ (~insert-char~) and selecting ~FORM FEED~.
-    - This isn't [[http:http://ergoemacs.org/emacs/modernization_formfeed.html][universal]] but combined with marking up outlines like org does
-      with [[https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines][pretty-outlines]], it helps me a lot in organizing my emacs-lisp code.

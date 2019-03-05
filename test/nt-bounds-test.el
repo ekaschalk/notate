@@ -11,9 +11,6 @@
 ;; Not Covered:
 ;; - Alot (restricting to simple cases atm until change functions finished)
 
-
-
-
 ;;; General
 
 (ert-deftest bounds:general:comments ()
@@ -35,8 +32,6 @@
             (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
       (should* (nt-bounds?--in-string-or-comment? bar)
                (not (nt-bounds?--in-string-or-comment? foo))))))
-
-
 
 ;;; Lisps
 

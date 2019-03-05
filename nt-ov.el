@@ -2,21 +2,15 @@
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
-
-
 ;;; Commentary:
 
 ;; Methods acting on yet-to-be-specialized or regardless-of-specialization
 ;; nt overlays.
 
-
-
 ;;; Code:
 ;;;; Requires
 
 (require 'nt-base)
-
-
 
 ;;; Predicates
 
@@ -42,8 +36,6 @@
   "Has OV been deleted?"
   (-> ov overlay-buffer null))
 
-
-
 ;;; Utils
 
 (defun nt-ov--goto (ov)
@@ -58,8 +50,6 @@
   "Execute `nt-ov--at' point."
   (nt-ov--at (point)))
 
-
-
 ;;; Management
 
 (defun nt-ov--remove-all ()
@@ -68,10 +58,6 @@
   (setq nt-mask-list nil)
   (setq nt-note-list nil))
 
-
-
 (provide 'nt-ov)
-
-
 
 ;;; nt-ov.el ends here
