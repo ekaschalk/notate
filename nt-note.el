@@ -65,6 +65,10 @@
   "Wrapper to access width of NOTE."
   (overlay-get note 'nt-width))
 
+(defun nt-note->bound (note)
+  "Return NOTE's bound."
+  (overlay-get note 'nt-bound))
+
 (defun nt-note->line (note)
   "Return line containing NOTE."
   (-> note overlay-start line-number-at-pos))
