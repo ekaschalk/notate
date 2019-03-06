@@ -7,8 +7,7 @@
 ;; Module will replace current `nt-tree.el' list-based note management with
 ;; `hierarchy' tree-based management.
 
-;; The intent that it will be easier and faster to write methods operating on
-;; regions of batches of notes.
+;; See `nt-tree' for how the tree structure is defined.
 
 ;; See https://github.com/DamienCassou/hierarchy
 
@@ -82,53 +81,43 @@ So the ordering looks like:
 
 (defun nt-tree--point->root (pos)
   "Return root containing POS"
-  (-first-item (nt-tree--region->roots pos pos)))
+  (-first-item (nt-tree--region->roots pos (1+ pos))))
 
 (defun nt-tree--note->root (note)
-  "Return root of NOTE."
-  (-some-> note overlay-start nt-tree--point->root))
+  "Return root of NOTE, possibly being itself."
+  (-> note overlay-start nt-tree--point->root))
+
+;;;; Comparisons
+
+(defun nt-tree--note-is-subset? (note-1 note-2)
+  "Is NOTE-1's boundary captured in NOTE-2's boundary?"
+  (-let (((a1 b1) (nt-note->bound note-1))
+         ((a2 b2) (nt-note->bound note-2)))
+    (and (<= a2 a1)
+         (<= b1 b2))))
+
+(defun nt-tree--note-start< (note-1 note-2)
+  "Compare NOTE-1's start and NOTE-2's start positions."
+  (-let (((a1 _) (nt-note->bound note-1))
+         ((a2 _) (nt-note->bound note-2)))
+    (<= a2 a1)))
+
+(defun nt-tree--note< (note-1 note-2)
+  "Compare NOTE-1 and NOTE-2."
+  (cond (nt-tree--note-is-subset? note-1 note-2)
+        (nt-tree--note-start<     note-1 note-2)))
 
 ;;;; Parent-Finding
 
-(defun nt-tree--note-is-captured? (note-1 note-2)
-  "Is NOTE-1's boundary captured in NOTE-2's boundary? If so, give NOTE-2."
-  (when (nt-bounds--captured? (nt-note->bound note-1) (nt-note->bound note-2))
-    note-2))
-
 (defun nt-tree--parent-fn (note)
   "Try to get NOTE's smallest parent."
+  ;; Note the -first call assumes children are ordered size-ascending
   (-when-let (root (nt-tree--note->root note))
-    ;; Note - assumes children are ordered size-ascending
-    (or (-first (-partial #'nt-tree--note-is-captured? note)
+    (or (-first (-partial #'nt-tree--note-is-subset? note)
                 (hierarchy-children nt-tree root))
         root)))
 
-;;;; Child-Finding
-
-(defun nt-tree--child-fn (note)
-  "Try to get NOTE's children."
-  (-filter (-when-let (parent (nt-tree--captured? note it)) parent)
-           (nt-tree->roots)))
-
-;;; Sorting
-
-(defun nt-tree--captured? (note-1 note-2)
-  "Is NOTE-1's boundary captured in NOTE-2's boundary? If so, give NOTE-2."
-  (when (nt-bounds--captured? (nt-note->bound note-1) (nt-note->bound note-2))
-    note-2))
-
-(defun nt-tree--cmp-uncaptured (note-1 note-2)
-  "Return non-nil if NOTE-1 comes before NOTE-2."
-  (when (nt-bound--cmp-uncaptured (nt-note->bound note-1) (nt-note->bound note-2))
-    note-2))
-
-(defun nt-tree--sort-fn (note-1 note-2)
-  "Return non-nil if NOTE-1 is captured in NOTE-2, else compare a_1 <= a_2."
-  ;; NOTE go over whether strict equality or not
-  (cond (nt-tree--captured? note-1 note-2)
-        (nt-tree--cmp-uncaptured note-1 note-2)))
-
-;;; Management
+;;; Mutations
 
 (defun nt-tree--add (&rest notes)
   "Place NOTES into the `nt-tree'."
@@ -137,7 +126,17 @@ So the ordering looks like:
                        #'nt-tree--child-fn))
 
 (defun nt-tree--sort ()
-  (hierarchy-sort nt-tree #'nt-tree--sort-fn))
+  "Sort `nt-tree' accordding to `nt-tree--note<' comparison fn."
+  (hierarchy-sort nt-tree #'nt-tree--note<))
+
+;;; Scratch
+
+;; TODO See if this will be needed or not, glancing at the source dont think so
+;; (defun nt-tree--child-fn (note)
+;;   "Try to get NOTE's children."
+;;   (-when-let (root (nt-tree--note->root note)))
+;;   (-filter (-partial #'nt-tree--note-is-subset? note)
+;;            (nt-tree->roots)))
 
 (provide 'nt-tree)
 

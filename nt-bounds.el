@@ -23,32 +23,6 @@
                  (syntax-ppss (overlay-start note)))))
     (or (nth 3 state) (nth 4 state))))
 
-;;;; Comparisons
-
-(defun nt-bounds--captured? (bound-1 bound-2)
-  "Is BOUND-1 captured in BOUND-2?"
-  (-let (((a_1 b_1) bound-1)
-         ((a_2 b_2) bound-2))
-    (and (<= a_2 a_1)
-         (<= b_1 b_2))))
-
-(defun nt-bounds--pos-captured? (pos bound)
-  "Is POS captured in BOUND?"
-  (-let ((a b) bound)
-    (and (<= pos a)
-         (< pos b))))
-
-(defun nt-bound--cmp-uncaptured (bound-1 bound-2)
-  "Return non-nil if BOUND-1 starts before BOUND-2."
-  (-let (((a_1 _) bound-1)
-         ((a_2 _) bound-2))
-    (<= a_2 a_1)))
-
-(defun nt-bounds--pos-cmp-uncaptured (pos bound)
-  "Does POS come before BOUND?"
-  (-let ((a _) bound)
-    (<= pos a)))
-
 ;;; Lisps
 ;;;; Predicates
 ;;;;; Conditions
