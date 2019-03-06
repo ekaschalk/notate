@@ -263,6 +263,8 @@ confusing indexings.")
 
   (nt--delete-note (nt-note--at-point)))
 
+;;; Provide
+
 (provide 'nt)
 
 ;;; nt.el ends here

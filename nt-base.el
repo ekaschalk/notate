@@ -58,6 +58,8 @@
   "Get indentation col of LINE."
   (save-excursion (nt-base--goto-line line) (nt-base--indent-col)))
 
+;;; Provide
+
 (provide 'nt-base)
 
 ;;; nt-base.el ends here

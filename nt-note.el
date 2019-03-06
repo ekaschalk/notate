@@ -169,6 +169,8 @@ The RX, if given, should set the first group for the match to replace."
      (-map #'nt-note--kwd-build)
      (font-lock-add-keywords nil)))
 
+;;; Provide
+
 (provide 'nt-note)
 
 ;;; nt-note.el ends here

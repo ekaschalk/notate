@@ -129,14 +129,7 @@ So the ordering looks like:
   "Sort `nt-tree' accordding to `nt-tree--note<' comparison fn."
   (hierarchy-sort nt-tree #'nt-tree--note<))
 
-;;; Scratch
-
-;; TODO See if this will be needed or not, glancing at the source dont think so
-;; (defun nt-tree--child-fn (note)
-;;   "Try to get NOTE's children."
-;;   (-when-let (root (nt-tree--note->root note)))
-;;   (-filter (-partial #'nt-tree--note-is-subset? note)
-;;            (nt-tree->roots)))
+;;; Provide
 
 (provide 'nt-tree)
 

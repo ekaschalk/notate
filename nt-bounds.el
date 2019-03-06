@@ -95,6 +95,8 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
             (sp-end-of-sexp)
             (1+ (line-number-at-pos))))))
 
+;;; Provide
+
 (provide 'nt-bounds)
 
 ;;; nt-bounds.el ends here

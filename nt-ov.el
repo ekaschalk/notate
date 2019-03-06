@@ -58,6 +58,8 @@
   (setq nt-mask-list nil)
   (setq nt-note-list nil))
 
+;;; Provide
+
 (provide 'nt-ov)
 
 ;;; nt-ov.el ends here

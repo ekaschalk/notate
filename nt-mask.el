@@ -225,6 +225,8 @@
       (nt-mask--init)
       (forward-line))))
 
+;;; Provide
+
 (provide 'nt-mask)
 
 ;;; nt-mask.el ends here
