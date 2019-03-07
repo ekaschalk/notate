@@ -255,15 +255,19 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 ;;;; Setup
 ;;;;; Proper
 
-(defun nt-setup--agnostic ()
+(defun nt-enable--agnostic ()
   "Setup all *major-mode-agnostic* components."
   (nt-tree--init)
   (nt-masks--init)
   (nt-masks--refresh nt-mask-list))
 
+(defun nt-disable--agnostic ()
+  "Disable all *major-mode-agnostic* components."
+  (nt-ov--remove-all))
+
 ;;;;; Development
 
-(defun nt-setup--quick-dirty ()
+(defun nt-enable--quick-dirty ()
   "DEV UTIL - Setup components that will need to be redone more generally."
   (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
   (add-hook 'after-change-functions #'nt-after-change-function nil 'local)
@@ -275,11 +279,10 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 (defun nt-disable--quick-dirty ()
   "DEV UTIL - Disable components that will need to be redone more generally."
+  ;; todo remove all instances of 'nt-note--face
   (remove-hook 'lisp-mode-hook #'nt-note--kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
-  (setq font-lock-keywords nil)
-  ;; todo remove all instances of 'nt-note--face
-  )
+  (setq font-lock-keywords nil))
 
 (defun nt-disable--just-in-case ()
   "DEV UTIL - Disable components that /should/ be handled by other methods."
@@ -290,7 +293,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 (defun nt-disable ()
   "Delete overlays managed by nt."
   (interactive)
-  (nt-ov--remove-all)
+  (nt-disable--agnostic)
   (nt-disable--quick-dirty)
   (nt-disable--just-in-case))
 
@@ -299,8 +302,8 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
   "Enable nt and cleanup previous instance if running."
   (interactive)
   (nt-disable)
-  (nt-setup--agnostic)
-  (nt-setup--quick-dirty))
+  (nt-enable--agnostic)
+  (nt-enable--quick-dirty))
 
 ;;; Provide
 

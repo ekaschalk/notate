@@ -57,7 +57,7 @@ KIND is a symbol identifying how notes will contribute to masks:
    'lispy: Notes use lisp boundary functions to contribute to masks
            and inherit `lisp-mode-syntax-table'.
 
-   'no-setup: Same as 'minimal but do not execute `nt-setup--agnostic'.
+   'no-setup: Same as 'minimal but do not execute `nt-enable--agnostic'.
 
    'any: Execute BODY for each of the following values of KIND:
            minimal, simple and lispy
@@ -65,7 +65,7 @@ KIND is a symbol identifying how notes will contribute to masks:
          Useful when note-mask interaction is present but doesn't
          modify the tested values, like note creation.
 
-After setting the context, `nt-setup--agnostic' is executed. At the time of
+After setting the context, `nt-enable--agnostic' is executed. At the time of
 writing, it instantiates empty masks for the buffer and sets up managed vars."
   (declare (indent 2))
 
@@ -78,7 +78,7 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
        (insert (s-trim ,buffer-contents))  ; so test lines 1-idxed not 2-idxed
 
        (unless (eq 'no-setup ,kind)
-         (nt-setup--agnostic))
+         (nt-enable--agnostic))
        ,@body
        (nt-disable))))
 
