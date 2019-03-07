@@ -213,6 +213,7 @@ confusing indexings.")
 
 ;;; Interactive
 ;;;; Setup
+;;;;; Proper
 
 (defun nt-setup--agnostic ()
   "Setup all *major-mode-agnostic* components."
@@ -220,36 +221,46 @@ confusing indexings.")
   (nt-masks--init)
   (nt-masks--refresh nt-mask-list))
 
+;;;;; Development
+
+(defun nt-setup--quick-dirty ()
+  "DEV UTIL - Setup components that will need to be redone more generally."
+  (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
+  (add-hook 'after-change-functions #'nt-after-change-function nil 'local)
+
+  (let ((nt-mask--wait-for-refresh t))
+    (lisp-mode)
+    (font-lock-ensure))
+  (nt-masks--refresh-buffer))
+
+(defun nt-disable--quick-dirty ()
+  "DEV UTIL - Disable components that will need to be redone more generally."
+  (remove-hook 'lisp-mode-hook #'nt-note--kwds--add)
+  (remove-hook 'after-change-functions #'nt-after-change-function 'local)
+  (setq font-lock-keywords nil)
+  ;; todo remove all instances of 'nt-note--face
+  )
+
+(defun nt-disable--just-in-case ()
+  "DEV UTIL - Disable components that /should/ be handled by other methods."
+  (setq nt-mask--wait-for-refresh nil))
+
 ;;;; Commands
 
 (defun nt-disable ()
   "Delete overlays managed by nt."
   (interactive)
-
   (nt-ov--remove-all)
-  (remove-hook 'lisp-mode-hook #'nt-kwds--add)
-  (remove-hook 'after-change-functions #'nt-after-change-function 'local)
-
-  ;; tbd remove all 'nt-note--face
-  ;; just-in-case stuff
-  (setq nt-mask--wait-for-refresh nil)
-  (setq font-lock-keywords nil))
+  (nt-disable--quick-dirty)
+  (nt-disable--just-in-case))
 
 ;;;###autoload
 (defun nt-enable ()
   "Enable nt and cleanup previous instance if running."
   (interactive)
-
   (nt-disable)
   (nt-setup--agnostic)
-
-  (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
-  (let ((nt-mask--wait-for-refresh t))
-    (lisp-mode)
-    (font-lock-ensure))
-
-  (nt-masks--refresh-buffer)
-  (add-hook 'after-change-functions #'nt-after-change-function nil 'local))
+  (nt-setup--quick-dirty))
 
 ;;; Provide
 
