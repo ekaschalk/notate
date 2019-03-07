@@ -54,20 +54,20 @@
   (nt-test--with-context 'any "
 (string foo bar)
 "
-    (nt-test--mock-notes '(("string" "note")))
-
-    (should= (-> 1 nt-notes--at nt-notes->width)
-             (- 6 4))))
+    (let ((notes
+           (nt-test--mock-notes '(("string" "note")))))
+      (should= (nt-notes->width notes)
+               (- 6 4)))))
 
 (ert-deftest notes:transforms:width:some-notes ()
   (nt-test--with-context 'any "
 (string foo bar)
 "
-    (nt-test--mock-notes '(("string" "note") ("foo" "!")))
-
-    (should= (-> 1 nt-notes--at nt-notes->width)
-             (+ (- 6 4)
-                (- 3 1)))))
+    (let ((notes
+           (nt-test--mock-notes '(("string" "note") ("foo" "!")))))
+      (should= (nt-notes->width notes)
+               (+ (- 6 4)
+                  (- 3 1))))))
 
 ;;; Init
 
@@ -75,8 +75,8 @@
   (nt-test--with-context 'any "
 (string foo bar)
 "
-    (should-size (nt-test--mock-notes '(("string" "note")))
-                 1)))
+    (let ((notes (nt-test--mock-notes '(("string" "note")))))
+      (should-size notes 1))))
 
 (ert-deftest notes:init:complex ()
   (nt-test--with-context 'any
@@ -87,5 +87,6 @@
 4 (string2 foo
 5          bar)
 "
-    (should-size (nt-test--mock-notes '(("string1" "note1") ("string2" "note2")))
-                 6)))
+    (let ((notes
+           (nt-test--mock-notes '(("string1" "note1") ("string2" "note2")))))
+      (should-size notes 6))))

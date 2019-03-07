@@ -19,7 +19,9 @@
 4 (string2 foo
 5          bar)
 "
-    (nt-test--mock-tree '(("string1" "note1") ("string2" "note2")))
+    (-let (((note1 note2 note3)
+            (nt-test--mock-tree '(("string1" "note1") ("string2" "note2")))))
+      )
 
     (-let* ((line 1)
             (notes (nt-tree--line->notes line))

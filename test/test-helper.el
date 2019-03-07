@@ -117,13 +117,16 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
           notes)
       (while (re-search-forward rx nil 'noerror)
         (push (nt-note--init string replacement) notes))
-      (prog1
-          notes
+      (prog1 notes
         (nt-tree--add* notes)))))
 
 (defun nt-test--mock-tree (string-replacement-alist)
-  "Map `nt-test--mock-tree-note' over list STRING-REPLACEMENT-ALIST."
-  (-mapcat (-applify #'nt-test--mock-tree-note) string-replacement-alist))
+  "Construct mocked `nt-tree', ret notes as /list/ sorted by /buffer position/.
+
+Now we can destructure notes for test-cases, nicer than always searching first."
+  (->> string-replacement-alist
+     (-mapcat (-applify #'nt-test--mock-tree-note))
+     (-sort (-on #'< #'overlay-start))))
 
 ;;; Expanded Shoulds
 
