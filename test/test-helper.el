@@ -108,7 +108,7 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
 
 ;;;; Notes (Tree Based)
 
-(defun nt-test--mock-note-tree (string replacement)
+(defun nt-test--mock-tree-note (string replacement)
   "Mock notes for STRING to REPLACEMENT."
   (save-excursion
     (goto-char (point-min))
@@ -121,9 +121,9 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
           notes
         (nt-tree--add* notes)))))
 
-(defun nt-test--mock-notes-tree (string-replacement-alist)
-  "Map `nt-test--mock-note' over list STRING-REPLACEMENT-ALIST."
-  (-mapcat (-applify #'nt-test--mock-note-tree) string-replacement-alist))
+(defun nt-test--mock-tree (string-replacement-alist)
+  "Map `nt-test--mock-tree-note' over list STRING-REPLACEMENT-ALIST."
+  (-mapcat (-applify #'nt-test--mock-tree-note) string-replacement-alist))
 
 ;;; Expanded Shoulds
 

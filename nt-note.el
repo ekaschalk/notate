@@ -101,10 +101,17 @@
   (unless (and start end)
     (error "Initiatializing note without match-data set."))
 
-  (let* ((ov    (make-overlay start end))
-         (note   (nt-note--init-ov ov string replacement)))
+  (let* ((ov   (make-overlay start end))
+         (note (nt-note--init-ov ov string replacement)))
     (push note nt-note-list)
     (nt--add-note-to-masks note)
+
+    ;; New tree stuff
+
+    (overlay-put note 'nt-bound (funcall (symbol-value #'nt-bound-fn) note))
+
+    ;; end tree stuff
+
     note))
 
 ;;; Font Locks

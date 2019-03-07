@@ -63,6 +63,10 @@ This ordering should be maintained for optimized(able) parent/child lookup.")
   "Return roots of `nt-tree'."
   (hierarchy-roots nt-tree))
 
+(defun nt-tree->string ()
+  "Convert hierarchy `nt-tree' to a string."
+  (hierarchy-to-string nt-tree))
+
 ;;;; Notes
 
 (defun nt-tree--contains? (note)
@@ -103,8 +107,11 @@ This ordering should be maintained for optimized(able) parent/child lookup.")
 
 (defun nt-tree--label-fn (note indent)
   "Format label for NOTE at INDENT level for hierarchy display representations."
-  (s-join (s-repeat " " indent)
-          note))
+  (-> indent (s-repeat " ") (s-join note)))
+
+(defun nt-tree-print ()
+  "Print hierarchy `nt-tree'."
+  (print (nt-tree->string)))
 
 (defun nt-tree-visualize (&optional table?)
   "Visualize `nt-tree' via `hierarchy-tree-display' and friends."
@@ -149,13 +156,15 @@ This ordering should be maintained for optimized(able) parent/child lookup.")
   "Place NOTE into the `nt-tree'."
   (hierarchy-add-tree nt-tree note
                       #'nt-tree--parent-fn
-                      #'nt-tree--child-fn))
+                      ;; #'nt-tree--child-fn
+                      ))
 
 (defun nt-tree--add* (notes)
   "Place NOTES into the `nt-tree'."
   (hierarchy-add-trees nt-tree notes
                        #'nt-tree--parent-fn
-                       #'nt-tree--child-fn))
+                       ;; #'nt-tree--child-fn
+                       ))
 
 (defun nt-tree--sort ()
   "Sort `nt-tree' accordding to `nt-tree--note<' comparison fn."
