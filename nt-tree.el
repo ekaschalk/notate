@@ -62,7 +62,7 @@
 
 (defun nt-tree--region->notes (start end)
   "Return notes within region [START END)"
-  (-filter (-cut #'overlay-get <> 'nt-note)
+  (-filter (-cut #'overlay-get <> 'nt-note?)
            (overlays-in start end)))
 
 (defun nt-tree--region->roots (start end)
