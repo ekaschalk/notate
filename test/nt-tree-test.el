@@ -11,7 +11,7 @@
 ;;; Querying
 
 (ert-deftest tree:querying:items ()
-  (nt-test--with-context 'any
+  (nt-test--with-context 'simple
       "
 1 (string1 string2
 2          bar)
@@ -21,10 +21,6 @@
 "
     (nt-test--mock-tree '(("string1" "note1") ("string2" "note2")))
 
-    (nt-tree-visualize)
     (nt-tree-print)
-    (print (nt-tree->list))
-    (print (nt-tree->roots))
-    (princ "---------")
 
     ))

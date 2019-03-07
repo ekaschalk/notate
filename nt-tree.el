@@ -5,21 +5,14 @@
 ;;; Commentary:
 
 ;; Module will replace current `nt-tree.el' list-based note management with
-;; `hierarchy' tree-based management.
+;; `hierarchy' tree-based management https://github.com/DamienCassou/hierarchy
 
 ;; See `nt-tree' for how the tree structure is defined.
-
-;; See https://github.com/DamienCassou/hierarchy
 
 ;;; Code:
 ;;;; Requires
 
 (require 'nt-base)
-
-(require 'nt-bounds)
-(require 'nt-mask)
-(require 'nt-note)
-(require 'nt-ov)
 
 ;;; Init
 
@@ -40,17 +33,19 @@
 
 (defun nt-tree->string ()
   "Convert hierarchy `nt-tree' to a string."
-  (hierarchy-to-string nt-tree))
+  ;; TODO Below should be used when I have it working
+  ;; (hierarchy-to-string nt-tree)
+  (nt-tree--format))
+
+(defun nt-tree->leafs (&optional note)
+  "Return the smallest-boundary notes, optionally restricted to NOTE's subtree."
+  (hierarchy-leafs nt-tree note))
 
 ;;;; Notes
 
 (defun nt-tree--contains? (note)
   "Is NOTE contained in `nt-tree'?"
   (hierarchy-has-item nt-tree note))
-
-(defun nt-tree--leafs (&optional note)
-  "Return the smallest-boundary notes, optionally restricted to NOTE's subtree."
-  (hierarchy-leafs nt-tree note))
 
 (defun nt-tree--note->parent (note)
   "Return parent of NOTE, possibly being itself."
@@ -111,7 +106,7 @@
     (<= a2 a1)))
 
 (defun nt-tree--note< (note-1 note-2)
-  "Compare NOTE-1 and NOTE-2. Non-strict."
+  "Compare NOTE-1 and NOTE-2. Non-strict. See `nt-tree' for cmp rules."
   (cond (nt-tree--note-is-subset? note-1 note-2)
         (nt-tree--note-start<     note-1 note-2)))
 
@@ -142,8 +137,30 @@
                        ))
 
 (defun nt-tree--sort ()
-  "Sort `nt-tree' accordding to `nt-tree--note<' comparison fn."
+  "Sort `nt-tree' according to `nt-tree--note<' comparison fn."
   (hierarchy-sort nt-tree #'nt-tree--note<))
+
+;;; Development Utilities
+
+(defun nt-tree--format ()
+  "Format `nt-tree' for pprint (will be replaced with visualizers later)."
+  (let* ((items (nt-tree->list))
+         (roots (nt-tree->roots))
+         (leafs (nt-tree->leafs)))
+    (format "Tree:
+~~
+items:
+%s
+~~
+roots:
+%s
+~~
+leafs:
+%s
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+"
+            items roots leafs)))
 
 ;;; Provide
 

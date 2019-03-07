@@ -99,7 +99,7 @@ This ordering is maintained for optimized parent/child lookup.")
 (defvar nt-note-list nil
   "List of note overlays currently managed.")
 
-;; NOTE This will be converted into a vector soon for constant-time idxing
+;; NOTE This will be converted into a vector soon^tm for constant-time idxing
 (defvar nt-mask-list nil
   "List of indent overlays currently managed.
 
