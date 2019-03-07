@@ -99,6 +99,19 @@ This ordering should be maintained for optimized(able) parent/child lookup.")
   "Return root containing POS"
   (-first-item (nt-tree--region->roots pos (1+ pos))))
 
+;;;; Visualizations
+
+(defun nt-tree--label-fn (note indent)
+  "Format label for NOTE at INDENT level for hierarchy display representations."
+  (s-join (s-repeat " " indent)
+          note))
+
+(defun nt-tree-visualize (&optional table?)
+  "Visualize `nt-tree' via `hierarchy-tree-display' and friends."
+  (if table?
+      (hierarchy-tabulated-display nt-tree #'nt-tree--label-fn)
+    (hierarchy-tree-display nt-tree #'nt-tree--label-fn)))
+
 ;;; Relationships
 ;;;; Comparisons
 
@@ -141,13 +154,6 @@ This ordering should be maintained for optimized(able) parent/child lookup.")
 (defun nt-tree--sort ()
   "Sort `nt-tree' accordding to `nt-tree--note<' comparison fn."
   (hierarchy-sort nt-tree #'nt-tree--note<))
-
-;;; Visualizations
-
-(defun nt-tree--label-fn (note indent)
-  "Format label for NOTE at INDENT level for hierarchy display representations."
-  (s-join (s-repeat " " indent)
-          note))
 
 ;;; Provide
 
