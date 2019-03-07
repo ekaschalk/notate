@@ -76,7 +76,7 @@ side-by-side comparisons to be aligned.")
 ;;;;; Core
 
 (defvar-local nt-tree nil
-  "Manage notes in a `hierarchy' tree based on interval-containment.
+  "Manage note overlays in a `hierarchy' tree, orded on interval-containment.
 
 ---
 Roots are non-overlapping line-intervals with P-C relationship defined as:
@@ -93,7 +93,16 @@ So the ordering looks like:
   - Sort roots by buffer position.
   - Insert before each root its children ordered by increasing size.
 
-This ordering is maintained for optimized parent/child lookup.")
+This ordering is maintained for optimized parent/child lookup.
+
+---
+There are data structures for querying on ranges:
+https://en.wikipedia.org/wiki/Interval_tree
+https://en.wikipedia.org/wiki/Segment_tree
+
+Which I expect will be used in the optimized implementation,
+though they will need to be modified. We have additional
+assumptions allowed by indentation rule characteristics.")
 
 ;; NOTE transfer to tree based implementation in-progress
 (defvar nt-note-list nil
