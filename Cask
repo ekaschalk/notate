@@ -8,6 +8,7 @@
 (depends-on "cl")
 (depends-on "dash")
 (depends-on "dash-functional")
+(depends-on "hierarchy")
 (depends-on "s")
 (depends-on "smartparens")
 

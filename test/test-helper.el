@@ -106,6 +106,25 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
   "Map `nt-test--mock-note' over list STRING-REPLACEMENT-ALIST."
   (-mapcat (-applify #'nt-test--mock-note) string-replacement-alist))
 
+;;;; Notes (Tree Based)
+
+(defun nt-test--mock-note-tree (string replacement)
+  "Mock notes for STRING to REPLACEMENT."
+  (save-excursion
+    (goto-char (point-min))
+
+    (let ((rx (nt-note--string->rx string))
+          notes)
+      (while (re-search-forward rx nil 'noerror)
+        (push (nt-note--init string replacement) notes))
+      (prog1
+          notes
+        (nt-tree--add* notes)))))
+
+(defun nt-test--mock-notes-tree (string-replacement-alist)
+  "Map `nt-test--mock-note' over list STRING-REPLACEMENT-ALIST."
+  (-mapcat (-applify #'nt-test--mock-note-tree) string-replacement-alist))
+
 ;;; Expanded Shoulds
 
 (defmacro should* (&rest fi)

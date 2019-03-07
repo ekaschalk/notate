@@ -23,6 +23,9 @@
     "nt-note.el"
     "nt-ov.el"
 
+    ;; In-progress
+    "nt-tree.el"
+
     ;; Core
     "nt.el"
     "nt-base.el")

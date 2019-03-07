@@ -28,6 +28,7 @@
 (require 'nt-mask)
 (require 'nt-note)
 (require 'nt-ov)
+(require 'nt-tree)
 
 ;;; Configuration
 ;;;; Core
@@ -232,7 +233,14 @@ confusing indexings.")
 
   ;; just-in-case stuff
   (setq nt-mask--wait-for-refresh nil)
-  (setq font-lock-keywords nil))
+  (setq font-lock-keywords nil)
+
+  ;; New Tree stuff
+
+  (setq nt-tree (hierarchy-new))
+
+  ;; End Tree stuff
+  )
 
 ;;;###autoload
 (defun nt-enable ()
@@ -242,6 +250,12 @@ confusing indexings.")
   (nt-disable)
   (nt-setup--agnostic)
 
+  ;; New Tree stuff
+
+  (setq nt-tree (hierarchy-new))
+
+  ;; End Tree stuff
+
   (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
   (let ((nt-mask--wait-for-refresh t))
     (lisp-mode)
@@ -249,12 +263,6 @@ confusing indexings.")
 
   (nt-masks--refresh-buffer)
   (add-hook 'after-change-functions #'nt-after-change-function nil 'local)
-
-  ;; This isn't working yet, not highest priority
-  ;; (advice-remove 'undo-tree-undo #'nt-masks--unrender-buffer)
-  ;; (advice-remove 'undo-tree-undo #'nt-masks--render-buffer)
-  ;; (advice-add 'undo-tree-undo :before #'nt-masks--unrender-buffer)
-  ;; (advice-add 'undo-tree-undo :after #'nt-masks--render-buffer)
   )
 
 (defun nt-remove-note-at-point ()

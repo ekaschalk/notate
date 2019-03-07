@@ -145,7 +145,13 @@ This ordering should be maintained for optimized(able) parent/child lookup.")
 
 ;;; Mutations
 
-(defun nt-tree--add (&rest notes)
+(defun nt-tree--add (note)
+  "Place NOTE into the `nt-tree'."
+  (hierarchy-add-tree nt-tree note
+                      #'nt-tree--parent-fn
+                      #'nt-tree--child-fn))
+
+(defun nt-tree--add* (notes)
   "Place NOTES into the `nt-tree'."
   (hierarchy-add-trees nt-tree notes
                        #'nt-tree--parent-fn

@@ -12,6 +12,7 @@
 (require 'cl)
 (require 'dash)
 (require 'dash-functional)
+(require 'hierarchy)
 (require 's)
 (require 'smartparens)
 

@@ -163,6 +163,12 @@
 ;;   "Return root of NOTE, possibly being itself."
 ;;   (-> note overlay-start nt-tree--point->root))
 
+;; Undo Stuff
+;; This isn't working yet, not highest priority
+;; (advice-remove 'undo-tree-undo #'nt-masks--unrender-buffer)
+;; (advice-remove 'undo-tree-undo #'nt-masks--render-buffer)
+;; (advice-add 'undo-tree-undo :before #'nt-masks--unrender-buffer)
+;; (advice-add 'undo-tree-undo :after #'nt-masks--render-buffer)
 
 
 
