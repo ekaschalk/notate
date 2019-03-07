@@ -14,6 +14,8 @@
 
 (require 'nt-base)
 
+(require 'nt-ov)
+
 ;;; Init
 
 (defun nt-tree--init ()
@@ -68,10 +70,10 @@
 
 (defun nt-tree--region->roots (start end)
   "Return roots covering region [START END)."
-  (->>
-   (nt-tree--region->notes start end)
-   (-map #'nt-tree--note->root)
-   -distinct))
+  (funcall (-compose #'-distinct
+                     (-partial #'-map #'nt-tree--note->root)
+                     #'nt-tree--region->notes)
+           start end))
 
 (defun nt-tree--point->root (pos)
   "Return root containing POS"
@@ -122,19 +124,21 @@
   "Is NOTE-1's boundary captured in NOTE-2's boundary? Non-strict."
   (-let (((a1 b1) (nt-note->bound note-1))
          ((a2 b2) (nt-note->bound note-2)))
-    (and (<= a2 a1)
-         (<= b1 b2))))
+    ;; Think - do I need more conditions here? We have knowledge about the
+    ;; behavior of bounds and this can possibly be a "subset" of a subset check
+    (and (< a2 a1)
+         (< b1 b2))))
 
 (defun nt-tree--note-start< (note-1 note-2)
   "Compare NOTE-1's start and NOTE-2's start positions. Non-strict."
   (-let (((a1 _) (nt-note->bound note-1))
          ((a2 _) (nt-note->bound note-2)))
-    (<= a2 a1)))
+    (< a2 a1)))
 
 (defun nt-tree--note< (note-1 note-2)
   "Compare NOTE-1 and NOTE-2. Non-strict. See `nt-tree' for cmp rules."
-  (cond (nt-tree--note-is-subset? note-1 note-2)
-        (nt-tree--note-start<     note-1 note-2)))
+  (cond ((nt-tree--note-is-subset? note-1 note-2))
+        ((nt-tree--note-start<     note-1 note-2))))
 
 ;;;; Parent-Finding
 
