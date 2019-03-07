@@ -62,8 +62,9 @@
 
 (defun nt-tree--region->notes (start end)
   "Return notes within region [START END)"
-  (-filter (-cut #'overlay-get <> 'nt-note?)
-           (overlays-in start end)))
+  (--filter
+   (overlay-get it 'nt-note?)
+   (overlays-in start end)))
 
 (defun nt-tree--region->roots (start end)
   "Return roots covering region [START END)."
@@ -86,6 +87,16 @@
 (defun nt-tree--lines->notes (start-line end-line)
   "Return notes within lines [START-LINE END-LINE)."
   (apply #'nt-tree--region->notes
+         (nt-base--lines-bounds start-line end-line)))
+
+(defun nt-tree--line->roots (line)
+  "Return roots on LINE."
+  (apply #'nt-tree--region->roots
+         (nt-base--line-bounds line)))
+
+(defun nt-tree--lines->roots (start-line end-line)
+  "Return roots within lines [START-LINE END-LINE)."
+  (apply #'nt-tree--region->roots
          (nt-base--lines-bounds start-line end-line)))
 
 ;;;; Visualizations
