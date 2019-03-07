@@ -40,7 +40,7 @@
   "A function that should return line boundaries [a b) given a NOTE.")
 
 (defvar-local nt-bound?-fn #'nt-bounds?--lisps
-  "A subset of `nt-bound-fn', whether NOTE has a boundary.")
+  "A function that should return whether a given NOTE modifies indentation.")
 
 (defvar nt-normalize-height? nil
   "Force notated buffer's line heights to match true buffer?
@@ -57,10 +57,10 @@ The problem is complex enough as is, so while a significant
 upgrade, not the #1 priority at time of writing.
 
 For development purposes, it is recommended to have false to
-evaluate indenation more reliably.
+visually compare indentation more reliably.
 
 For screenshot purposes, it is recommended to have true for
-side-by-side comparisons.")
+side-by-side comparisons to be aligned.")
 
 ;;;; Debugging
 

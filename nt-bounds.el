@@ -67,7 +67,7 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 ;;;;; Composition
 
 (defun nt-bounds?--lisps (note)
-  "Does NOTE have an indentation boundary? If so give NOTE."
+  "Render NOTE's indentation boundary? If so give NOTE."
   ;; This may or may not be exhaustive. Exhausting cases is lower priority than
   ;; getting this subset working. Same for performance optimizations.
   (and

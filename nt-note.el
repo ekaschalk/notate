@@ -87,7 +87,7 @@
   "Put note text properties into OV."
   (-doto ov
     (overlay-put 'nt?      t)
-    (overlay-put 'nt-note?  t)
+    (overlay-put 'nt-note? t)
     (overlay-put 'nt-width (nt-base--s-diff string replacement))
 
     (overlay-put 'display replacement)
