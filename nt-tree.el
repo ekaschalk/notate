@@ -21,40 +21,11 @@
 (require 'nt-note)
 (require 'nt-ov)
 
-;;; Configuration
-;;;; Managed
+;;; Init
 
 (defun nt-tree--init ()
-  "Init `nt-tree'."
+  "(re)Init `nt-tree'."
   (setq nt-tree (hierarchy-new)))
-
-(defvar-local nt-tree nil
-  "Manage notes in a `hierarchy' tree based on interval-containment.
-
----
-
-Roots are non-overlapping line-intervals with P-C relationship defined as:
-
-  - A note n_c is a child of note n_p iff masks(n_p) contains masks(n_c).
-
-  - If the masks are equal, then the first note by position is defined
-    to be the parent.
-
----
-
-Notes are sorted as follows (via cmp fn `nt-tree--note<'):
-
-  - n_1 < n_2 if n_1 is a child of n_2
-
-  - otherwise, n_1 < n_2 if start(n_1) < start(n_2)
-
-So the ordering looks like:
-
-  - Sort roots by buffer position.
-
-  - Insert before each root its children ordered by increasing size.
-
-This ordering should be maintained for optimized(able) parent/child lookup.")
 
 ;;; Querying
 ;;;; Top-level

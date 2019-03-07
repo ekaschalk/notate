@@ -33,7 +33,7 @@
 ;;; Configuration
 ;;;; Core
 
-(defconst nt-notes (nt-notes--make '(("hello" "∧") ("bye" "!∨")))
+(defvar nt-notes (nt-notes--make '(("hello" "∧") ("bye" "!∨")))
   "plist of note specifications resulting from `nt-notes--make'.")
 
 (defvar-local nt-bound-fn #'nt-bounds--lisps
@@ -50,8 +50,7 @@ true. However depending on font for note, it might be rendered
 smaller than normal and widths might not match (so visual
 indentation might be slightly off even with correct spaces).
 
-A (possible) solution is to use 'specified spaces':
-https://www.gnu.org/software/emacs/manual/html_node/elisp/Specified-Space.html
+A (possible) solution is to use 'specified spaces' (see emacs manual).
 
 The problem is complex enough as is, so while a significant
 upgrade, not the #1 priority at time of writing.
@@ -74,10 +73,33 @@ side-by-side comparisons to be aligned.")
   "Should masks render? Note that line-prefixes, if set to, still display.")
 
 ;;;; Managed
+;;;;; Core
 
+(defvar-local nt-tree nil
+  "Manage notes in a `hierarchy' tree based on interval-containment.
+
+---
+Roots are non-overlapping line-intervals with P-C relationship defined as:
+  - A note n_p is a parent of note n_c iff bound(n_p) contains bound(n_c).
+  - If bound(n_p) == bound(n_c), the first note by buffer position is the parent.
+
+---
+Notes are sorted as follows (see the cmp fn `nt-tree--note<'):
+  - A child is smaller than its parents.
+  - Comparing two separate subtrees: the first occurring note is smaller.
+
+---
+So the ordering looks like:
+  - Sort roots by buffer position.
+  - Insert before each root its children ordered by increasing size.
+
+This ordering is maintained for optimized parent/child lookup.")
+
+;; NOTE transfer to tree based implementation in-progress
 (defvar nt-note-list nil
   "List of note overlays currently managed.")
 
+;; NOTE This will be converted into a vector soon for constant-time idxing
 (defvar nt-mask-list nil
   "List of indent overlays currently managed.
 
@@ -85,6 +107,8 @@ This an ordered list s.t. nt-mask-list[i] = mask-at-line-i+1.
 
 Accessing this should be done through `nt-mask--at' and friends to avoid
 confusing indexings.")
+
+;;;;; Transitory
 
 (defvar nt-mask--wait-for-refresh nil
   "Let-bind true to hold off on refreshing masks during batch modifications.")
