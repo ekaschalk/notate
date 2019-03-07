@@ -9,9 +9,10 @@ This document will be fleshed out closer to a alpha/beta release.
 ** Issues
 ** Code
 
-There are several conventions I'd like to maintain, enumerated here.
+There are several simple conventions I'd like to maintain, enumerated here.
 
 - Use ~dash~ for list manipulation (eg. use ~-each~ over ~mapc~)
 - Organize code in outlines (;;;-prefixed comments) when reasonable
-- Name your functions: ~nt-[module](s)--my-func~
-- Name your tests: ~[module]:[outline]:my-test~
+- Give two lines between variable declarations.
+- Name your functions: ~nt-[module](s)--func~
+- Name your tests: ~[module]:[outline]:test~

@@ -36,11 +36,14 @@
 (defvar nt-notes (nt-notes--make '(("hello" "∧") ("bye" "!∨")))
   "plist of note specifications resulting from `nt-notes--make'.")
 
+
 (defvar-local nt-bound-fn #'nt-bounds--lisps
   "A function that should return line boundaries [a b) given a NOTE.")
 
+
 (defvar-local nt-bound?-fn #'nt-bounds?--lisps
   "A function that should return whether a given NOTE modifies indentation.")
+
 
 (defvar nt-normalize-height? nil
   "Force notated buffer's line heights to match true buffer?
@@ -66,8 +69,10 @@ side-by-side comparisons to be aligned.")
 (defvar nt-display-prefixes? t
   "Whether to add the 'line-prefix property to indentation overlays.")
 
+
 (defvar nt-display-render-status? t
   "Whether to add a 'face property to rendered indentation overlays.")
+
 
 (defvar nt-render-masks? t
   "Should masks render? Note that line-prefixes, if set to, still display.")
@@ -93,8 +98,6 @@ So the ordering looks like:
   - Sort roots by buffer position.
   - Insert before each root its children ordered by increasing size.
 
-This ordering is maintained for optimized parent/child lookup.
-
 ---
 There are data structures for querying on ranges:
 https://en.wikipedia.org/wiki/Interval_tree
@@ -104,18 +107,22 @@ Which I expect will be used in the optimized implementation,
 though they will need to be modified. We have additional
 assumptions allowed by indentation rule characteristics.")
 
-;; NOTE transfer to tree based implementation in-progress
-(defvar nt-note-list nil
-  "List of note overlays currently managed.")
 
-;; NOTE This will be converted into a vector soon^tm for constant-time idxing
+(defvar nt-note-list nil
+  "List of note overlays currently managed.
+
+NOTE - transfer to tree based implementation in-progress.")
+
+
 (defvar nt-mask-list nil
   "List of indent overlays currently managed.
 
 This an ordered list s.t. nt-mask-list[i] = mask-at-line-i+1.
 
 Accessing this should be done through `nt-mask--at' and friends to avoid
-confusing indexings.")
+confusing indexings.
+
+NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 ;;;;; Transitory
 
