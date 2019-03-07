@@ -6,12 +6,7 @@
 
 ;;; Commentary:
 
-;; Unlike other modules that organize methods common in purpose or subject, this
-;; module's membership is defined by complexity.
-
-;; Code that isn't easy reading is quarantined here.
-
-;; NOW A ROUGH DRAFT SECTION FOR MORE INVOLVED UPDATES IM EXPLORING
+;; Scratch for harder stuff, now check out tree impl
 
 
 
@@ -144,7 +139,29 @@
 
 ;; Another thought, is it useful to store all bounds or just the maxmost bound?
 
-;;; Note Deletion (hierarchy based)
+;;; Scratch
+
+;; Manual version, possibly faster depending on hierarchy's implementation
+;; (defun nt-tree--region->roots (start end)
+;;   "Return roots covering region [START END)."
+;;   (let* ((roots
+;;           (nt-tree->roots))
+;;          (start-idx
+;;           (-find-index (-lambda ((a _) it)
+;;                          (<= start a))
+;;                        roots))
+;;          (end-idx
+;;           (-find-last-index (-lambda ((_ b) it)
+;;                               (<= b end))
+;;                             roots)))
+;;     (-slice roots
+;;             (or start-idx 0)
+;;             (or end-idx (length roots)))))
+
+;; Manual version
+;; (defun nt-tree--note->root (note)
+;;   "Return root of NOTE, possibly being itself."
+;;   (-> note overlay-start nt-tree--point->root))
 
 
 

@@ -100,7 +100,6 @@ This ordering should be maintained for optimized(able) parent/child lookup.")
   (-first-item (nt-tree--region->roots pos (1+ pos))))
 
 ;;; Relationships
-
 ;;;; Comparisons
 
 (defun nt-tree--note-is-subset? (note-1 note-2)
@@ -143,29 +142,12 @@ This ordering should be maintained for optimized(able) parent/child lookup.")
   "Sort `nt-tree' accordding to `nt-tree--note<' comparison fn."
   (hierarchy-sort nt-tree #'nt-tree--note<))
 
-;;; Scratch
+;;; Visualizations
 
-;; Manual version, possibly faster depending on hierarchy's implementation
-;; (defun nt-tree--region->roots (start end)
-;;   "Return roots covering region [START END)."
-;;   (let* ((roots
-;;           (nt-tree->roots))
-;;          (start-idx
-;;           (-find-index (-lambda ((a _) it)
-;;                          (<= start a))
-;;                        roots))
-;;          (end-idx
-;;           (-find-last-index (-lambda ((_ b) it)
-;;                               (<= b end))
-;;                             roots)))
-;;     (-slice roots
-;;             (or start-idx 0)
-;;             (or end-idx (length roots)))))
-
-;; Manual version
-;; (defun nt-tree--note->root (note)
-;;   "Return root of NOTE, possibly being itself."
-;;   (-> note overlay-start nt-tree--point->root))
+(defun nt-tree--label-fn (note indent)
+  "Format label for NOTE at INDENT level for hierarchy display representations."
+  (s-join (s-repeat " " indent)
+          note))
 
 ;;; Provide
 
