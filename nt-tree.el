@@ -53,11 +53,12 @@
 
 (defun nt-tree--note->root (note)
   "Return root of NOTE, possibly being itself."
-  ;; Alternatively could do the natural choice of visiting parents
+  ;; Alt. do natural choice of visiting parents, probably with `iter-defun'
   (-first (-partial #'nt-tree--note-is-subset? note)
           (nt-tree->roots)))
 
 ;;;; Regions
+;;;;; Point-Based
 
 (defun nt-tree--region->notes (start end)
   "Return notes within region [START END)"
@@ -74,6 +75,17 @@
 (defun nt-tree--point->root (pos)
   "Return root containing POS"
   (-first-item (nt-tree--region->roots pos (1+ pos))))
+
+;;;;; Line-Based
+
+(defun nt-tree--line->notes (line)
+  "Return notes on LINE."
+  (apply #'nt-tree--region->notes nt-base--line-bounds))
+
+(defun nt-tree--lines->notes (start-line end-line)
+  "Return notes within lines [START-LINE END-LINE)."
+  (-mapcat #'nt-tree--line->notes
+           (nt-base--range start-line end-line)))
 
 ;;;; Visualizations
 

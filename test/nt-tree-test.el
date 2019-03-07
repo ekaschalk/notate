@@ -21,6 +21,8 @@
 "
     (nt-test--mock-tree '(("string1" "note1") ("string2" "note2")))
 
+    (nt-tree--region->notes )
+
     (nt-tree-print)
 
     ))
