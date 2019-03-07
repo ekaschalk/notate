@@ -66,8 +66,10 @@
 
 (defun nt-tree--region->roots (start end)
   "Return roots covering region [START END)."
-  (-map #'nt-tree--note->root
-        (nt-tree--region->notes start end)))
+  (->>
+   (nt-tree--region->notes start end)
+   (-map #'nt-tree--note->root)
+   -distinct))
 
 (defun nt-tree--point->root (pos)
   "Return root containing POS"
