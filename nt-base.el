@@ -41,11 +41,19 @@
   (save-excursion (nt-base--goto-line line) (line-end-position)))
 
 (defun nt-base--line-bounds (line)
-  "Return (start end) points of LINE."
+  "Return [start end] points of LINE."
   (save-excursion
     (nt-base--goto-line line)
     (list (line-beginning-position)
           (line-end-position))))
+
+(defun nt-base--lines-bounds (start-line end-line)
+  "Return [start end] points with start of START-LINE, end of 1-END-LINE."
+  (save-excursion
+    (nt-base--goto-line start-line)
+    (list (line-beginning-position)
+          (progn (nt-base--goto-line (1- end-line))
+                 (line-end-position)))))
 
 (defun nt-base--line-size (line)
   "Return number of characters composing LINE."

@@ -80,12 +80,13 @@
 
 (defun nt-tree--line->notes (line)
   "Return notes on LINE."
-  (apply #'nt-tree--region->notes nt-base--line-bounds))
+  (apply #'nt-tree--region->notes
+         (nt-base--line-bounds line)))
 
 (defun nt-tree--lines->notes (start-line end-line)
   "Return notes within lines [START-LINE END-LINE)."
-  (-mapcat #'nt-tree--line->notes
-           (nt-base--range start-line end-line)))
+  (apply #'nt-tree--region->notes
+         (nt-base--lines-bounds start-line end-line)))
 
 ;;;; Visualizations
 
@@ -94,7 +95,7 @@
   (-> indent (s-repeat " ") (s-join note)))
 
 (defun nt-tree-print ()
-  "Print hierarchy `nt-tree'."
+  "Print hierarchy `nt-tree' according to `nt-tree->string'."
   (print (nt-tree->string)))
 
 (defun nt-tree-visualize (&optional table?)
