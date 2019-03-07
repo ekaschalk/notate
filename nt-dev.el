@@ -159,6 +159,10 @@ When working on nt, necessitating a transient testing buffer."
   "(Re)load all `nt-dev--modules'."
   (interactive) (-each nt-dev--modules #'load-file))
 
+(defun nt-dev--remove-note-at-point ()
+  "Delete note at point if it exists and update masks."
+  (interactive) (nt--delete-note (nt-note--at-point)))
+
 ;;;; Bind Keys
 
 (when eric?

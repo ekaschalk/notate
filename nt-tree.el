@@ -24,7 +24,11 @@
 ;;; Configuration
 ;;;; Managed
 
-(defconst nt-tree (hierarchy-new)
+(defun nt-tree--init ()
+  "Init `nt-tree'."
+  (setq nt-tree (hierarchy-new)))
+
+(defvar-local nt-tree nil
   "Manage notes in a `hierarchy' tree based on interval-containment.
 
 ---

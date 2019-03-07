@@ -216,6 +216,7 @@ confusing indexings.")
 
 (defun nt-setup--agnostic ()
   "Setup all *major-mode-agnostic* components."
+  (nt-tree--init)
   (nt-masks--init)
   (nt-masks--refresh nt-mask-list))
 
@@ -229,18 +230,10 @@ confusing indexings.")
   (remove-hook 'lisp-mode-hook #'nt-kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
 
-  ;; TODO remove all 'nt-note--face
-
+  ;; tbd remove all 'nt-note--face
   ;; just-in-case stuff
   (setq nt-mask--wait-for-refresh nil)
-  (setq font-lock-keywords nil)
-
-  ;; New Tree stuff
-
-  (setq nt-tree (hierarchy-new))
-
-  ;; End Tree stuff
-  )
+  (setq font-lock-keywords nil))
 
 ;;;###autoload
 (defun nt-enable ()
@@ -250,26 +243,13 @@ confusing indexings.")
   (nt-disable)
   (nt-setup--agnostic)
 
-  ;; New Tree stuff
-
-  (setq nt-tree (hierarchy-new))
-
-  ;; End Tree stuff
-
   (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
   (let ((nt-mask--wait-for-refresh t))
     (lisp-mode)
     (font-lock-ensure))
 
   (nt-masks--refresh-buffer)
-  (add-hook 'after-change-functions #'nt-after-change-function nil 'local)
-  )
-
-(defun nt-remove-note-at-point ()
-  "Delete note at point if it exists and update masks."
-  (interactive)
-
-  (nt--delete-note (nt-note--at-point)))
+  (add-hook 'after-change-functions #'nt-after-change-function nil 'local))
 
 ;;; Provide
 
