@@ -50,14 +50,15 @@
   (hierarchy-has-item nt-tree note))
 
 (defun nt-tree--note->parent (note)
-  "Return parent of NOTE, possibly being itself."
+  "Return parent of NOTE, if it has a parent."
   (hierarchy-parent nt-tree note))
 
 (defun nt-tree--note->root (note)
-  "Return root of NOTE, possibly being itself."
+  "Return root of NOTE, or NOTE if itself is a root."
   ;; Alt. do natural choice of visiting parents, probably with `iter-defun'
-  (-first (-partial #'nt-tree--note-is-subset? note)
-          (nt-tree->roots)))
+  (or (-first (-partial #'nt-tree--note-is-subset? note)
+              (nt-tree->roots))
+      note))
 
 ;;;; Regions
 ;;;;; Point-Based
@@ -142,13 +143,41 @@
 
 ;;;; Parent-Finding
 
+(defun nt-tree--stationary-points (note)
+  "Return the stationary points (indent stops increasing) for NOTE's subtree."
+  ;; OBSERVE
+  ;; first note to the left of the stationary point is in fact the leaf of NOTE
+
+  ;; THOUGHT
+  ;; Are things made nicer by assuming a singleton note that covers the buffer?
+
+  ;; then we have a "nested set" model
+  )
+
 (defun nt-tree--parent-fn (note)
-  "Try to get NOTE's smallest parent."
+  "Get NOTE's smallest parent, or nil if NOTE should be a root."
   ;; Note the -first call assumes children are ordered size-ascending
+
   (-when-let (root (nt-tree--note->root note))
-    (or (-first (-partial #'nt-tree--note-is-subset? note)
-                (hierarchy-children nt-tree root))
-        root)))
+    (save-excursion
+      (let ((leaf (-last-item
+                   (overlays-in
+                    (overlay-start root)
+                    (-last-item (nt-tree--stationary-points))))))
+        ;; stuff
+        ))
+
+    (-first (-partial #'nt-tree--note-is-subset? note)
+            (hierarchy-children nt-tree root))
+
+    ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
+    ;;             (nt-tree->roots))
+    ;;     note)
+
+    ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
+    ;;             (hierarchy-children nt-tree root))
+    ;;     root)
+    ))
 
 ;;; Mutations
 
