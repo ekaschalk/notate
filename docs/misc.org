@@ -1,6 +1,7 @@
-#+TITLE: nt Notes
+#+TITLE: Unorganized Notes for Notate
 
-Serves as a scratch buffer for thoughts and other notes related to nt.
+Serves as a stream-of-thought scratch buffer for thoughts and other notes
+related to nt.
 
 * Notes
 

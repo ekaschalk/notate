@@ -132,5 +132,8 @@ continuing at lisp-level.
 
 - ~src/indent.c~: Most indentation functions are at lisp-level, so what are the
   points of these primitives?
-- ~stretch-glyphs~: The likely (nudged to) data structure to reimplement
+- ~stretch glyphs~: The likely (nudged to) data structure to reimplement
   indentation with.
+- ~compose-region-internal~: Understanding this would be immensely useful as the
+  ~display~ property-based implementation has a few usability issues that cannot
+  be resolved at lisp-level.
