@@ -158,26 +158,27 @@
   "Get NOTE's smallest parent, or nil if NOTE should be a root."
   ;; Note the -first call assumes children are ordered size-ascending
 
-  (-when-let (root (nt-tree--note->root note))
-    (save-excursion
-      (let ((leaf (-last-item
-                   (overlays-in
-                    (overlay-start root)
-                    (-last-item (nt-tree--stationary-points))))))
-        ;; stuff
-        ))
+  ;; (-when-let (root (nt-tree--note->root note))
+  ;;   (save-excursion
+  ;;     (let ((leaf (-last-item
+  ;;                  (overlays-in
+  ;;                   (overlay-start root)
+  ;;                   (-last-item (nt-tree--stationary-points))))))
+  ;;       ;; stuff
+  ;;       ))
 
-    (-first (-partial #'nt-tree--note-is-subset? note)
-            (hierarchy-children nt-tree root))
+  ;;   (-first (-partial #'nt-tree--note-is-subset? note)
+  ;;           (hierarchy-children nt-tree root))
 
-    ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
-    ;;             (nt-tree->roots))
-    ;;     note)
+  ;;   ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
+  ;;   ;;             (nt-tree->roots))
+  ;;   ;;     note)
 
-    ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
-    ;;             (hierarchy-children nt-tree root))
-    ;;     root)
-    ))
+  ;;   ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
+  ;;   ;;             (hierarchy-children nt-tree root))
+  ;;   ;;     root)
+  ;;   )
+  )
 
 ;;; Mutations
 

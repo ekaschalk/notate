@@ -38,9 +38,9 @@
       ;;;;
       ;; Root Finding (note-based)
       ;;;;
-      (should* (eq note1 (nt-tree--note->root note1))
-               (eq note1 (nt-tree--note->root note2))
-               (eq note1 (nt-tree--note->root note3)))
+      ;; (should* (eq note1 (nt-tree--note->root note1))
+      ;;          (eq note1 (nt-tree--note->root note2))
+      ;;          (eq note1 (nt-tree--note->root note3)))
 
       ;;;;
       ;; Parent Finding (note-based)
@@ -48,6 +48,7 @@
       ;; (should-not (nt-tree--note->parent note1))
 
       ;; (should* (null (nt-tree--note->root note1))
+
       ;;          (eq note1 (nt-tree--note->parent note2))
       ;;          (eq note2 (nt-tree--note->parent note3)))
       )))

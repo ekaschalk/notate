@@ -114,7 +114,6 @@ I want:
 - Either height or width is normalized, not both.
   - To see what I mean, compare the two progress-2 images in [[./img]]. See the
     ~nt-normalize-height?~ variable for commentary.
-- Optimization second to readability until project complete.
 
 *** Project Status
 

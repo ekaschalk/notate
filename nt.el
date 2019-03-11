@@ -9,6 +9,7 @@
 ;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (hierarchy "0.2.0") (s "1.12.0") (smartparens "1.11.0") (emacs "26.1"))
 
 ;;; Commentary:
+;;;; Header
 
 ;; Notate your programs with indentation-correcting visual replacements of
 ;; symbols with other symbols.
@@ -19,12 +20,17 @@
 
 ;; With notate, you can selectively APL-ize your code.
 
+;;;; nt.el
+
+;; `nt.el' exposes user configuration and enable/disable functionality.
+
 ;;; Code:
 ;;;; Requires
 
 (require 'nt-base)
 
 (require 'nt-bounds)
+(require 'nt-change)
 (require 'nt-mask)
 (require 'nt-note)
 (require 'nt-ov)
@@ -81,7 +87,7 @@ side-by-side comparisons to be aligned.")
 ;;;;; Core
 
 (defvar-local nt-tree nil
-  "Manage note overlays in a `hierarchy' tree, orded on interval-containment.
+  "Manage note overlays in a `hierarchy' tree, ordered on interval-containment.
 
 ---
 Roots are non-overlapping line-intervals with P-C relationship defined as:
@@ -99,13 +105,8 @@ So the ordering looks like:
   - Insert before each root its children ordered by increasing size.
 
 ---
-There are data structures for querying on ranges:
-https://en.wikipedia.org/wiki/Interval_tree
-https://en.wikipedia.org/wiki/Segment_tree
-
-Which I expect will be used in the optimized implementation,
-though they will need to be modified. We have additional
-assumptions allowed by indentation rule characteristics.")
+There are better tree structures we can use, which will be
+explored nearing project completion.")
 
 
 (defvar nt-note-list nil
@@ -183,74 +184,6 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
     (nt--remove-note-from-masks)
     (nt-note--delete)))
 
-;;; Change Functions
-;;;; Utils
-
-(defun nt-change--line-diff ()
-  "Lines added: +x, removed: -x, otherwise 0 since mask list last updated."
-  ;; NOTE 1- point-max easier than calling skip-line on last-line's mask
-  (- (line-number-at-pos (1- (point-max)))
-     (length nt-mask-list)))
-
-(defun nt-change--new-lines? ()
-  "Return count of lines added since last update or nil."
-  (let ((line-change (nt-change--line-diff)))
-    (when (> line-change 0)
-      line-change)))
-
-(defun nt-change--removed-lines? ()
-  "Return count of lines removed since last update or nil."
-  (let ((line-change (nt-change--line-diff)))
-    (when (< line-change 0)
-      (- line-change))))
-
-;;;; Insertion
-
-(defun nt-change--insertion (start end)
-  "Change function specialized for insertion, in START and END."
-  (-when-let (new-lines (nt-change--new-lines?))
-    (let* ((end-line (1+ (line-number-at-pos)))
-           (start-line (- end-line new-lines))
-           (line-before-change (1- start-line))
-
-           ;; Must init masks ASAP for `nt-mask-list' integrity
-           (masks
-            ;; (nt-masks--init start-line end-line)
-            (-map #'nt-mask--init
-                  (number-sequence start-line (1- end-line)))
-            )
-
-           (mask-before-change (nt-mask--at line-before-change))
-           (notes-before-change (overlay-get mask-before-change 'nt-notes))
-
-           (notes (-union notes-before-change
-                          (nt-notes--at line-before-change))))
-
-      ;; The note is being added to mask but it takes 2 insertions to "kick in"
-      ;; for some reason?
-      ;; (nt--add-notes-to-masks notes)
-      (-each notes #'nt--add-note-to-masks)
-
-      ;; (message "%s %s" start end)
-      )))
-
-;;;; Deletion
-
-(defun nt-change--deletion (pos chars-deleted)
-  "Change function specialized for deletion, number CHARS-DELETED at POS."
-  ;; (message "Deleting at pos %s, %s characters" pos chars-deleted)
-
-
-  )
-
-;;;; Hook
-
-(defun nt-after-change-function (start end chars-deleted)
-  "See `after-change-functions'."
-  (if (= 0 chars-deleted)
-      (nt-change--insertion start end)
-    (nt-change--deletion start chars-deleted)))
-
 ;;; Interactive
 ;;;; Setup
 ;;;;; Proper
@@ -267,17 +200,17 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 ;;;;; Development
 
-(defun nt-enable--quick-dirty ()
+(defun nt-enable--temp ()
   "DEV UTIL - Setup components that will need to be redone more generally."
   (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
-  (add-hook 'after-change-functions #'nt-after-change-function nil 'local)
+  (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
   (let ((nt-mask--wait-for-refresh t))
     (lisp-mode)
     (font-lock-ensure))
   (nt-masks--refresh-buffer))
 
-(defun nt-disable--quick-dirty ()
+(defun nt-disable--temp ()
   "DEV UTIL - Disable components that will need to be redone more generally."
   ;; todo remove all instances of 'nt-note--face
   (remove-hook 'lisp-mode-hook #'nt-note--kwds--add)
@@ -293,17 +226,20 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 (defun nt-disable ()
   "Delete overlays managed by nt."
   (interactive)
+
   (nt-disable--agnostic)
-  (nt-disable--quick-dirty)
+  (nt-disable--temp)
   (nt-disable--just-in-case))
 
 ;;;###autoload
 (defun nt-enable ()
   "Enable nt and cleanup previous instance if running."
   (interactive)
+
   (nt-disable)
+
   (nt-enable--agnostic)
-  (nt-enable--quick-dirty))
+  (nt-enable--temp))
 
 ;;; Provide
 

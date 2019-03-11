@@ -24,6 +24,7 @@
     "nt-ov.el"
 
     ;; In-progress
+    "nt-change.el"
     "nt-tree.el"
 
     ;; Core
