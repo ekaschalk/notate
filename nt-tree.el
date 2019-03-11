@@ -143,16 +143,16 @@
 
 ;;;; Parent-Finding
 
-(defun nt-tree--stationary-points (note)
-  "Return the stationary points (indent stops increasing) for NOTE's subtree."
-  ;; OBSERVE
-  ;; first note to the left of the stationary point is in fact the leaf of NOTE
+;; (defun nt-tree--stationary-points (note)
+;;   "Return the stationary points (indent stops increasing) for NOTE's subtree."
+;;   ;; OBSERVE
+;;   ;; first note to the left of the stationary point is in fact the leaf of NOTE
 
-  ;; THOUGHT
-  ;; Are things made nicer by assuming a singleton note that covers the buffer?
+;;   ;; THOUGHT
+;;   ;; Are things made nicer by assuming a singleton note that covers the buffer?
 
-  ;; then we have a "nested set" model
-  )
+;;   ;; then we have a "nested set" model
+;;   )
 
 (defun nt-tree--parent-fn (note)
   "Get NOTE's smallest parent, or nil if NOTE should be a root."
@@ -167,12 +167,8 @@
   ;;       ;; stuff
   ;;       ))
 
-  ;;   (-first (-partial #'nt-tree--note-is-subset? note)
-  ;;           (hierarchy-children nt-tree root))
-
-  ;;   ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
-  ;;   ;;             (nt-tree->roots))
-  ;;   ;;     note)
+  (-first (-partial #'nt-tree--note-is-subset? note)
+          (nt-tree->roots))
 
   ;;   ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
   ;;   ;;             (hierarchy-children nt-tree root))

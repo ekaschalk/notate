@@ -27,6 +27,12 @@
 ;;;; Predicates
 ;;;;; Conditions
 
+(defun nt-bounds?--ignore? (note)
+  "Should NOTE never contribute to indentation?"
+  (require 'nt-note)
+  (-any (-partial #'s-equals? (nt-note->string note))
+        nt-ignore-notes))
+
 (defun nt-bounds?--lisps-form-opener? (note)
   "Does NOTE open a form?
 
@@ -72,11 +78,13 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
   ;; getting this subset working. Same for performance optimizations.
   (and
    (funcall
-    (-andfn (-not #'nt-bounds?--in-string-or-comment?)
-            (-not #'nt-bounds?--lisps-specially-indented?)
-            (-not #'nt-bounds?--lisps-terminal-sexp?)
-            (-orfn #'nt-bounds?--lisps-another-form-opener-same-line?
-                   #'nt-bounds?--lisps-form-opener?))
+    (-andfn
+     (-not #'nt-bounds?--ignore?)
+     (-not #'nt-bounds?--in-string-or-comment?)
+     (-not #'nt-bounds?--lisps-specially-indented?)
+     (-not #'nt-bounds?--lisps-terminal-sexp?)
+     (-orfn #'nt-bounds?--lisps-another-form-opener-same-line?
+            #'nt-bounds?--lisps-form-opener?))
     note)
    note))
 

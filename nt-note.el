@@ -69,6 +69,10 @@
   "Return NOTE's bound."
   (overlay-get note 'nt-bound))
 
+(defun nt-note->replacement (note)
+  "Return NOTE's replacement."
+  (overlay-get note 'display))
+
 (defun nt-note->line (note)
   "Return line containing NOTE."
   (-> note overlay-start line-number-at-pos))
@@ -80,6 +84,10 @@
 (defun nt-notes->width (notes)
   "Sum widths of NOTES."
   (->> notes (-map #'nt-note->width) -sum))
+
+(defun nt-note->string (note)
+  "Return NOTE's string."
+  (buffer-substring-no-properties (overlay-start note) (overlay-end note)))
 
 ;;; Init
 

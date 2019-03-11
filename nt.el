@@ -51,6 +51,12 @@
   "A function that should return whether a given NOTE modifies indentation.")
 
 
+(defvar nt-ignore-notes '("defun")
+  "List of strings identifying notes never contributing to indentation.
+
+There are better (ie. automated) ways to implement blacklisting, tbd.")
+
+
 (defvar nt-normalize-height? nil
   "Force notated buffer's line heights to match true buffer?
 
