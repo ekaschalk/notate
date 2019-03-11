@@ -4,11 +4,77 @@ Serves as a scratch buffer for thoughts and other notes related to nt.
 
 * Notes
 
-must wrap `evil-line-move' to preserve column +- mask offsets
-(and `forward-line', the evil func has commentary on column preservation)
-
 https://emacs.stackexchange.com/questions/14420/how-can-i-fix-incorrect-character-width
 has potential for standardizing widths of all the icons fonts
 
+* Data Structure Ideas
 
-* Notes for an implementation of note deletion
+root = [Indent 0: line-start: 0 line-end: inf]
+
+Insert a note
+
+[Indent width(note): line-start: x line-end: y]
+
+
+What if i store just intervals on top of masks?
+
+masks=vector(num-lines)
+
+masks-intervals =
+
+
+masks = true-indent at each line
+traverse lines, buildup tree of inflection points (positions) and whether + or -
+
+INSERTION
+traverse inflection points forward from note.start
+add 1 or subtract 1 for each + or - point
+when we reach zero -> end of note found
+
+INSERTION (CHANGE FUNCTION)
+New line -> get pos of new line -> increment inflection points thereon
+Delete line -> get pos of del line -> decrement inflection points
+Delete inflection point ->
+- if + point
+  - increment + point (or delete if already a + point)
+  -
+
+
+I have to work through:
+indent.el
+src/indent.c
+
+* Indent.c
+
+FUNCTIONS:
+current_indentation
+indent_to
+current_column
+line_number_display_width
+vertical_motion
+compute_motion
+
+** indent-to
+
+#+BEGIN_QUOTE
+(indent-to COLUMN &optional MINIMUM)
+
+Indent from point with tabs and spaces until COLUMN is reached.
+Optional second argument MINIMUM says always do at least MINIMUM spaces
+even if that goes past COLUMN; by default, MINIMUM is zero.
+
+The return value is the column where the insertion ends.
+#+END_QUOTE
+
+This is interesting: instead of indent-to column, it is indent-to "something"
+where "something" is pixel-width or something else entirely.
+
+* textprop.c
+
+text-properties-at
+
+eli used the term "stretch glyphs" to refer to spaces of certain width
+
+Goal: use stretch glyph instead of spaces.
+
+produce_stretch_glyph - look into this
