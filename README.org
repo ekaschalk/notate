@@ -1,6 +1,6 @@
 * Notate - Program with Personalized Notation
 
-(In-progress, current-progress screenshot)
+(In-progress, current screenshot, *see bottom for current project status*)
 
 [[./img/progress-2-stdize-height.png]]
 
@@ -82,20 +82,6 @@ simple as a toggle.
                    exciting. For contributing code and raising issues, see
                    CONTRIBUTING.
 
-** Status
-
-- Doesn't yet recalculate masks on buffer modifications.
-  - Insertion close to working, deletion not started.
-- Line movement needs to adjust for the indentation masks.
-  - Moving point vertically across masks of different sizes will have horizontal
-    movement as difference of the sizes.
-- Boundary functions need fleshing out.
-  - Only for lisps at the moment and indentation cases not exhausted yet.
-- Either height or width is normalized, not both.
-  - To see what I mean, compare the two progress-2 images in [[./img]]. See the
-    ~nt-normalize-height?~ variable for commentary.
-- Optimization second to readability until project complete.
-
 ** Goals
 
 [[https://helpful.knobs-dials.com/index.php/Morpheme,_Syllable,_Lexeme,_Grapheme,_Phoneme,_Character,_Glyph][Graphemes, characters, ligatures, and glyphs]] can be confusing when used
@@ -114,3 +100,37 @@ I want:
   considerations, and ideas presented in this work.
 - More imaginative notation, supported languages, and awareness of the
   possibilities Emacs offers and encourages.
+
+** Status
+*** Lisp Status
+
+- Doesn't yet recalculate masks on buffer modifications.
+  - Insertion close to working, deletion not started.
+- Line movement needs to adjust for the indentation masks.
+  - Moving point vertically across masks of different sizes will have horizontal
+    movement as difference of the sizes.
+- Boundary functions need fleshing out.
+  - Only for lisps at the moment and indentation cases not exhausted yet.
+- Either height or width is normalized, not both.
+  - To see what I mean, compare the two progress-2 images in [[./img]]. See the
+    ~nt-normalize-height?~ variable for commentary.
+- Optimization second to readability until project complete.
+
+*** Project Status
+
+I'm further appreciating what Eli meant by "there are limits to what one can
+reasonably do in lisp".
+
+This project has, and will, grow quite large; to the point incurring the initial
+time-commitment of learning C and Emac's source is not so discouraging.
+
+To the point: I'm beginning to believe I must tackle Emac's indentation at the
+primitive level.
+
+So I'm annotating Emac's C source, understanding the following components before
+continuing at lisp-level.
+
+- ~src/indent.c~: Most indentation functions are at lisp-level, so what are the
+  points of these primitives?
+- ~stretch-glyphs~: The likely (nudged to) data structure to reimplement
+  indentation with.
