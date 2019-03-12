@@ -7,6 +7,9 @@
 ;; Module will replace current `nt-tree.el' list-based note management with
 ;; `hierarchy' tree-based management https://github.com/DamienCassou/hierarchy
 
+;; NOTE above will not work, actually going to use dash's -tree methods and
+;; implement custom.
+
 ;; See `nt-tree' for how the tree structure is defined.
 
 ;;; Code:
@@ -17,11 +20,39 @@
 (require 'nt-ov)
 (require 'nt-note)
 
+;;; Dash-based Implementation Exploring
+
+(defun nt-tree--init ()
+  "(re)Init `nt-tree'."
+  (setq nt-tree nil))
+
+(defun nt-tree--buildup (notes)
+  "Buildup initial `nt-tree' given NOTES."
+  (-sort #'nt-note--cmp notes)
+  ;; Start position decreases within each node then increases
+  ;; Pretty simple way of determining groups
+
+  )
+
+(defun nt-tree--groupby (notes)
+  ;; -tree-seq
+  )
+
+(defun nt-tree--note->root (note)
+  "Return root of NOTE, if it has one."
+  (-first (-partial #'nt-note--proper-subset-of? note)
+          (nt-tree->roots)))
+
 ;;; Init
 
 (defun nt-tree--init ()
   "(re)Init `nt-tree'."
   (setq nt-tree (hierarchy-new)))
+
+(defun nt-tree--buildup (notes)
+  "Buildup initial `nt-tree' given NOTES."
+  ;; batch initiation must be handled differently than one-at-a-time!
+  (nt-tree--add* notes))
 
 ;;; Querying
 ;;;; Primitives
@@ -141,11 +172,6 @@
                        #'nt-tree--parent-fn
                        ;; #'nt-tree--child-fn
                        ))
-
-(defun nt-tree--init (notes)
-  "Initiate `nt-tree' given NOTES."
-  ;; FOUND THE ISSUE - initiation has to be handled differently than later on
-  )
 
 (defun nt-tree--sort ()
   "Sort `nt-tree' according to `nt-tree--note<' comparison fn."

@@ -118,7 +118,7 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
       (while (re-search-forward rx nil 'noerror)
         (push (nt-note--init string replacement) notes))
       (prog1 notes
-        (nt-tree--init notes)))))
+        (nt-tree--buildup notes)))))
 
 (defun nt-test--mock-tree (string-replacement-alist)
   "Construct mocked `nt-tree', ret notes as /list/ sorted by /buffer position/.
