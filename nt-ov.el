@@ -50,6 +50,11 @@
   "Execute `nt-ov--at' point."
   (nt-ov--at (point)))
 
+(defun nt-ov--region (ov)
+  "Return OV's region."
+  (list (overlay-start ov)
+        (overlay-end ov)))
+
 ;;; Management
 
 (defun nt-ov--remove-all ()

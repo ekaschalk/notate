@@ -25,8 +25,7 @@
       ;; Debug
       ;;;;
       (nt-tree-print)
-
-      (message "foo %s" (nt-tree->roots))
+      ;; (message "foo %s" (nt-tree->roots))
 
       ;;;;
       ;; Containment

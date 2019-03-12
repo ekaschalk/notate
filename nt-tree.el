@@ -23,6 +23,27 @@
   (setq nt-tree (hierarchy-new)))
 
 ;;; Querying
+;;;; Primitives
+
+(defun nt-tree--note->root (note)
+  "Return root of NOTE, if it has one."
+  (-first (-partial #'nt-tree--note-is-subset? note)
+          (nt-tree->roots)))
+
+(defun nt-tree--region->notes (start end)
+  "Return notes within region [START END)"
+  (--filter
+   (overlay-get it 'nt-note?)
+   (overlays-in start end)))
+
+(defun nt-tree--region->roots (start end)
+  "Return roots covering region [START END)."
+  (->>
+   (nt-tree--region->notes start end)
+   (-map #'nt-tree--note->root)
+   -non-nil
+   -distinct))
+
 ;;;; Top-level
 
 (defun nt-tree->list ()
@@ -53,34 +74,13 @@
   "Return parent of NOTE, if it has a parent."
   (hierarchy-parent nt-tree note))
 
-(defun nt-tree--note->root (note)
-  "Return root of NOTE, or NOTE if itself is a root."
-  ;; Alt. do natural choice of visiting parents, probably with `iter-defun'
-  (or (-first (-partial #'nt-tree--note-is-subset? note)
-              (nt-tree->roots))
-      note))
-
 ;;;; Regions
-;;;;; Point-Based
-
-(defun nt-tree--region->notes (start end)
-  "Return notes within region [START END)"
-  (--filter
-   (overlay-get it 'nt-note?)
-   (overlays-in start end)))
-
-(defun nt-tree--region->roots (start end)
-  "Return roots covering region [START END)."
-  (funcall (-compose #'-distinct
-                     (-partial #'-map #'nt-tree--note->root)
-                     #'nt-tree--region->notes)
-           start end))
 
 (defun nt-tree--point->root (pos)
   "Return root containing POS"
   (-first-item (nt-tree--region->roots pos (1+ pos))))
 
-;;;;; Line-Based
+;;;; Lines
 
 (defun nt-tree--line->notes (line)
   "Return notes on LINE."
@@ -102,7 +102,7 @@
   (apply #'nt-tree--region->roots
          (nt-base--lines-bounds start-line end-line)))
 
-;;;; Visualizations
+;;; Formats
 
 (defun nt-tree--label-fn (note indent)
   "Format label for NOTE at INDENT level for hierarchy display representations."
@@ -156,24 +156,7 @@
 
 (defun nt-tree--parent-fn (note)
   "Get NOTE's smallest parent, or nil if NOTE should be a root."
-  ;; Note the -first call assumes children are ordered size-ascending
-
-  ;; (-when-let (root (nt-tree--note->root note))
-  ;;   (save-excursion
-  ;;     (let ((leaf (-last-item
-  ;;                  (overlays-in
-  ;;                   (overlay-start root)
-  ;;                   (-last-item (nt-tree--stationary-points))))))
-  ;;       ;; stuff
-  ;;       ))
-
-  (-first (-partial #'nt-tree--note-is-subset? note)
-          (nt-tree->roots))
-
-  ;;   ;; (or (-first (-partial #'nt-tree--note-is-subset? note)
-  ;;   ;;             (hierarchy-children nt-tree root))
-  ;;   ;;     root)
-  ;;   )
+  (nt-tree--note->root note)
   )
 
 ;;; Mutations
