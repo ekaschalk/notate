@@ -22,26 +22,42 @@
 
 ;;; Dash-based Implementation Exploring
 
-(defun nt-tree--init ()
-  "(re)Init `nt-tree'."
-  (setq nt-tree nil))
+;; (defun nt-tree--init ()
+;;   "(re)Init `nt-tree'."
+;;   (setq nt-tree nil))
 
-(defun nt-tree--buildup (notes)
-  "Buildup initial `nt-tree' given NOTES."
-  (-sort #'nt-note--cmp notes)
-  ;; Start position decreases within each node then increases
-  ;; Pretty simple way of determining groups
+;; (defun nt-tree--buildup (notes)
+;;   "Buildup initial `nt-tree' given NOTES."
+;;   (-sort #'nt-note--cmp notes)
+;;   ;; Start position decreases within each node then increases
+;;   ;; Pretty simple way of determining groups
+;;   )
 
-  )
+;; (defun nt-tree--note->root (note)
+;;   "Return root of NOTE, if it has one."
+;;   (-first (-partial #'nt-note--proper-subset-of? note)
+;;           (nt-tree->roots)))
 
-(defun nt-tree--groupby (notes)
+(defun nt-tree--testing ()
   ;; -tree-seq
-  )
+  (let ((tree
+         '((1 100)   ; root
+           ((2 20)   ; root.child1
+            ((5 20)  ; root.child1.child1
+             (7 20)  ; root.child1.child2
+             )
+            (50 60)  ; root.child2
+            )
+           (110 200)  ; root2
+           ((150 200) ; root2.child1
+            ))))
 
-(defun nt-tree--note->root (note)
-  "Return root of NOTE, if it has one."
-  (-first (-partial #'nt-note--proper-subset-of? note)
-          (nt-tree->roots)))
+    (-tree-seq (lambda (node) (and node (integerp (car node))))
+               'identity
+               tree)
+
+    ;; tree
+    ))
 
 ;;; Init
 
