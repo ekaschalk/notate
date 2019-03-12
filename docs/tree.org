@@ -14,6 +14,14 @@ of the passed branch node.
 
 Non-branch nodes are simply copied.
 
+(-tree-map-nodes PRED FUN TREE)
+
+Call FUN on each node of TREE that satisfies PRED.
+
+If PRED returns nil, continue descending down this node.  If PRED
+returns non-nil, apply FUN to this node and do not descend
+further.
+
 
 (-tree-seq
  'listp

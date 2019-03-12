@@ -63,17 +63,141 @@
 
 ;; What if  flip the ordering:
 
-'((1 100) ; root
-  (2 20)  ; root.child1
-  (2 4)   ; root.child1.child1
-  (5 20)  ; root.child1.child2
-  (7 10)  ; root.child1.child2.child2
-  (15 20) ; root.child1.child2.child2
-  (50 60) ; root.child2
+(setq tree
+      '((1 100) ; root
+        ;; [1]
+        (2 20)  ; root.child1
+        ;; [11]
+        (2 4)   ; root.child1.child1
+        (5 20)  ; root.child1.child2
+        ;; [111
+        ;;  112]
+        (7 10)  ; root.child1.child2.child1
+        (15 20) ; root.child1.child2.child2
+        ;; [1121
+        ;;  1122]
+        (50 60) ; root.child2
+        ;; [12]
 
-  (110 200) ; root2
-  (150 200) ; root2.child1
-  )
+        (110 200) ; root2
+        ;; [2]
+        (150 200) ; root2.child1
+        ;; [21]
+        ))
+
+(setq tree-2
+      '((1 100) ; root
+        ;; [1]
+        ((2 20)  ; root.child1
+         ;; [11]
+         ((2 4)   ; root.child1.child1
+          (5 20)  ; root.child1.child2
+          ;; [111
+          ;;  112]
+          ((7 10)  ; root.child1.child2.child1
+           (15 20))) ; root.child1.child2.child2
+         ;; [1121
+         ;;  1122]
+         (50 60)) ; root.child2
+        ;; [12]
+
+        (110 200) ; root2
+        (
+         ;; [2]
+         (150 200)) ; root2.child1
+        ;; [21]
+        ))
+(setq tree-3
+      '((1 100 ; root
+           ;; [1]
+           ((2 20  ; root.child1
+               ;; [11]
+               ((2 4)   ; root.child1.child1
+                (5 20  ; root.child1.child2
+                   ;; [111
+                   ;;  112]
+                   ((7 10)  ; root.child1.child2.child1
+                    (15 20))))) ; root.child1.child2.child2
+            ;; [1121
+            ;;  1122]
+            (50 60))) ; root.child2
+        ;; [12]
+
+        (110 200 ; root2
+             (
+              ;; [2]
+              (150 200))) ; root2.child1
+        ;; [21]
+        ))
+
+(defun tree--node-contains? (line node)
+  "Does NODE contain POS?"
+  (< (car node) line (cadr node)))
+
+(defun tree--node->note (node))
+
+(defun tree--node->children (node)
+  "Get NODE's children, should they exist."
+  (caddr node))
+
+(defun tree--notes-for (tree line &optional notes)
+  "Return notes for LINE in TREE."
+  (if-let (node (-first (-partial #'tree--node-contains? line)
+                        tree))
+      (let* ((note     (tree--node->note node))
+             (children (tree--node->children node)))
+        (tree--notes-containing children line (cons note notes)))
+    notes))
+
+(defun tree--notes-for (tree start-line end-line &optional notes)
+  (if-let (nodes (-filter (-partial #'tree--node-contains? line)
+                          tree))
+      ))
+
+;; (defun tree--notes-containing (tree region &optional ret)
+;;   "Return NODES satisfying PRED."
+;;   ;; WRONG at most one node in each level will contain point
+;;   (let* ((nodes    (-filter (-partial #'tree--node-contains? pos)
+;;                             tree))
+;;          (notes    (-map #'tree--node->note     nodes))
+;;          (children (-map #'tree--node->children nodes)))
+
+;;     (if nodes
+;;         (-map (-cut #'tree--notes-containing <> pos <>)
+;;               children
+;;               (append ret notes))
+;;       ret)))
+
+;; (-tree-seq
+;;  #'tree--node-contains?
+;;  #'tree--children
+;;  tree-3)
+
+;; THOUGHTS:
+;; 1. Sort, buildup labels
+;; 2. turn into a tree:
+
+;; insertion:
+;;   1. insert at sorted start pos
+;; traversing:
+;;   1. first interval containing region is the root
+
+;; 1
+;; 11             12
+;; 111 112        xxx
+;; xxx 1121 1122  xxx
+;; 2
+;; 21
+
+
+;; Region -> check which it lives in -> label got
+;; -> check down with that label -> check which it lives in
+;; if doesn't live in any -> that label is the answer
+;; otherwise add to label and continue forward
+
+;; (-tree-seq branch-fn child-fn tree)
+(-tree-seq (-not #'vectorp) #'identity tree)
+(-tree-map-nodes 'v)
 
 ;; Example: Inserting (4 40) would never happend due to how indentation works
 ;; that is, it must be (4 x) x<=20
@@ -85,6 +209,7 @@
 ;; ALG:
 ;; 1. Sort as already defined.
 ;;      wait, due to how indentation works, it might be just sort by start pos...
+;;      (actually desc. first by end then ascending start to cover (2 4) case)
 ;; 2. For node n_i
 ;; 3a. if n_i+1 has end <= n_i
 ;;      n_i+1 is a child of n_i
@@ -92,6 +217,9 @@
 ;;      From i..0 let n_j be the first note containing n_i+1
 ;;      n_j is the parent of n_i
 ;;      if no such j, then n_j is a root
+
+;; Now we can store a mirror list with the depth of each idx
+;; or something els..
 
 ;; That seems much simpler
 
