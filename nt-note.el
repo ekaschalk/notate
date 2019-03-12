@@ -89,6 +89,26 @@
   "Return NOTE's string."
   (buffer-substring-no-properties (overlay-start note) (overlay-end note)))
 
+;;;; Comparisons
+
+(defun nt-note--proper-subset-of? (self other)
+  "Is NOTE's boundary properly captured in another NOTE's boundary?"
+  (-let (((a1 b1) (nt-note->bound self))
+         ((a2 b2) (nt-note->bound other)))
+    (and (< a2 a1)
+         (< b1 b2))))
+
+(defun nt-note--start< (self other)
+  "Is NOTE's starting position < another NOTE's start positions?"
+  (-let (((a1 _) (nt-note->bound self))
+         ((a2 _) (nt-note->bound other)))
+    (< a2 a1)))
+
+(defun nt-note--cmp (self other)
+  "Compare NOTE-1 < NOTE-2. See `nt-tree' for data structure."
+  (cond ((nt-note--proper-subset-of? self other))
+        ((nt-note--start<            self other))))
+
 ;;; Init
 
 (defun nt-note--init-ov (ov string replacement)

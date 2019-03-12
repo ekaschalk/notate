@@ -48,7 +48,7 @@
           (line-end-position))))
 
 (defun nt-base--lines-bounds (start-line end-line)
-  "Return [start end] points with start of START-LINE, end of 1-END-LINE."
+  "Return [start end] points with start of START-LINE and end of 1-END-LINE."
   (save-excursion
     (nt-base--goto-line start-line)
     (list (line-beginning-position)

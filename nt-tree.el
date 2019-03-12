@@ -15,6 +15,7 @@
 (require 'nt-base)
 
 (require 'nt-ov)
+(require 'nt-note)
 
 ;;; Init
 
@@ -22,12 +23,19 @@
   "(re)Init `nt-tree'."
   (setq nt-tree (hierarchy-new)))
 
+;;; Relationships
+;;;; Parent-Finding
+
+(defun nt-tree--parent-fn (note)
+  "Get NOTE's smallest parent, or nil if NOTE should be a root."
+  (nt-tree--note->root note))
+
 ;;; Querying
 ;;;; Primitives
 
 (defun nt-tree--note->root (note)
   "Return root of NOTE, if it has one."
-  (-first (-partial #'nt-tree--note-is-subset? note)
+  (-first (-partial #'nt-note--proper-subset-of? note)
           (nt-tree->roots)))
 
 (defun nt-tree--region->notes (start end)
@@ -44,6 +52,14 @@
    -non-nil
    -distinct))
 
+(defun nt-tree--region->notes* (region)
+  "Apply `nt-tree--region->notes' on REGION."
+  (apply #'nt-tree--region->notes region))
+
+(defun nt-tree--region->roots* (region)
+  "Apply `nt-tree--region->roots' on REGION."
+  (apply #'nt-tree--region->roots region))
+
 ;;;; Top-level
 
 (defun nt-tree->list ()
@@ -56,9 +72,7 @@
 
 (defun nt-tree->string ()
   "Convert hierarchy `nt-tree' to a string."
-  ;; TODO Below should be used when I have it working
-  ;; (hierarchy-to-string nt-tree)
-  (nt-tree--format))
+  (nt-tree--format))  ; NOTE will be later just: (hierarchy-to-string nt-tree)
 
 (defun nt-tree->leafs (&optional note)
   "Return the smallest-boundary notes, optionally restricted to NOTE's subtree."
@@ -84,25 +98,21 @@
 
 (defun nt-tree--line->notes (line)
   "Return notes on LINE."
-  (apply #'nt-tree--region->notes
-         (nt-base--line-bounds line)))
-
-(defun nt-tree--lines->notes (start-line end-line)
-  "Return notes within lines [START-LINE END-LINE)."
-  (apply #'nt-tree--region->notes
-         (nt-base--lines-bounds start-line end-line)))
+  (nt-tree--region->notes* (nt-base--line-bounds line)))
 
 (defun nt-tree--line->roots (line)
   "Return roots on LINE."
-  (apply #'nt-tree--region->roots
-         (nt-base--line-bounds line)))
+  (nt-tree--region->roots* (nt-base--line-bounds line)))
+
+(defun nt-tree--lines->notes (start-line end-line)
+  "Return notes within lines [START-LINE END-LINE)."
+  (nt-tree--region->notes* (nt-base--lines-bounds start-line end-line)))
 
 (defun nt-tree--lines->roots (start-line end-line)
   "Return roots within lines [START-LINE END-LINE)."
-  (apply #'nt-tree--region->roots
-         (nt-base--lines-bounds start-line end-line)))
+  (nt-tree--region->roots* (nt-base--lines-bounds start-line end-line)))
 
-;;; Formats
+;;; Formatters
 
 (defun nt-tree--label-fn (note indent)
   "Format label for NOTE at INDENT level for hierarchy display representations."
@@ -117,47 +127,6 @@
   (if table?
       (hierarchy-tabulated-display nt-tree #'nt-tree--label-fn)
     (hierarchy-tree-display nt-tree #'nt-tree--label-fn)))
-
-;;; Relationships
-;;;; Comparisons
-
-(defun nt-tree--note-is-subset? (note-1 note-2)
-  "Is NOTE-1's boundary captured in NOTE-2's boundary? Non-strict."
-  (-let (((a1 b1) (nt-note->bound note-1))
-         ((a2 b2) (nt-note->bound note-2)))
-    ;; Think - do I need more conditions here? We have knowledge about the
-    ;; behavior of bounds and this can possibly be a "subset" of a subset check
-    (and (< a2 a1)
-         (< b1 b2))))
-
-(defun nt-tree--note-start< (note-1 note-2)
-  "Compare NOTE-1's start and NOTE-2's start positions. Non-strict."
-  (-let (((a1 _) (nt-note->bound note-1))
-         ((a2 _) (nt-note->bound note-2)))
-    (< a2 a1)))
-
-(defun nt-tree--note< (note-1 note-2)
-  "Compare NOTE-1 and NOTE-2. Non-strict. See `nt-tree' for cmp rules."
-  (cond ((nt-tree--note-is-subset? note-1 note-2))
-        ((nt-tree--note-start<     note-1 note-2))))
-
-;;;; Parent-Finding
-
-;; (defun nt-tree--stationary-points (note)
-;;   "Return the stationary points (indent stops increasing) for NOTE's subtree."
-;;   ;; OBSERVE
-;;   ;; first note to the left of the stationary point is in fact the leaf of NOTE
-
-;;   ;; THOUGHT
-;;   ;; Are things made nicer by assuming a singleton note that covers the buffer?
-
-;;   ;; then we have a "nested set" model
-;;   )
-
-(defun nt-tree--parent-fn (note)
-  "Get NOTE's smallest parent, or nil if NOTE should be a root."
-  (nt-tree--note->root note)
-  )
 
 ;;; Mutations
 
@@ -177,7 +146,7 @@
 
 (defun nt-tree--sort ()
   "Sort `nt-tree' according to `nt-tree--note<' comparison fn."
-  (hierarchy-sort nt-tree #'nt-tree--note<))
+  (hierarchy-sort nt-tree #'nt-note--cmp))
 
 ;;; Development Utilities
 
