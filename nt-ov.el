@@ -16,31 +16,34 @@
 
 (defun nt-ov? (ov)
   "Is OV made by `nt'? Get it."
-  (-> ov (overlay-get 'nt?) (and ov)))
+  (when (overlayp ov)
+    (-> ov (overlay-get 'nt?) (and ov))))
 
 (defun nt-ov--note? (ov)
   "Is OV a note? Get it."
-  (-> ov (overlay-get 'nt-note?) (and ov)))
+  (-some-> ov nt-ov? (overlay-get 'nt-note?) (and ov)))
 
 (defun nt-ov--mask? (ov)
   "Is OV a mask? Get it."
-  (-> ov (overlay-get 'nt-mask?) (and ov)))
-
-(defun nt-ov--in? (ov start end)
-  "Is OV contained within START and END? Get it."
-  (and ov start end
-       (<= start (overlay-start ov) (overlay-end ov) end)
-       ov))
+  (-some-> ov nt-ov? (overlay-get 'nt-mask?) (and ov)))
 
 (defun nt-ov--deleted? (ov)
   "Has OV been deleted?"
-  (-> ov overlay-buffer null))
+  (when (nt-ov? ov)
+    (-> ov overlay-buffer null)))
+
+(defun nt-ov--in? (ov start end)
+  "Is OV contained within START and END? Get it."
+  (when (nt-ov? ov)
+    (and start end
+         (<= start (overlay-start ov) (overlay-end ov) end)
+         ov)))
 
 ;;; Utils
 
 (defun nt-ov--goto (ov)
   "Goto start of OV."
-  (goto-char (overlay-start ov)))
+  (-> ov overlay-start goto-char))
 
 (defun nt-ov--at (pos)
   "Return first nt overlay at POS."
