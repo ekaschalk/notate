@@ -38,23 +38,56 @@
 ;;   (-first (-partial #'nt-note--proper-subset-of? note)
 ;;           (nt-tree->roots)))
 
+;; WORKED EXAMPLE
+
+'((7 10)  ; root.child1.child1.child2
+  ;; start increased & end increased -> same-level next (or new root)
+  (15 20) ; root.child1.child2.child2
+  ;; start decreased & end increased -> parent next
+  (5 20)  ; root.child1.child1
+  ;; same
+  (2 20)  ; root.child1
+  ;; start increased & end increased -> same-level next (or new subtree)
+  (50 60) ; root.child2
+  ;; start decreased & end increased -> parent next
+  (1 100) ; root
+  ;; start increased & end increased -> same level next (or new subtree)
+  (150 200) ; root2.child1
+  ;; start decreased & end increased -> parent next
+  (110 200) ; root2
+  )
+
 (defun nt-tree--testing ()
   ;; -tree-seq
-  (let ((tree
-         '((1 100)   ; root
-           ((2 20)   ; root.child1
-            ((5 20)  ; root.child1.child1
-             (7 20)  ; root.child1.child2
-             )
-            (50 60)  ; root.child2
-            )
-           (110 200)  ; root2
-           ((150 200) ; root2.child1
-            ))))
 
-    (-tree-seq (lambda (node) (and node (integerp (car node))))
-               'identity
-               tree)
+
+  (let (;; (tree
+        ;;  '(((2 20)   ; root.child1
+        ;;     ((5 20)  ; root.child1.child1
+        ;;      (7 20)  ; root.child1.child2
+        ;;      )
+        ;;     (50 60)  ; root.child2
+        ;;     )
+        ;;    (1 100)   ; root
+
+        ;;    ((150 200) ; root2.child1
+        ;;     )
+        ;;    (110 200)  ; root2
+        ;;    ))
+        ((tree2
+          )))
+
+    (-tree-map-nodes
+     (-andfn #'nt-ov--note?
+             )
+     )
+
+    ;; (-tree-seq #'nt-ov--note?
+    ;;            'identity
+    ;;            tree)
+    ;; (-tree-seq (lambda (node) (integerp (car node)))
+    ;;            'identity
+    ;;            tree)
 
     ;; tree
     ))
