@@ -23,13 +23,6 @@
   "(re)Init `nt-tree'."
   (setq nt-tree (hierarchy-new)))
 
-;;; Relationships
-;;;; Parent-Finding
-
-(defun nt-tree--parent-fn (note)
-  "Get NOTE's smallest parent, or nil if NOTE should be a root."
-  (nt-tree--note->root note))
-
 ;;; Querying
 ;;;; Primitives
 
@@ -94,8 +87,6 @@
   "Return root containing POS"
   (-first-item (nt-tree--region->roots pos (1+ pos))))
 
-;;;; Lines
-
 (defun nt-tree--line->notes (line)
   "Return notes on LINE."
   (nt-tree--region->notes* (nt-base--line-bounds line)))
@@ -112,17 +103,24 @@
   "Return roots within lines [START-LINE END-LINE)."
   (nt-tree--region->roots* (nt-base--lines-bounds start-line end-line)))
 
+;;;; Relationships
+
+(defun nt-tree--parent-fn (note)
+  "Get NOTE's smallest parent, or nil if NOTE should be a root."
+  (print note)
+  (nt-tree--note->root note))
+
 ;;; Formatters
 
 (defun nt-tree--label-fn (note indent)
   "Format label for NOTE at INDENT level for hierarchy display representations."
   (-> indent (s-repeat " ") (s-join note)))
 
-(defun nt-tree-print ()
+(defun nt-tree--print ()
   "Print hierarchy `nt-tree' according to `nt-tree->string'."
   (print (nt-tree->string)))
 
-(defun nt-tree-visualize (&optional table?)
+(defun nt-tree--visualize (&optional table?)
   "Visualize `nt-tree' via `hierarchy-tree-display' and friends."
   (if table?
       (hierarchy-tabulated-display nt-tree #'nt-tree--label-fn)
@@ -143,6 +141,11 @@
                        #'nt-tree--parent-fn
                        ;; #'nt-tree--child-fn
                        ))
+
+(defun nt-tree--init (notes)
+  "Initiate `nt-tree' given NOTES."
+  ;; FOUND THE ISSUE - initiation has to be handled differently than later on
+  )
 
 (defun nt-tree--sort ()
   "Sort `nt-tree' according to `nt-tree--note<' comparison fn."

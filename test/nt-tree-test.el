@@ -24,7 +24,7 @@
       ;;;;
       ;; Debug
       ;;;;
-      (nt-tree-print)
+      (nt-tree--print)
       ;; (message "foo %s" (nt-tree->roots))
 
       ;;;;
