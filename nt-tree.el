@@ -41,7 +41,7 @@
 ;; WORKED EXAMPLE
 
 '((7 10)  ; root.child1.child1.child2
-  ;; start increased & end increased -> same-level next (or new root)
+  ;; start increased & end increased -> same-level next (or new subtree)
   (15 20) ; root.child1.child2.child2
   ;; start decreased & end increased -> parent next
   (5 20)  ; root.child1.child1
@@ -51,31 +51,53 @@
   (50 60) ; root.child2
   ;; start decreased & end increased -> parent next
   (1 100) ; root
+
   ;; start increased & end increased -> same level next (or new subtree)
   (150 200) ; root2.child1
   ;; start decreased & end increased -> parent next
   (110 200) ; root2
   )
 
+;; Determining between same-level or new subtree:
+;; The set of largest non-overlapping intervals define the roots
+
+;; What if  flip the ordering:
+
+'((1 100) ; root
+  (2 20)  ; root.child1
+  (2 4)   ; root.child1.child1
+  (5 20)  ; root.child1.child2
+  (7 10)  ; root.child1.child2.child2
+  (15 20) ; root.child1.child2.child2
+  (50 60) ; root.child2
+
+  (110 200) ; root2
+  (150 200) ; root2.child1
+  )
+
+;; Example: Inserting (4 40) would never happend due to how indentation works
+;; that is, it must be (4 x) x<=20
+
+;; Now traversing is (or stayed same on increase/decrease):
+;;  start increased & end decreased -> child
+;;  start increased & end increased -> same-level or up-level
+
+;; ALG:
+;; 1. Sort as already defined.
+;;      wait, due to how indentation works, it might be just sort by start pos...
+;; 2. For node n_i
+;; 3a. if n_i+1 has end <= n_i
+;;      n_i+1 is a child of n_i
+;; 3b. if n_i+1 has end > n_i and start >= n_i
+;;      From i..0 let n_j be the first note containing n_i+1
+;;      n_j is the parent of n_i
+;;      if no such j, then n_j is a root
+
+;; That seems much simpler
+
 (defun nt-tree--testing ()
   ;; -tree-seq
-
-
-  (let (;; (tree
-        ;;  '(((2 20)   ; root.child1
-        ;;     ((5 20)  ; root.child1.child1
-        ;;      (7 20)  ; root.child1.child2
-        ;;      )
-        ;;     (50 60)  ; root.child2
-        ;;     )
-        ;;    (1 100)   ; root
-
-        ;;    ((150 200) ; root2.child1
-        ;;     )
-        ;;    (110 200)  ; root2
-        ;;    ))
-        ((tree2
-          )))
+  (let ((tree2))
 
     (-tree-map-nodes
      (-andfn #'nt-ov--note?
