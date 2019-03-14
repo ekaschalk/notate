@@ -59,7 +59,6 @@
   (when post-modification?
     ;; TODO Below will be replaced with the new deletion implementation that
     ;; doesn't require calling masks-for.
-    ;; sp-region-ok-p
     (nt--remove-note-from-masks note)
     (nt-note--delete note)))
 
@@ -100,8 +99,7 @@
 
 (defun nt-notes--sort (notes)
   "Return NOTES sorted according to start position."
-  (-sort (-on #'< (-compose #'car
-                            #'nt-note->bound))
+  (-sort (-on #'< #'overlay-start)
          notes))
 
 (defun nt--delete-region (start end)
@@ -112,7 +110,18 @@
     (-each notes #'nt-note--delete)
     (-each notes #'nt-mask--refresh-region)))
 
-;; NOTE this assumes notes are (-sort #'nt-note--start<) ordered
+(defun nt-notes->roots-1 (notes root roots)
+  "Internal, see `nt-notes->roots'."
+  (-if-let* (((_ root-end)
+              (nt-note->bound root))
+             (next
+              (-drop-while (-compose (-partial #'> root-end)
+                                     #'car
+                                     #'nt-note->bound)
+                           notes)))
+      (nt-notes->roots next (cons root roots))
+    (cons root roots)))
+
 (defun nt-notes->roots (notes &optional roots)
   "Return roots, the set of largest non-overlapping intervals, of NOTES.
 
@@ -120,14 +129,10 @@ Steps:
 1. Traverse _sorted_ NOTES by start position.
 2. First occurring note with start greater than head note's end is a root.
 3. Recurse fixing each root at head until NOTES is exhausted."
-  (-if-let* (((root rest) notes)
-             (root-end (overlay-end notes)))
-      (-if-let (next (-drop-while (-on (-partial #'nt-note--start>
-                                                 root-end))
-                                  rest))
-          (nt-notes->roots next roots)
-        (cons root roots))
-    roots))
+  (-let (((root . rest) notes))
+    (cond (rest (nt-notes->roots-1 rest root roots))
+          (root (cons root roots))
+          (roots))))
 
 ;;; Init
 

@@ -14,7 +14,16 @@
   "See `nt-test--with-context' for documentation on KIND."
   `(cl-case ,kind
      ((minimal no-setup)
-      (setq nt-bound?-fn (-const nil)))  ; `nt-bound-fn' won't be reached
+      (setq nt-bound?-fn (-const nil)
+            ;; TODO the new 'nt-bound prop is still reached even
+            ;; with the (-const nil) above. So need better way
+            ;; to nil this out.
+            nt-bound-fn (-juxt (-compose #'1+
+                                         #'line-number-at-pos
+                                         #'overlay-start)
+                               (-compose #'1+
+                                         #'line-number-at-pos
+                                         #'overlay-start))))
 
      (simple
       (setq nt-bound?-fn #'identity

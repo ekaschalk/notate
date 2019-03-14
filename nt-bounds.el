@@ -17,6 +17,8 @@
 ;;; General
 ;;;; Overlay-Based
 
+;; sp-region-ok-p is a possibly very useful function
+
 (defun nt-bounds?--in-string-or-comment? (note)
   "Is NOTE contained within a string or comment?"
   (let ((state (save-excursion
