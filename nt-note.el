@@ -107,7 +107,6 @@
 
     ))
 
-
 ;; NOTE this assumes notes are (-sort #'nt-note--start<) ordered
 (defun nt-notes->roots (notes &optional roots)
   "Return roots, the set of largest non-overlapping intervals, of NOTES.
