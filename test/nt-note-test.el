@@ -45,6 +45,7 @@
     (should-size (nt-notes--at 4) 1)))
 
 ;;; Transforms
+;;;; Widths
 
 (ert-deftest notes:transforms:width:base-case ()
   (should= (nt-notes->width nil)
@@ -68,6 +69,8 @@
       (should= (nt-notes->width notes)
                (+ (- 6 4)
                   (- 3 1))))))
+
+;;;; Misc
 
 (ert-deftest notes:transforms:string ()
   (nt-test--with-context 'any "

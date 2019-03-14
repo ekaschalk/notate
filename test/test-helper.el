@@ -137,12 +137,11 @@ Now we can destructure notes for test-cases, nicer than always searching first."
             (should* ,@(cdr fi)))))
 
 (defmacro should= (f1 &rest fi) `(should (= ,f1 ,@fi)))
-(defmacro should-s= (f1 &rest fi) `(should (s-equals? ,f1 ,@fi)))
+(defmacro should-s= (f1 f2) `(should (s-equals? ,f1 ,f2)))
 (defmacro should-size (coll size) `(should= (length ,coll) ,size))
 
 ;; Below variations not used yet, undecided on including
 ;; (defmacro should/= (f1 f2) `(should (/= ,f1 ,f2)))
 ;; (defmacro should-eq (f1 f2) `(should (eq ,f1 ,f2)))
 ;; (defmacro should-neq (f1 f2) `(should-not (eq ,f1 ,f2)))
-;; (defmacro should-s= (s1 s2) `(should (s-equals? ,s1 ,s2)))
 ;; (defmacro should-size= (coll1 coll2) `(should= (length ,coll1) (length ,coll2)))

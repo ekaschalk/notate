@@ -89,6 +89,42 @@
   "Return indent of line containing NOTE."
   (-> note nt-ov->line nt-base--indent-at))
 
+;;; NEW
+
+(defun nt-notes<-region (start end)
+  "Return notes in region START and END."
+  (nt-notes--present? start end))
+
+(defun nt-notes--sort (notes)
+  "Return sorted NOTES according to `nt-note--cmp'."
+  (-sort #'nt-note--cmp notes))
+
+(defun nt--delete-region (start end)
+  (let ((intervals)
+        ;; (notes (nt-notes<-region start end))
+        ;; (sorted (nt-notes--sort notes))
+        )
+
+    ))
+
+
+;; NOTE this assumes notes are (-sort #'nt-note--start<) ordered
+(defun nt-notes->roots (notes &optional roots)
+  "Return roots, the set of largest non-overlapping intervals, of NOTES.
+
+Steps:
+1. Traverse _sorted_ NOTES by start position.
+2. First occurring note with start greater than head note's end is a root.
+3. Recurse fixing each root at head until NOTES is exhausted."
+  (-if-let* (((root rest) notes)
+             (root-max (overlay-end notes)))
+      (-if-let (next (-drop-while (-on (-partial #'nt-note--start>
+                                                 root-max)
+                                       rest)))
+          (nt-notes->roots-1 next roots)
+        (cons root roots))
+    roots))
+
 ;;; Comparisons
 
 (defun nt-note--proper-subset-of? (self other)
@@ -100,6 +136,12 @@
 
 (defun nt-note--start< (self other)
   "Is NOTE's starting position < another NOTE's start positions?"
+  (-let (((a1 _) (nt-note->bound self))
+         ((a2 _) (nt-note->bound other)))
+    (< a2 a1)))
+
+(defun nt-note--start> (self other)
+  "Is NOTE's starting position > another NOTE's start positions?"
   (-let (((a1 _) (nt-note->bound self))
          ((a2 _) (nt-note->bound other)))
     (< a2 a1)))

@@ -197,9 +197,10 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
   ;;       refresh-intervals
 
   ;; don't even have to resort to a tree, only need the roots:
-  ;; PATH: region->notes => notes->roots  => -map note->interval
+  ;; PATH: region->notes => notes->roots  => -map note->bound
   ;;                        -each delete-tree
   ;;                        refresh-masks-in-intervals
+
 
   (-doto note
     (nt--remove-note-from-masks)
