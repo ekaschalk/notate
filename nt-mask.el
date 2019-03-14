@@ -27,6 +27,10 @@
   "Retrieve masks within START-LINE and END-LINE."
   (-slice nt-mask-list (1- start-line) (1- end-line)))
 
+(defun nt-masks--in-region (start end)
+  "Retrieve masks in START and END."
+  (nt-masks--in (nt-base--lines-bounds start end)))
+
 (defun nt-mask--insert-at (mask line)
   "Insert MASK at LINE into `nt-mask-list'."
   (setq nt-mask-list (-insert-at (1- line) mask nt-mask-list)))
@@ -186,6 +190,10 @@
 (defun nt-masks--refresh (masks)
   "Refresh MASKS."
   (-map #'nt-mask--refresh-maybe masks))
+
+(defun nt-masks--refresh-region (start end)
+  "Regresh masks in START and END."
+  (nt-masks--refresh (nt-masks--in-region start end)))
 
 (defun nt-masks--refresh-buffer ()
   "Refresh `nt-mask-list'."

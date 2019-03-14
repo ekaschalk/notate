@@ -182,12 +182,6 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
       (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
-;; (defun nt--delete-notes (notes)
-;;   "Delete NOTES and refresh the masks they contributed to."
-;;   (-doto note
-;;     (nt--remove-note-from-masks)
-;;     (nt-note--delete)))
-
 (defun nt--delete-region (start end)
   "Delete NOTES within START and END and refresh their masks."
   (nt--delete-notes (nt-notes<-region start end)))
@@ -197,7 +191,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
   (let* ((roots (nt-notes->roots notes))
          (bounds (-map nt-note->bound roots)))
     (-each notes #'nt-note--delete)
-    (-each notes #'nt-mask--refresh-region)))
+    (-each bounds #'nt-mask--refresh-region)))
 
 ;;; Interactive
 ;;;; Setup

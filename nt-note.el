@@ -16,11 +16,14 @@
 
 (require 'nt-ov)
 
-;;; Overlays
+
+;;; Configuration
 
 (defface nt-note--face
   `((t (:height 1)))
   "Face applied to notes.")
+
+;;; Overlays
 
 (defun nt-notes--present? (&optional start end)
   "Are notes present within START and END, defaulting to `match-data'? Get them."
@@ -118,8 +121,8 @@ Steps:
   (-if-let* (((root rest) notes)
              (root-end (overlay-end notes)))
       (-if-let (next (-drop-while (-on (-partial #'nt-note--start>
-                                                 root-end)
-                                       rest)))
+                                                 root-end))
+                                  rest))
           (nt-notes->roots next roots)
         (cons root roots))
     roots))
