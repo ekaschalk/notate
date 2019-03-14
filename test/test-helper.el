@@ -103,8 +103,10 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
       notes)))
 
 (defun nt-test--mock-notes (string-replacement-alist)
-  "Map `nt-test--mock-note' over list STRING-REPLACEMENT-ALIST."
-  (-mapcat (-applify #'nt-test--mock-note) string-replacement-alist))
+  "Map `nt-test--mock-note' over list STRING-REPLACEMENT-ALIST and sort it."
+  (->> string-replacement-alist
+     (-mapcat (-applify #'nt-test--mock-note))
+     nt-notes--sort))
 
 ;;; Expanded Shoulds
 
