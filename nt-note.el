@@ -135,7 +135,7 @@
   (-doto ov
     (overlay-put 'nt?      t)
     (overlay-put 'nt-note? t)
-    (overlay-put 'nt-width (nt-base--s-diff string replacement))
+    (overlay-put 'nt-width (- (length string) (length replacement)))
 
     (overlay-put 'display replacement)
     (overlay-put 'modification-hooks '(nt-note--decompose-hook))))
