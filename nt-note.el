@@ -26,12 +26,12 @@
 ;;; Overlays
 
 (defun nt-notes--present? (&optional start end)
-  "Are notes present within START and END, defaulting to `match-data'? Get them."
+  "Are notes present in START and END, defaulting to `match-data'? Get them."
   (let ((start (or start (match-beginning 1)))
         (end   (or end (match-end 1))))
     (and start end
-         (-filter #'nt-ov--note?
-                  (overlays-in start end)))))
+         (reverse (-filter #'nt-ov--note?
+                           (overlays-in start end))))))
 
 (defun nt-note--at (pos)
   "Get note at POS."
@@ -100,7 +100,7 @@
 
 (defun nt-notes--sort (notes)
   "Return sorted NOTES according to `nt-note--cmp'."
-  (-sort #'nt-note--cmp notes))
+  (-sort #'nt-note--start< notes))
 
 (defun nt--delete-region (start end)
   "Delete NOTES managed in START and END and refresh contributed to masks."
@@ -138,15 +138,17 @@ Steps:
 
 (defun nt-note--start< (self other)
   "Is NOTE's starting position < another NOTE's start positions?"
+  ;; Shorthand for:
+  ;; (-sort (-on #'< (-compose #'car #'nt-note->bound)) notes)
   (-let (((a1 _) (nt-note->bound self))
          ((a2 _) (nt-note->bound other)))
-    (< a2 a1)))
+    (< a1 a2)))
 
 (defun nt-note--start> (self other)
   "Is NOTE's starting position > another NOTE's start positions?"
   (-let (((a1 _) (nt-note->bound self))
          ((a2 _) (nt-note->bound other)))
-    (< a2 a1)))
+    (> a1 a2)))
 
 (defun nt-note--cmp (self other)
   "Compare NOTE-1 < NOTE-2. See `nt-tree' for data structure."
