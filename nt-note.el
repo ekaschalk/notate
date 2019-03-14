@@ -99,8 +99,10 @@
   (nt-notes--present? start end))
 
 (defun nt-notes--sort (notes)
-  "Return sorted NOTES according to `nt-note--cmp'."
-  (-sort #'nt-note--start< notes))
+  "Return NOTES sorted according to start position."
+  (-sort (-on #'< (-compose #'car
+                            #'nt-note->bound))
+         notes))
 
 (defun nt--delete-region (start end)
   "Delete NOTES managed in START and END and refresh contributed to masks."
@@ -126,34 +128,6 @@ Steps:
           (nt-notes->roots next roots)
         (cons root roots))
     roots))
-
-;;; Comparisons
-
-(defun nt-note--proper-subset-of? (self other)
-  "Is NOTE's boundary properly captured in another NOTE's boundary?"
-  (-let (((a1 b1) (nt-note->bound self))
-         ((a2 b2) (nt-note->bound other)))
-    (and (< a2 a1)
-         (< b1 b2))))
-
-(defun nt-note--start< (self other)
-  "Is NOTE's starting position < another NOTE's start positions?"
-  ;; Shorthand for:
-  ;; (-sort (-on #'< (-compose #'car #'nt-note->bound)) notes)
-  (-let (((a1 _) (nt-note->bound self))
-         ((a2 _) (nt-note->bound other)))
-    (< a1 a2)))
-
-(defun nt-note--start> (self other)
-  "Is NOTE's starting position > another NOTE's start positions?"
-  (-let (((a1 _) (nt-note->bound self))
-         ((a2 _) (nt-note->bound other)))
-    (> a1 a2)))
-
-(defun nt-note--cmp (self other)
-  "Compare NOTE-1 < NOTE-2. See `nt-tree' for data structure."
-  (cond ((nt-note--proper-subset-of? self other))
-        ((nt-note--start<            self other))))
 
 ;;; Init
 
