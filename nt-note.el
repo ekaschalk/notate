@@ -44,7 +44,7 @@
 
 (defun nt-notes--in (start-line end-line)
   "Return all notes in [START-LINE END-LINE)."
-  (-mapcat #'nt-notes--at (nt-base--range start-line end-line)))
+  (apply #'nt-notes--present? (nt-base--lines-bounds start-line end-line)))
 
 (defun nt-note--delete (note)
   "Delete NOTE."
@@ -56,10 +56,12 @@
   (when post-modification?
     ;; TODO Below will be replaced with the new deletion implementation that
     ;; doesn't require calling masks-for.
+    ;; sp-region-ok-p
     (nt--remove-note-from-masks note)
     (nt-note--delete note)))
 
 ;;; Transforms
+;;;; Overlay-Based
 
 (defun nt-note->width (note)
   "Wrapper to access width of NOTE."
@@ -73,23 +75,21 @@
   "Return NOTE's replacement."
   (overlay-get note 'display))
 
-(defun nt-note->line (note)
-  "Return line containing NOTE."
-  (-> note overlay-start line-number-at-pos))
-
-(defun nt-note->indent (note)
-  "Return indent of line containing NOTE."
-  (-> note nt-note->line nt-base--indent-at))
-
 (defun nt-notes->width (notes)
   "Sum widths of NOTES."
   (->> notes (-map #'nt-note->width) -sum))
 
 (defun nt-note->string (note)
   "Return NOTE's string."
-  (buffer-substring-no-properties (overlay-start note) (overlay-end note)))
+  (apply #'buffer-substring-no-properties (nt-ov->region note)))
 
-;;;; Comparisons
+;;;; Misc
+
+(defun nt-note->indent (note)
+  "Return indent of line containing NOTE."
+  (-> note nt-ov->line nt-base--indent-at))
+
+;;; Comparisons
 
 (defun nt-note--proper-subset-of? (self other)
   "Is NOTE's boundary properly captured in another NOTE's boundary?"

@@ -69,6 +69,15 @@
                (+ (- 6 4)
                   (- 3 1))))))
 
+(ert-deftest notes:transforms:string ()
+  (nt-test--with-context 'any "
+(string foo bar)
+"
+    (-let (((note _)
+            (nt-test--mock-notes '(("string" "note")))))
+      (should-s= (nt-note->string note)
+                 "string"))))
+
 ;;; Init
 
 (ert-deftest notes:init:simple ()

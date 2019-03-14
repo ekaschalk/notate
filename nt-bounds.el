@@ -30,8 +30,10 @@
 (defun nt-bounds?--ignore? (note)
   "Should NOTE never contribute to indentation?"
   (require 'nt-note)
-  (-any (-partial #'s-equals? (nt-note->string note))
-        nt-ignore-notes))
+  nil
+  ;; (-any (-partial #'s-equals? (nt-note->string note))
+  ;;       nt-ignore-notes)
+  )
 
 (defun nt-bounds?--lisps-form-opener? (note)
   "Does NOTE open a form?

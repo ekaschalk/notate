@@ -4,7 +4,7 @@
 
 ;;; Commentary:
 
-;; Methods acting on yet-to-be-specialized or regardless-of-specialization
+;; Methods acting on yet-to-be-specialized, or, regardless-of-specialization
 ;; nt overlays.
 
 ;;; Code:
@@ -39,7 +39,18 @@
          (<= start (overlay-start ov) (overlay-end ov) end)
          ov)))
 
-;;; Utils
+;;; Transforms
+
+(defun nt-ov->region (ov)
+  "Return OV's region."
+  (list (overlay-start ov)
+        (overlay-end ov)))
+
+(defun nt-ov->line (ov)
+  "Return OV's line. Note that all nt ovs don't span lines, so this is ok."
+  (-> ov overlay-start line-number-at-pos))
+
+;;; Point-Based
 
 (defun nt-ov--goto (ov)
   "Goto start of OV."
@@ -52,11 +63,6 @@
 (defun nt-ov--at-point ()
   "Execute `nt-ov--at' point."
   (nt-ov--at (point)))
-
-(defun nt-ov--region (ov)
-  "Return OV's region."
-  (list (overlay-start ov)
-        (overlay-end ov)))
 
 ;;; Management
 

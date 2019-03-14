@@ -34,7 +34,7 @@
 (require 'nt-mask)
 (require 'nt-note)
 (require 'nt-ov)
-(require 'nt-tree)
+;; (require 'nt-tree)
 
 ;;; Configuration
 ;;;; Core
@@ -211,7 +211,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 (defun nt-enable--agnostic ()
   "Setup all *major-mode-agnostic* components."
-  (nt-tree--init)
+  ;; (nt-tree--init)
   (nt-masks--init)
   (nt-masks--refresh nt-mask-list))
 
