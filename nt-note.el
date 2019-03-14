@@ -91,7 +91,7 @@
   "Return indent of line containing NOTE."
   (-> note nt-ov->line nt-base--indent-at))
 
-;;; NEW
+;;; Root-Finding
 
 (defun nt-notes<-region (start end)
   "Return notes in region START and END."
@@ -108,31 +108,32 @@
          (roots (nt-notes->roots notes))
          (bounds (-map nt-note->bound roots)))
     (-each notes #'nt-note--delete)
-    (-each notes #'nt-mask--refresh-region)))
+    (-each bounds (-applify #'nt-mask--refresh-region))))
 
 (defun nt-notes->roots-1 (notes root roots)
   "Internal, see `nt-notes->roots'."
-  (-if-let* (((_ root-end)
-              (nt-note->bound root))
-             (next
-              (-drop-while (-compose (-partial #'> root-end)
-                                     #'car
-                                     #'nt-note->bound)
-                           notes)))
-      (nt-notes->roots next (cons root roots))
-    (cons root roots)))
+  (-let* (((_ root-end)
+           (nt-note->bound root))
+          (next
+           (-drop-while (-compose (-partial #'> root-end)
+                                  #'car
+                                  #'nt-note->bound)
+                        notes)))
+    (nt-notes->roots next (cons root roots))))
 
 (defun nt-notes->roots (notes &optional roots)
-  "Return roots, the set of largest non-overlapping intervals, of NOTES.
+  "Return ROOTS, the set of largest non-overlapping intervals, of NOTES.
 
 Steps:
 1. Traverse _sorted_ NOTES by start position.
-2. First occurring note with start greater than head note's end is a root.
-3. Recurse fixing each root at head until NOTES is exhausted."
+2. First occurring note with start greater than head note's end is a ROOT.
+3. Recurse fixing each root at head until NOTES is exhausted.
+
+Step 2 is useful consequence of thinking about indentation as an interval tree."
   (-let (((root . rest) notes))
     (cond (rest (nt-notes->roots-1 rest root roots))
-          (root (cons root roots))
-          (roots))))
+          (root (nt-notes->roots rest (cons root roots)))
+          (roots (reverse roots)))))
 
 ;;; Init
 

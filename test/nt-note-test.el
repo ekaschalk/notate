@@ -103,6 +103,52 @@
       (should (equal sorted
                      (nt-notes--sort notes))))))
 
+;;; Roots
+
+(ert-deftest nt:notes:roots:no-overlap ()
+  (nt-test--with-context 'lispy "
+(string1 foo
+         bar)
+
+(string1 foo
+         bar)
+"
+    ;; ((2 3))
+    (let* ((notes (nt-test--mock-notes '(("string1" "note"))))
+           (roots (nt-notes->roots notes)))
+      (should (equal notes
+                     roots)))))
+
+(ert-deftest nt:notes:roots:some-overlap ()
+  (nt-test--with-context 'lispy "
+(string1 foo
+         (string1 foo
+                  bar)
+         bar)
+"
+    ;; ((2 5) (3 4))
+    (let* ((notes (nt-test--mock-notes '(("string1" "note"))))
+           (roots (nt-notes->roots notes)))
+      (should (equal `(,(car notes))
+                     roots)))))
+
+(ert-deftest nt:notes:roots:no-overlap-and-some-overlap ()
+  (nt-test--with-context 'lispy "
+(string1 foo
+         bar)
+
+(string1 foo
+         (string1 foo
+                  bar)
+         bar)
+"
+    ;; ((2 3) (5 8) (6 7))
+    (let* ((notes (nt-test--mock-notes '(("string1" "note"))))
+           (roots (nt-notes->roots notes)))
+      (should (equal `(,(car notes)
+                       ,(cadr notes))
+                     roots)))))
+
 ;;; Init
 
 (ert-deftest notes:init:simple ()
