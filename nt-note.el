@@ -100,12 +100,12 @@
   (-sort #'nt-note--cmp notes))
 
 (defun nt--delete-region (start end)
-  (let ((intervals)
-        ;; (notes (nt-notes<-region start end))
-        ;; (sorted (nt-notes--sort notes))
-        )
-
-    ))
+  "Delete NOTES managed in START and END and refresh contributed to masks."
+  (let* ((notes (nt-notes<-region start end))
+         (roots (nt-notes->roots notes))
+         (bounds (-map nt-note->bound roots)))
+    (-each notes #'nt-note--delete)
+    (-each notes #'nt-mask--refresh-region)))
 
 ;; NOTE this assumes notes are (-sort #'nt-note--start<) ordered
 (defun nt-notes->roots (notes &optional roots)
@@ -116,11 +116,11 @@ Steps:
 2. First occurring note with start greater than head note's end is a root.
 3. Recurse fixing each root at head until NOTES is exhausted."
   (-if-let* (((root rest) notes)
-             (root-max (overlay-end notes)))
+             (root-end (overlay-end notes)))
       (-if-let (next (-drop-while (-on (-partial #'nt-note--start>
-                                                 root-max)
+                                                 root-end)
                                        rest)))
-          (nt-notes->roots-1 next roots)
+          (nt-notes->roots next roots)
         (cons root roots))
     roots))
 
