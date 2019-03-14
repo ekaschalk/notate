@@ -141,7 +141,7 @@
   (caddr node))
 
 (defun tree--notes-for (tree line &optional notes)
-  "Return notes for LINE in TREE."
+  "Return notes contributing to LINE in SUBTREE."
   (if-let (node (-first (-partial #'tree--node-contains? line)
                         tree))
       (let* ((note     (tree--node->note node))
@@ -149,7 +149,10 @@
         (tree--notes-containing children line (cons note notes)))
     notes))
 
-(defun tree--notes-for (tree start-line end-line &optional notes)
+;; refresh mask at line -> (tree--notes-at line)
+;; refresh masks in region -> (tree--notes-in region)
+
+(defun tree--delete-note (tree note)
   (if-let (nodes (-filter (-partial #'tree--node-contains? line)
                           tree))
       ))
