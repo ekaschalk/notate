@@ -23,36 +23,102 @@
   `((t (:height 1)))
   "Face applied to notes.")
 
-;;; Overlays
+;;; Access
+;;;; Fundamentals
 
-(defun nt-notes--present? (&optional start end)
-  "Are notes present in START and END, defaulting to `match-data'? Get them."
-  (let ((start (or start (match-beginning 1)))
-        (end   (or end (match-end 1))))
-    (and start end
-         (reverse (-filter #'nt-ov--note?
-                           (overlays-in start end))))))
-
-(defun nt-note--at (pos)
+(defun nt-note<-pos (pos)
   "Get note at POS."
-  (-first-item (nt-notes--present? pos (1+ pos))))
+  (-some->> (overlays-at pos) (-filter #'nt-ov--note?) car))
+
+(defun nt-notes<-region (start end)
+  "Get notes in START and END."
+  (-some->> (overlays-in start end) (-filter #'nt-ov--note?) reverse))
+
+(defun nt-notes<-line (line)
+  "Get notes on LINE."
+  (-some->> line nt-line->region (apply #'nt-notes<-region)))
+
+;;;; Extensions
 
 (defun nt-note--at-point ()
   "Get note at point."
-  (nt-note--at (point)))
+  (-> (point) nt-note<-pos))
 
-(defun nt-notes--at (line)
-  "Return all notes on LINE."
-  (apply #'nt-notes--present? (nt-base--line-bounds line)))
+(defun nt-notes<-lines (start-line end-line)
+  "Get notes in [START-LINE END-LINE)."
+  (-some->> (nt-lines->region start-line end-line) (apply #'nt-notes<-region)))
 
-(defun nt-notes--in (start-line end-line)
-  "Return all notes in [START-LINE END-LINE)."
-  (apply #'nt-notes--present? (nt-base--lines-bounds start-line end-line)))
+;;; Transforms
+;;;; Overlay Wrappers
+
+(defun nt-note->width (note)
+  "Access NOTE's width."
+  (-some-> note (overlay-get 'nt-width)))
+
+(defun nt-note->bound (note)
+  "Access NOTE's bound."
+  (-some-> note (overlay-get 'nt-bound)))
+
+(defun nt-note->replacement (note)
+  "Access NOTE's display."
+  (-some-> note (overlay-get 'display)))
+
+(defun nt-note->string (note)
+  "Access NOTE's string."
+  (-some->> note nt-ov->region (apply #'buffer-substring-no-properties)))
+
+;;;; Misc
+
+(defun nt-notes->width (notes)
+  "Sum NOTES' widths."
+  (->> notes (-map #'nt-note->width) -sum))
+
+(defun nt-note->indent (note)
+  "Get indent of NOTE's line."
+  (-some-> note nt-ov->line nt-line->indent))
+
+;;;; Roots
+
+(defun nt-notes--sort (notes)
+  "Return NOTES sorted according to start position."
+  (-sort (-on #'< #'overlay-start) notes))
+
+(defun nt-notes->roots-1 (notes roots)
+  "Internal, see `nt-notes->roots'."
+  (-let* (((root)
+           roots)
+          ((_ root-end)
+           (nt-note->bound root))
+          (next
+           (-drop-while (-compose (-partial #'> root-end)
+                                  #'car
+                                  #'nt-note->bound)
+                        notes)))
+    (nt-notes->roots next roots)))
+
+(defun nt-notes->roots (notes &optional roots)
+  "Return ROOTS of NOTES, ie. the set of notes with largest disjoint intervals."
+  (-let (((root . rest) notes))
+    (cond (rest (nt-notes->roots-1 rest (cons root roots)))
+          (root (nt-notes->roots   rest (cons root roots)))
+          ((reverse roots)))))
+
+;;; Unorganized
 
 (defun nt-note--delete (note)
   "Delete NOTE."
   (delq note nt-note-list)
   (delete-overlay note))
+
+(defun nt--delete-region (start end)
+  "Delete NOTES in START and END then refresh the masks they cover."
+  (let* ((notes (nt-notes<-region start end))
+         (roots (nt-notes->roots notes))
+         (bounds (-map #'nt-note->bound roots)))
+    (-each notes
+      #'nt-note--delete)
+    (-each bounds
+      (-applify #'nt-mask--refresh-region))))
 
 (defun nt-note--decompose-hook (note post-modification? start end &optional _)
   "Decompose NOTE upon modification as a modification-hook."
@@ -61,79 +127,6 @@
     ;; doesn't require calling masks-for.
     (nt--remove-note-from-masks note)
     (nt-note--delete note)))
-
-;;; Transforms
-;;;; Overlay-Based
-
-(defun nt-note->width (note)
-  "Wrapper to access width of NOTE."
-  (overlay-get note 'nt-width))
-
-(defun nt-note->bound (note)
-  "Return NOTE's bound."
-  (overlay-get note 'nt-bound))
-
-(defun nt-note->replacement (note)
-  "Return NOTE's replacement."
-  (overlay-get note 'display))
-
-(defun nt-notes->width (notes)
-  "Sum widths of NOTES."
-  (->> notes (-map #'nt-note->width) -sum))
-
-(defun nt-note->string (note)
-  "Return NOTE's string."
-  (apply #'buffer-substring-no-properties (nt-ov->region note)))
-
-;;;; Misc
-
-(defun nt-note->indent (note)
-  "Return indent of line containing NOTE."
-  (-> note nt-ov->line nt-base--indent-at))
-
-;;; Root-Finding
-
-(defun nt-notes<-region (start end)
-  "Return notes in region START and END."
-  (nt-notes--present? start end))
-
-(defun nt-notes--sort (notes)
-  "Return NOTES sorted according to start position."
-  (-sort (-on #'< #'overlay-start)
-         notes))
-
-(defun nt--delete-region (start end)
-  "Delete NOTES managed in START and END and refresh contributed to masks."
-  (let* ((notes (nt-notes<-region start end))
-         (roots (nt-notes->roots notes))
-         (bounds (-map nt-note->bound roots)))
-    (-each notes #'nt-note--delete)
-    (-each bounds (-applify #'nt-mask--refresh-region))))
-
-(defun nt-notes->roots-1 (notes root roots)
-  "Internal, see `nt-notes->roots'."
-  (-let* (((_ root-end)
-           (nt-note->bound root))
-          (next
-           (-drop-while (-compose (-partial #'> root-end)
-                                  #'car
-                                  #'nt-note->bound)
-                        notes)))
-    (nt-notes->roots next (cons root roots))))
-
-(defun nt-notes->roots (notes &optional roots)
-  "Return ROOTS, the set of largest non-overlapping intervals, of NOTES.
-
-Steps:
-1. Traverse _sorted_ NOTES by start position.
-2. First occurring note with start greater than head note's end is a ROOT.
-3. Recurse fixing each root at head until NOTES is exhausted.
-
-Step 2 is useful consequence of thinking about indentation as an interval tree."
-  (-let (((root . rest) notes))
-    (cond (rest (nt-notes->roots-1 rest root roots))
-          (root (nt-notes->roots rest (cons root roots)))
-          (roots (reverse roots)))))
 
 ;;; Init
 
@@ -161,9 +154,7 @@ Step 2 is useful consequence of thinking about indentation as an interval tree."
     (nt--add-note-to-masks note)
 
     ;; New tree stuff
-
     (overlay-put note 'nt-bound (funcall (symbol-value #'nt-bound-fn) note))
-
     ;; end tree stuff
 
     note))
@@ -211,7 +202,7 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun nt-note--kwd-match (string replacement)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHNOTEHT."
-  (unless (nt-notes--present?)
+  (unless (nt-notes<-region (match-beginning 1) (match-end 1))
     (nt-note--init string replacement)))
 
 (defun nt-note--kwd-build (spec)

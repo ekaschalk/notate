@@ -52,7 +52,7 @@
            (notes-before-change (overlay-get mask-before-change 'nt-notes))
 
            (notes (-union notes-before-change
-                          (nt-notes--at line-before-change))))
+                          (nt-notes<-line line-before-change))))
 
       ;; The note is being added to mask but it takes 2 insertions to "kick in"
       ;; for some reason?

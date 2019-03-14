@@ -4,13 +4,7 @@
 
 ;;; Commentary:
 
-;; Module will replace current `nt-tree.el' list-based note management with
-;; `hierarchy' tree-based management https://github.com/DamienCassou/hierarchy
-
-;; NOTE above will not work, actually going to use dash's -tree methods and
-;; implement custom.
-
-;; See `nt-tree' for how the tree structure is defined.
+;; graveyard of code banished from nt
 
 ;;; Code:
 ;;;; Requires
@@ -322,19 +316,19 @@
 
 ;; (defun nt-tree--line->notes (line)
 ;;   "Return notes on LINE."
-;;   (nt-tree--region->notes* (nt-base--line-bounds line)))
+;;   (nt-tree--region->notes* (nt-line->region line)))
 
 ;; (defun nt-tree--line->roots (line)
 ;;   "Return roots on LINE."
-;;   (nt-tree--region->roots* (nt-base--line-bounds line)))
+;;   (nt-tree--region->roots* (nt-line->region line)))
 
 ;; (defun nt-tree--lines->notes (start-line end-line)
 ;;   "Return notes within lines [START-LINE END-LINE)."
-;;   (nt-tree--region->notes* (nt-base--lines-bounds start-line end-line)))
+;;   (nt-tree--region->notes* (nt-lines->region start-line end-line)))
 
 ;; (defun nt-tree--lines->roots (start-line end-line)
 ;;   "Return roots within lines [START-LINE END-LINE)."
-;;   (nt-tree--region->roots* (nt-base--lines-bounds start-line end-line)))
+;;   (nt-tree--region->roots* (nt-lines->region start-line end-line)))
 
 ;; ;;;; Relationships
 
@@ -434,3 +428,21 @@
 ;;   "Compare NOTE-1 < NOTE-2. See `nt-tree' for data structure."
 ;;   (cond ((nt-note--proper-subset-of? self other))
 ;;         ((nt-note--start<            self other))))
+
+;;; roots
+
+;; (defun nt-notes->roots-1 (notes root roots)
+;;   "Internal, see `nt-notes->roots'."
+;;   (-let* (((_ root-end)
+;;            (nt-note->bound root))
+;;           (next
+;;            (-drop-while (-compose (-partial #'> root-end)
+;;                                   #'car
+;;                                   #'nt-note->bound)
+;;                         notes)))
+;;     (nt-notes->roots next (cons root roots))))
+
+;; (-let (((root . rest) notes))
+;;   (cond (rest (nt-notes->roots-1 rest root roots))
+;;         (root (nt-notes->roots rest (cons root roots)))
+;;         ((reverse roots))))

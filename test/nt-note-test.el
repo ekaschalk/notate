@@ -24,9 +24,9 @@
 "
     (nt-test--mock-notes '(("string1" "note1") ("string2" "note2")))
 
-    (should-size (nt-notes--in 1 2) 1)
-    (should-not  (nt-notes--at 2))
-    (should-size (nt-notes--in 3 5) 1)))
+    (should-size (nt-notes<-lines 1 2) 1)
+    (should-not  (nt-notes<-line 2))
+    (should-size (nt-notes<-lines 3 5) 1)))
 
 (ert-deftest notes:overlays:access-by-line ()
   (nt-test--with-context 'any
@@ -39,10 +39,10 @@
 "
     (nt-test--mock-notes '(("string1" "note1") ("string2" "note2")))
 
-    (should-size (nt-notes--at 1) 2)
-    (should-size (nt-notes--at 2) 1)
-    (should-not  (nt-notes--at 3))
-    (should-size (nt-notes--at 4) 1)))
+    (should-size (nt-notes<-line 1) 2)
+    (should-size (nt-notes<-line 2) 1)
+    (should-not  (nt-notes<-line 3))
+    (should-size (nt-notes<-line 4) 1)))
 
 ;;; Transforms
 ;;;; Widths
@@ -97,9 +97,9 @@
 "
     (let ((notes (nt-test--mock-notes
                   '(("string1" "note") ("string2" "note"))))
-          (sorted `(,@(nt-notes--at 1)
-                    ,@(nt-notes--at 4)
-                    ,@(nt-notes--at 7))))
+          (sorted `(,@(nt-notes<-line 1)
+                    ,@(nt-notes<-line 4)
+                    ,@(nt-notes<-line 7))))
       (should (equal sorted
                      (nt-notes--sort notes))))))
 

@@ -20,7 +20,7 @@
      note)
 "
     (should= (-> 3 nt-mask--at nt-mask->indent)
-             (-> 3 nt-base--indent-at)
+             (-> 3 nt-line->indent)
              5)))
 
 ;;;; Widths/Notes

@@ -29,7 +29,7 @@
 
 (defun nt-masks--in-region (start end)
   "Retrieve masks in START and END."
-  (nt-masks--in (nt-base--lines-bounds start end)))
+  (nt-masks--in (nt-lines->region start end)))
 
 (defun nt-mask--insert-at (mask line)
   "Insert MASK at LINE into `nt-mask-list'."
@@ -50,7 +50,7 @@
 
 (defun nt-mask->indent (mask)
   "Return true indent of line containing MASK."
-  (save-excursion (nt-ov--goto mask) (nt-base--indent-col)))
+  (save-excursion (nt-ov--goto mask) (nt-line->indent-col)))
 
 (defun nt-mask->width (mask)
   "Calculate width of MASK's notes."
@@ -214,7 +214,7 @@
 (defun nt-mask--init (&optional line)
   "Create empty mask for LINE, otherwise current line."
   (save-excursion
-    (when line (nt-base--goto-line line))
+    (when line (nt-line--goto line))
 
     (let* ((line  (line-number-at-pos))
            (start (line-beginning-position))
@@ -226,7 +226,7 @@
 (defun nt-masks--init (&optional start-line end-line)
   "Line-by-line buildup `nt-mask-list', optionally [a b) bounded start/end."
   (save-excursion
-    (nt-base--goto-line (or start-line 1))
+    (nt-line--goto (or start-line 1))
 
     (while (and (not (eobp))
                 (if end-line (< (line-number-at-pos) end-line) t))

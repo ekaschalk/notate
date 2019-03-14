@@ -43,8 +43,9 @@
 
 (defun nt-ov->region (ov)
   "Return OV's region."
-  (list (overlay-start ov)
-        (overlay-end ov)))
+  (when (nt-ov? ov)
+    (list (overlay-start ov)
+          (overlay-end ov))))
 
 (defun nt-ov->line (ov)
   "Return OV's line. Note that all nt ovs don't span lines, so this is ok."
