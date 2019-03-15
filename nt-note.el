@@ -21,7 +21,7 @@
 ;;;; Managed
 
 (defvar-local nt-note--init-in-progress? nil
-  "Are we currently instantiating the initial notes?")
+  "Are we instantiating the initial notes?")
 
 ;;;; Debugging
 
@@ -133,6 +133,20 @@
     (-each bounds
       (-applify #'nt-mask--refresh-region))))
 
+(defun nt-note--insert-sorted (note)
+  "Insert NOTE into `nt-note-list' maintaining sorted order."
+  (setq nt-note-list
+        (-if-let (idx (-find-index (-partial #'nt-notes--lt note)
+                                   nt-note-list))
+            (-insert-at idx note nt-note-list)
+          (-snoc nt-note-list note))))
+
+(defun nt-note--insert (note)
+  "Insert NOTE into `nt-note-list' according to the current context."
+  (if nt-note--init-in-progress?
+      (!cons note nt-note-list)
+    (nt-note--insert-sorted note)))
+
 (defun nt-note--decompose-hook (note post-modification? start end &optional _)
   "Decompose NOTE upon modification as a modification-hook."
   (when post-modification?
@@ -153,20 +167,6 @@
     (overlay-put 'display replacement)
     (overlay-put 'modification-hooks '(nt-note--decompose-hook))))
 
-(defun nt-note--insert-sorted (note)
-  "Insert NOTE into `nt-note-list' in sorted order"
-  (setq nt-note-list
-        (-if-let (idx (-find-index (-partial #'nt-notes--lt note)
-                                   nt-note-list))
-            (-insert-at idx note nt-note-list)
-          (-snoc nt-note-list note))))
-
-(defun nt-note--insert (note)
-  "Insert NOTE into `nt-note-list' according to the current context."
-  (if nt-note--init-in-progress?
-      (!cons note nt-note-list)
-    (nt-note--insert-sorted note)))
-
 (defun nt-note--init (string replacement start end)
   "Build note overlay for STRING to REPLACEMENT between START and END."
   ;; TODO Think about making nt-bound-fn act on a region instead of a NOTE
@@ -186,72 +186,6 @@
     ;; During init we don't rely on the ordering of `nt-note-list'
     ;; So we !cons, reverse upon completion, and insert-sorted thereon
     (setq nt-note-list (reverse nt-note-list))))
-
-;;; Font Locks
-;;;; Spec Handling
-
-(defun nt-note--validate (string replacement)
-  "Throw error on egregious inputs."
-  (cond
-   ((or (s-contains? "\n" string)
-        (s-contains? "\n" replacement))
-    (error "Newlines anywhere in spec components cause ambiguity."))
-
-   ((= 0
-       (length replacement))
-    (error "Zero-width replacements can be done natively with 'invisible."))
-
-   ((> (length replacement)
-       (length string))
-    (error "Indentation expansions not supported yet, but I would like to."))))
-
-(defun nt-note--string->rx (string)
-  "Convert string to an expected nt-note RX."
-  (rx-to-string `(group ,string)
-                'no-shy-group))
-
-(defun nt-note--make (string replacement &optional rx)
-  "Create spec plist for STRING to REPLACEMENT optionally with custom RX.
-
-Without a RX given, default to matching entire STRING.
-The RX, if given, should set the first group for the match to replace."
-  (nt-note--validate string replacement)
-
-  `(:string
-    ,string
-    :rx          ,(or rx (nt-note--string->rx string))
-    :replacement ,replacement))
-
-(defun nt-notes--make (specs)
-  "Apply `nt-note--make' to each SPEC."
-  (-map (-applify #'nt-note--make) specs))
-
-;;;; Keyword Construction
-
-(defun nt-note--kwd-match (string replacement)
-  "The form for FACENAME in font-lock-keyword's MATCH-HIGHNOTEHT."
-  (-let* (((start end)
-           (match-data 1))
-          (note-already-present?
-           (nt-notes<-region start end)))
-    (unless note-already-present?
-      (nt-note--init string replacement start end))))
-
-(defun nt-note--kwd-build (spec)
-  "Compose the font-lock-keyword for SPEC in `nt-notes'."
-  (-let (((&plist :string string
-                  :replacement replacement
-                  :rx rx)
-          spec))
-    `(,rx (0 (prog1 `,(and nt-normalize-height?
-                           'nt-note--face)
-               (nt-note--kwd-match ,string ,replacement))))))
-
-(defun nt-note--kwds-add ()
-  "Build kwds from `nt-notes' and add to `font-lock-keywords'."
-  (->> nt-notes
-     (-map #'nt-note--kwd-build)
-     (font-lock-add-keywords nil)))
 
 ;;; Provide
 

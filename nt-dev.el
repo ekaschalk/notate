@@ -19,13 +19,13 @@
 
     ;; Modules
     "nt-bounds.el"
+    "nt-kwds.el"
     "nt-mask.el"
     "nt-note.el"
     "nt-ov.el"
 
     ;; In-progress
     "nt-change.el"
-    ;; "nt-tree.el"
 
     ;; Core
     "nt.el"

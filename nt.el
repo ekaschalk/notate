@@ -9,7 +9,7 @@
 ;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (hierarchy "0.2.0") (s "1.12.0") (smartparens "1.11.0") (emacs "26.1"))
 
 ;;; Commentary:
-;;;; Header
+;;;; README Header
 
 ;; Notate your programs with indentation-correcting visual replacements of
 ;; symbols with other symbols.
@@ -22,7 +22,7 @@
 
 ;;;; nt.el
 
-;; `nt.el' exposes user configuration and enable/disable functionality.
+;; Collect `nt' modules and expose the user API.
 
 ;;; Code:
 ;;;; Requires
@@ -31,10 +31,10 @@
 
 (require 'nt-bounds)
 (require 'nt-change)
+(require 'nt-kwds)
 (require 'nt-mask)
 (require 'nt-note)
 (require 'nt-ov)
-;; (require 'nt-tree)
 
 ;;; Configuration
 ;;;; Core
@@ -209,27 +209,24 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 ;;;;; Development
 
 (defun nt-enable--temp ()
-  "DEV UTIL - Setup components that will need to be redone more generally."
+  "TEMP Setup components that will need to be redone more generally."
   (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
-  (let ((nt-mask--wait-for-refresh t)
-        (nt-note--init-in-progress t))
+  (let ((nt-mask--wait-for-refresh t))
     (lisp-mode)
-    (font-lock-ensure)
-
-    )
+    (nt-notes--init))
   (nt-masks--refresh-buffer))
 
 (defun nt-disable--temp ()
-  "DEV UTIL - Disable components that will need to be redone more generally."
+  "TEMP Disable components that will need to be redone more generally."
   ;; todo remove all instances of 'nt-note--face
   (remove-hook 'lisp-mode-hook #'nt-note--kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
   (setq font-lock-keywords nil))
 
 (defun nt-disable--just-in-case ()
-  "DEV UTIL - Reset vars that _should_ never need to be reset."
+  "TEMP Reset vars that _should_ never need to be reset."
   (setq nt-mask--wait-for-refresh nil)
   (setq nt-note--init-in-progress nil))
 
