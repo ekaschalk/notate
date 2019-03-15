@@ -52,6 +52,9 @@
            (match-data 1))
           (note-already-present?
            (nt-notes<-region start end)))
+    (when (-some-> note-already-present? car nt-note->string (s-equals? string))
+      (error "Region has matched multiple note definitions! Fix `nt-defs'."))
+
     (unless note-already-present?
       (nt-note--init string replacement start end))))
 
