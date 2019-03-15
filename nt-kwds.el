@@ -47,21 +47,13 @@
 
 (defun nt-kwd--def->matcher (string replacement)
   "Construct FACENAME form in MATCH-HIGHLIGHT for a def."
-  (-let* (((start end)
-           (match-data 1))
-          (note-already-present?
-           (car (nt-notes<-region start end))))
+  ;; FIXME Must handle eg. -> and --> (two overlapping note definitions)
+  ;; Something like:
+  ;;   (when (string strict-contains note-in-region) (delete note-in-region))
+  ;; might work. MIGHT work.
 
-    ;; Detecting overlap of regexes apriori not possible in general
-    (when (-some-> note-already-present? nt-note->string (s-equals? string))
-      (error "Region has matched multiple note definitions! Fix `nt-defs'."))
-
-    ;; FIXME Above throws error if note defs would contain "--" and "-->"
-    ;; Something like:
-    ;;   (when (string strict-contains note-in-region) (delete note-in-region))
-    ;; might work. MIGHT work.
-
-    (unless note-already-present?
+  (-let* (((start end) (match-data 1)))
+    (unless (-some-> start nt-note<-pos nt-note->string (s-equals? string))
       (nt-note--init string replacement start end))))
 
 ;;; Keywords

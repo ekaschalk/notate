@@ -110,7 +110,7 @@
           (root (nt-notes->roots   rest (cons root roots)))
           ((reverse roots)))))
 
-(defun nt-notes->maximal-intervals (notes)
+(defun nt-notes->maximal-regions (notes)
   "Return maximal disjoint intervals of NOTES."
   (->> notes nt-notes->roots (-map #'nt-note->bound)))
 
@@ -147,16 +147,16 @@
   (nt-notes--delete (list note)))
 
 ;; TODO test
-(defun nt-notes--delete (notes)
-  "Delete NOTES, updating masks."
-  (let ((intervals (nt-notes->maximal-intervals notes)))
-    (-each notes #'nt-note--delete-internal)
-    (-each intervals (-applify #'nt-mask--refresh-region))))
-
-;; TODO test
 (defun nt-notes--delete-region (start end)
   "Delete notes in START and END, updating masks."
   (nt-notes--delete (nt-notes<-region start end)))
+
+;; TODO test
+(defun nt-notes--delete (notes)
+  "Delete NOTES, updating masks."
+  (let ((regions (nt-notes->maximal-regions notes)))
+    (-each notes #'nt-note--delete-internal)
+    (-each regions (-applify #'nt-mask--refresh-region))))
 
 ;;; Modification Hook
 
