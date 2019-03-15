@@ -4,8 +4,7 @@
 
 ;;; Commentary:
 
-;; Interface between `nt-note' and `font-lock-mode' and expose functions for
-;; defining notes.
+;; Interface between `nt-note', `font-lock-mode', and user note definitions.
 
 ;;; Code:
 ;;;; Requires
@@ -21,7 +20,7 @@
   `((t (:height 1)))
   "Face applied to notes.")
 
-;;; String-Based
+;;; Definitions
 ;;;; Validation
 
 (defun nt-kwd--def-validate (string replacement)
@@ -46,21 +45,28 @@
 
 ;;;; Matching
 
-(defun nt-kwd--match (string replacement)
-  "The form for FACENAME in font-lock-keyword's MATCH-HIGHNOTEHT."
+(defun nt-kwd--def->matcher (string replacement)
+  "Construct FACENAME form in MATCH-HIGHLIGHT for a def."
   (-let* (((start end)
            (match-data 1))
           (note-already-present?
-           (nt-notes<-region start end)))
-    (when (-some-> note-already-present? car nt-note->string (s-equals? string))
+           (car (nt-notes<-region start end))))
+
+    ;; Detecting overlap of regexes apriori not possible in general
+    (when (-some-> note-already-present? nt-note->string (s-equals? string))
       (error "Region has matched multiple note definitions! Fix `nt-defs'."))
+
+    ;; FIXME Above throws error if note defs would contain "--" and "-->"
+    ;; Something like:
+    ;;   (when (string strict-contains note-in-region) (delete note-in-region))
+    ;; might work. MIGHT work.
 
     (unless note-already-present?
       (nt-note--init string replacement start end))))
 
-;;; Spec-Kwd Interface
+;;; Keywords
 
-(defun nt-kwd--def->kwd (string replacement &optional rx)
+(defun nt-kwd<-def (string replacement &optional rx)
   "Compose the kwd for STRING to REPLACEMENT, optionally matching custom RX.
 
 The translation of this kwd in `font-lock-add-keywords' documentation is not
@@ -75,15 +81,15 @@ If the expression returns a face, the matched region will have that face set."
          (nt-kwd--string->rx string))
     (0 (prog1 `,(and nt-normalize-height?
                      'nt-kwd--face)
-         (nt-kwd--match ,string ,replacement)))))
+         (nt-kwd--def->matcher ,string ,replacement)))))
 
-(defun nt-kwds--defs->kwds (defs)
+(defun nt-kwds<-defs (defs)
   "Construct keywords for `font-lock-keywords' given DEFS."
-  (-map (-applify #'nt-kwd--def->kwd) defs))
+  (-map (-applify #'nt-kwd<-def) defs))
 
 (defun nt-kwds--add ()
   "Add to `font-lock-keywords' the kwds resulting from `nt-defs'."
-  (font-lock-add-keywords nil (nt-kwds--defs->kwds nt-defs)))
+  (font-lock-add-keywords nil (nt-kwds<-defs nt-defs)))
 
 ;;; Provide
 

@@ -134,11 +134,11 @@
 ;;;; Deletion
 
 (defun nt-note--delete-internal (note)
-  "Delete a single NOTE overlay. Internal-use only."
+  "Delete a single NOTE overlay. Internal-use only by other deletion methods."
   (nt-notes--delete-internal (list note)))
 
 (defun nt-notes--delete-internal (notes)
-  "Delete NOTES overlays. Internal-use only."
+  "Delete NOTES overlays. Internal-use only by other deletion methods."
   (setq nt-notes (-remove (-partial #'-contains? notes) nt-notes))
   (-each notes #'delete-overlay))
 
@@ -155,7 +155,7 @@
 
 ;; TODO test
 (defun nt-notes--delete-region (start end)
-  "Delete notes in START and END then refresh the masks they cover."
+  "Delete notes in START and END, updating masks."
   (nt-notes--delete (nt-notes<-region start end)))
 
 ;;; Modification Hook
