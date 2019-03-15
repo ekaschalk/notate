@@ -92,35 +92,6 @@ side-by-side comparisons to be aligned.")
 ;;;; Managed
 ;;;;; Core
 
-(defvar-local nt-tree nil
-  "Manage note overlays in a `hierarchy' tree, ordered on interval-containment.
-
----
-Roots are non-overlapping line-intervals with P-C relationship defined as:
-  - A note n_p is a parent of note n_c iff bound(n_p) contains bound(n_c).
-  - If bound(n_p) == bound(n_c), the first note by buffer position is the parent.
-
----
-Notes are sorted as follows (see the cmp fn `nt-tree--note<'):
-  - A child is smaller than its parents.
-  - Comparing two separate subtrees: the first occurring note is smaller.
-
----
-So the ordering looks like:
-  - Sort roots by buffer position.
-  - Insert before each root its children ordered by increasing size.
-
----
-There are better tree structures we can use, which will be
-explored nearing project completion.")
-
-
-(defvar nt-note-list nil
-  "List of note overlays currently managed.
-
-NOTE - transfer to tree based implementation in-progress.")
-
-
 (defvar nt-mask-list nil
   "List of indent overlays currently managed.
 

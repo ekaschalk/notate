@@ -71,7 +71,7 @@
   "Remove all `nt' overlays from current buffer."
   (remove-overlays nil nil 'nt? t)
   (setq nt-mask-list nil)
-  (setq nt-note-list nil))
+  (setq nt-notes nil))
 
 ;;; Provide
 

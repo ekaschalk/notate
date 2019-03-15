@@ -17,6 +17,9 @@
 ;;; Configuration
 ;;;; Managed
 
+(defvar nt-notes nil
+  "List of note overlays, kept sorted by start position.")
+
 (defvar-local nt-note--init-in-progress? nil
   "Are we instantiating the initial notes?")
 
@@ -111,17 +114,17 @@
 ;;;; Insertion
 
 (defun nt-note--insert-sorted (note)
-  "Insert NOTE into `nt-note-list' maintaining sorted order."
-  (setq nt-note-list
+  "Insert NOTE into `nt-notes' maintaining sorted order."
+  (setq nt-notes
         (-if-let (idx (-find-index (-partial #'nt-notes--lt note)
-                                   nt-note-list))
-            (-insert-at idx note nt-note-list)
-          (-snoc nt-note-list note))))
+                                   nt-notes))
+            (-insert-at idx note nt-notes)
+          (-snoc nt-notes note))))
 
 (defun nt-note--insert (note)
-  "Insert NOTE into `nt-note-list' according to the current context."
+  "Insert NOTE into `nt-notes' according to the current context."
   (if nt-note--init-in-progress?
-      (!cons note nt-note-list)
+      (!cons note nt-notes)
     (nt-note--insert-sorted note)))
 
 ;;;; Deletion
@@ -129,7 +132,7 @@
 ;; TODO
 (defun nt-note--delete (note)
   "Delete NOTE."
-  (delq note nt-note-list)
+  (delq note nt-notes)
   (delete-overlay note))
 
 ;; TODO
@@ -174,13 +177,13 @@
       (overlay-put 'nt-bound bound))))
 
 (defun nt-notes--init ()
-  "Instantiate `nt-note-list', ie. wrap `font-lock-ensure' with optimizations."
+  "Instantiate `nt-notes', ie. wrap `font-lock-ensure' with optimizations."
   (let ((nt-note--init-in-progress t))
     (font-lock-ensure)
 
-    ;; During init we don't rely on the ordering of `nt-note-list'
+    ;; During init we don't rely on the ordering of `nt-notes'
     ;; So we !cons, reverse upon completion, and insert-sorted thereon
-    (setq nt-note-list (reverse nt-note-list))))
+    (setq nt-notes (reverse nt-notes))))
 
 ;;; Provide
 

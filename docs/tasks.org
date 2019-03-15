@@ -5,7 +5,7 @@ Don't expect it to be kept up-to-date or organized at this point of time.
 * TODOS
 
   - Think about making nt-bound-fn act on a region instead of a NOTE
-  - Rename `nt-note-list' to `nt-notes'
+  - Rename `nt-notes' to `nt-notes'
 
   (note decompose hook)
   ;; TODO Below will be replaced with the new deletion implementation that
