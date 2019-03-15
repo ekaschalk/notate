@@ -137,8 +137,8 @@ When working on nt, necessitating a transient testing buffer."
 
         ;; The notation!
         (nt-notes
-         (nt-notes--make '(("and" "∧") ("or" "∨") ("int" "ℤ")))
-         ;; (nt-notes--make '(("and" "&&") ("or" "||") ("int" "ℤ")))
+         (nt-kwds--make '(("and" "∧") ("or" "∨") ("int" "ℤ")))
+         ;; (nt-kwds--make '(("and" "&&") ("or" "||") ("int" "ℤ")))
          )
 
         ;; The text to apply the notation to

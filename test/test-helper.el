@@ -105,7 +105,7 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
   (save-excursion
     (goto-char (point-min))
 
-    (let ((rx (nt-note--string->rx string))
+    (let ((rx (nt-kwd--string->rx string))
           notes)
       (while (re-search-forward rx nil 'noerror)
         (-let* (((start end)

@@ -17,51 +17,36 @@
 ;;; Configuration
 ;;;; Debugging
 
-(defface nt-note--face
+(defface nt-kwd--face
   `((t (:height 1)))
   "Face applied to notes.")
 
-;;; Specs
+;;; String-Based
+;;;; Validation
 
-(defun nt-note--validate (string replacement)
-  "Throw error on egregious inputs."
+(defun nt-kwd--def-validate (string replacement)
+  "Throw error on some egregious note definitions."
   (cond
    ((or (s-contains? "\n" string)
         (s-contains? "\n" replacement))
-    (error "Newlines anywhere in spec components cause ambiguity."))
-
-   ((= 0
-       (length replacement))
-    (error "Zero-width replacements can be done natively with 'invisible."))
+    (error "Newlines anywhere in note definitions are ambiguous."))
 
    ((> (length replacement)
        (length string))
-    (error "Indentation expansions not supported yet, but I would like to."))))
+    (error "Indentation expansions not supported yet, but I would like to."))
 
-(defun nt-note--string->rx (string)
-  "Convert string to an expected nt-note RX."
-  (rx-to-string `(group ,string)
-                'no-shy-group))
+   ((s-blank? replacement)
+    (error "Zero-width replacements can be done natively, see 'invisible."))))
 
-(defun nt-note--make (string replacement &optional rx)
-  "Create spec plist for STRING to REPLACEMENT optionally with custom RX.
+;;;; Utilities
 
-Without a RX given, default to matching entire STRING.
-The RX, if given, should set the first group for the match to replace."
-  (nt-note--validate string replacement)
+(defun nt-kwd--string->rx (string)
+  "Construct regex matching STRING as the first group."
+  (rx-to-string `(group ,string) 'no-shy-group))
 
-  `(:string
-    ,string
-    :rx          ,(or rx (nt-note--string->rx string))
-    :replacement ,replacement))
+;;;; Matching
 
-(defun nt-notes--make (specs)
-  "Apply `nt-note--make' to each SPEC."
-  (-map (-applify #'nt-note--make) specs))
-
-;;; Matching
-
-(defun nt-note--kwd-match (string replacement)
+(defun nt-kwd--match (string replacement)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHNOTEHT."
   (-let* (((start end)
            (match-data 1))
@@ -70,23 +55,32 @@ The RX, if given, should set the first group for the match to replace."
     (unless note-already-present?
       (nt-note--init string replacement start end))))
 
-;;; Construction
+;;; Spec-Kwd Interface
 
-(defun nt-note--kwd-build (spec)
-  "Compose the font-lock-keyword for SPEC in `nt-notes'."
-  (-let (((&plist :string string
-                  :replacement replacement
-                  :rx rx)
-          spec))
-    `(,rx (0 (prog1 `,(and nt-normalize-height?
-                           'nt-note--face)
-               (nt-note--kwd-match ,string ,replacement))))))
+(defun nt-kwd--def->kwd (string replacement &optional rx)
+  "Compose the kwd for STRING to REPLACEMENT, optionally matching custom RX.
 
-(defun nt-note--kwds-add ()
-  "Build kwds from `nt-notes' and add to `font-lock-keywords'."
-  (->> nt-notes
-     (-map #'nt-note--kwd-build)
-     (font-lock-add-keywords nil)))
+The translation of this kwd in `font-lock-add-keywords' documentation is not
+totally obvious. It exploits the following rule:
+
+  (MATCHER . HIGHLIGHT=MATCH-HIGHLIGHT=(SUBEXP=0 FACENAME=expression)).
+
+The expression is an arbitrary form, namely notate's overlay instantiation.
+If the expression returns a face, the matched region will have that face set."
+  (nt-kwd--def-validate string replacement)
+  `(,(or rx
+         (nt-kwd--string->rx string))
+    (0 (prog1 `,(and nt-normalize-height?
+                     'nt-kwd--face)
+         (nt-kwd--match ,string ,replacement)))))
+
+(defun nt-kwds--defs->kwds (defs)
+  "Construct keywords for `font-lock-keywords' given DEFS."
+  (-map (-applify #'nt-kwd--def->kwd) defs))
+
+(defun nt-kwds--add ()
+  "Add to `font-lock-keywords' the kwds resulting from `nt-defs'."
+  (font-lock-add-keywords nil (nt-kwds--defs->kwds nt-defs)))
 
 ;;; Provide
 

@@ -39,8 +39,12 @@
 ;;; Configuration
 ;;;; Core
 
-(defvar nt-notes (nt-notes--make '(("hello" "∧") ("bye" "!∨")))
-  "plist of note specifications resulting from `nt-notes--make'.")
+(defvar nt-defs '(("hello" "∧")
+                  ("bye" "!∨"))
+  "String->replacement alist specifying visual replacements.
+
+Accepts an optional third element, a custom RX for the note. Otherwise defaults
+to matching the specified string.")
 
 
 (defvar-local nt-bound-fn #'nt-bounds--lisps
@@ -153,17 +157,6 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
       (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
-(defun nt--delete-region (start end)
-  "Delete NOTES within START and END and refresh their masks."
-  (nt--delete-notes (nt-notes<-region start end)))
-
-(defun nt--delete-notes (notes)
-  "Delete NOTES and refresh their masks."
-  (let* ((roots (nt-notes->roots notes))
-         (bounds (-map nt-note->bound roots)))
-    (-each notes #'nt-note--delete)
-    (-each bounds #'nt-mask--refresh-region)))
-
 ;;; Interactive
 ;;;; Setup
 ;;;;; Proper
@@ -181,7 +174,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 (defun nt-enable--temp ()
   "TEMP Setup components that will need to be redone more generally."
-  (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
+  (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
   (let ((nt-mask--wait-for-refresh t))
@@ -192,7 +185,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 (defun nt-disable--temp ()
   "TEMP Disable components that will need to be redone more generally."
   ;; todo remove all instances of 'nt-note--face
-  (remove-hook 'lisp-mode-hook #'nt-note--kwds--add)
+  (remove-hook 'lisp-mode-hook #'nt-kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
   (setq font-lock-keywords nil))
 

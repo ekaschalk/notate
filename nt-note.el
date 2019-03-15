@@ -146,25 +146,24 @@
   "Delete a single NOTE, updating masks."
   (nt-notes--delete (list note)))
 
-;; TODO
+;; TODO test
 (defun nt-notes--delete (notes)
   "Delete NOTES, updating masks."
   (let ((intervals (nt-notes->maximal-intervals notes)))
     (-each notes #'nt-note--delete-internal)
     (-each intervals (-applify #'nt-mask--refresh-region))))
 
-;; TODO
+;; TODO test
 (defun nt-notes--delete-region (start end)
   "Delete notes in START and END then refresh the masks they cover."
   (nt-notes--delete (nt-notes<-region start end)))
 
 ;;; Modification Hook
 
-;; TODO
+;; TODO Rewrite (this must do a lot more (I think, possibly it is this simple))
 (defun nt-note--decompose-hook (note post-modification? start end &optional _)
   "Decompose NOTE upon modification as a modification-hook."
   (when post-modification?
-    (nt--remove-note-from-masks note)
     (nt-note--delete note)))
 
 ;;; Init
@@ -194,7 +193,7 @@
     (font-lock-ensure)
 
     ;; During init we don't rely on the ordering of `nt-notes'
-    ;; So we !cons, reverse upon completion, and insert-sorted thereon
+    ;; So we can !cons, reverse upon completion, and insert-sorted from thereon
     (setq nt-notes (reverse nt-notes))))
 
 ;;; Provide
