@@ -1,12 +1,6 @@
-;;; nt-alg.el --- Complex Components of Notate -*- lexical-binding: t; -*-
-
-;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
-
-
-
 ;;; Commentary:
 
-;; Scratch for harder stuff, now check out tree impl
+;; Scratch. Tree-based implementation tabled in-favor of list implementation atm.
 
 
 

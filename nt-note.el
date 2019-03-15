@@ -84,7 +84,7 @@
   (-sort (-on #'< #'overlay-start) notes))
 
 (defun nt-notes->roots-1 (notes roots)
-  "Internal, see `nt-notes->roots'."
+  "Internal, mutually-recursive component of `nt-notes->roots'."
   (-let* (((root)
            roots)
           ((_ root-end)
@@ -140,22 +140,15 @@
     (overlay-put 'display replacement)
     (overlay-put 'modification-hooks '(nt-note--decompose-hook))))
 
-(defun nt-note--init (string replacement &optional start end)
-  "Build note overlay, defaulting to `match-data' for START and END."
-  (setq start (or start (match-beginning 1)))
-  (setq end   (or end   (match-end 1)))
-
-  (unless (and start end)
-    (error "Initiatializing note without match-data set."))
-
+(defun nt-note--init (string replacement start end)
+  "Build note overlay for STRING to REPLACEMENT between START and END."
   (let* ((ov   (make-overlay start end))
          (note (nt-note--init-ov ov string replacement)))
     (push note nt-note-list)
     (nt--add-note-to-masks note)
 
-    ;; New tree stuff
+    ;; This line needs closer inspection
     (overlay-put note 'nt-bound (funcall (symbol-value #'nt-bound-fn) note))
-    ;; end tree stuff
 
     note))
 
@@ -202,8 +195,12 @@ The RX, if given, should set the first group for the match to replace."
 
 (defun nt-note--kwd-match (string replacement)
   "The form for FACENAME in font-lock-keyword's MATCH-HIGHNOTEHT."
-  (unless (nt-notes<-region (match-beginning 1) (match-end 1))
-    (nt-note--init string replacement)))
+  (-let* (((start end)
+           (match-data 1))
+          (note-already-present?
+           (nt-notes<-region start end)))
+    (unless note-already-present?
+      (nt-note--init string replacement start end))))
 
 (defun nt-note--kwd-build (spec)
   "Compose the font-lock-keyword for SPEC in `nt-notes'."
