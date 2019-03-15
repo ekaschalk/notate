@@ -199,7 +199,6 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 (defun nt-enable--agnostic ()
   "Setup all *major-mode-agnostic* components."
-  ;; (nt-tree--init)
   (nt-masks--init)
   (nt-masks--refresh nt-mask-list))
 
@@ -214,9 +213,12 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
   (add-hook 'lisp-mode-hook #'nt-note--kwds-add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
-  (let ((nt-mask--wait-for-refresh t))
+  (let ((nt-mask--wait-for-refresh t)
+        (nt-note--init-in-progress t))
     (lisp-mode)
-    (font-lock-ensure))
+    (font-lock-ensure)
+
+    )
   (nt-masks--refresh-buffer))
 
 (defun nt-disable--temp ()
@@ -227,8 +229,9 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
   (setq font-lock-keywords nil))
 
 (defun nt-disable--just-in-case ()
-  "DEV UTIL - Disable components that /should/ be handled by other methods."
-  (setq nt-mask--wait-for-refresh nil))
+  "DEV UTIL - Reset vars that _should_ never need to be reset."
+  (setq nt-mask--wait-for-refresh nil)
+  (setq nt-note--init-in-progress nil))
 
 ;;;; Commands
 

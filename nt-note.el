@@ -18,6 +18,12 @@
 
 
 ;;; Configuration
+;;;; Managed
+
+(defvar-local nt-note--init-in-progress? nil
+  "Are we currently instantiating the initial notes?")
+
+;;;; Debugging
 
 (defface nt-note--face
   `((t (:height 1)))
@@ -77,11 +83,18 @@
   "Get indent of NOTE's line."
   (-some-> note nt-ov->line nt-line->indent))
 
-;;;; Roots
+;;; Relationships
+;;;; Comparisons
 
-(defun nt-notes--sort (notes)
-  "Return NOTES sorted according to start position."
-  (-sort (-on #'< #'overlay-start) notes))
+(defun nt-notes--lt (self other)
+  "Compare lt two notes."
+  (funcall (-on #'< #'overlay-start) self other))
+
+(defun nt-notes--sort (notes &optional in-place?)
+  "Return NOTES sorted according to start position, optionally IN-PLACE?."
+  (-sort #'nt-notes--lt notes))
+
+;;;; Root-Finding
 
 (defun nt-notes->roots-1 (notes roots)
   "Internal, mutually-recursive component of `nt-notes->roots'."
@@ -130,9 +143,9 @@
 
 ;;; Init
 
-(defun nt-note--init-ov (ov string replacement)
-  "Put note text properties into OV."
-  (-doto ov
+(defun nt-note--init-ov (string replacement start end)
+  "Instantiate note overlay and its properties for `nt-note--init'."
+  (-doto (make-overlay start end)
     (overlay-put 'nt?      t)
     (overlay-put 'nt-note? t)
     (overlay-put 'nt-width (- (length string) (length replacement)))
@@ -140,17 +153,39 @@
     (overlay-put 'display replacement)
     (overlay-put 'modification-hooks '(nt-note--decompose-hook))))
 
+(defun nt-note--insert-sorted (note)
+  "Insert NOTE into `nt-note-list' in sorted order"
+  (setq nt-note-list
+        (-if-let (idx (-find-index (-partial #'nt-notes--lt note)
+                                   nt-note-list))
+            (-insert-at idx note nt-note-list)
+          (-snoc nt-note-list note))))
+
+(defun nt-note--insert (note)
+  "Insert NOTE into `nt-note-list' according to the current context."
+  (if nt-note--init-in-progress?
+      (!cons note nt-note-list)
+    (nt-note--insert-sorted note)))
+
 (defun nt-note--init (string replacement start end)
   "Build note overlay for STRING to REPLACEMENT between START and END."
-  (let* ((ov   (make-overlay start end))
-         (note (nt-note--init-ov ov string replacement)))
-    (push note nt-note-list)
-    (nt--add-note-to-masks note)
+  ;; TODO Think about making nt-bound-fn act on a region instead of a NOTE
+  ;; TODO Rename `nt-note-list' to `nt-notes'
+  (let* ((note (nt-note--init-ov string replacement start end))
+         (bound (funcall (symbol-value #'nt-bound-fn) note)))
+    (-doto note
+      (nt-note--insert)
+      (nt--add-note-to-masks)
+      (overlay-put 'nt-bound bound))))
 
-    ;; This line needs closer inspection
-    (overlay-put note 'nt-bound (funcall (symbol-value #'nt-bound-fn) note))
+(defun nt-notes--init ()
+  "Instantiate `nt-note-list', ie. wrap `font-lock-ensure' with optimizations."
+  (let ((nt-note--init-in-progress t))
+    (font-lock-ensure)
 
-    note))
+    ;; During init we don't rely on the ordering of `nt-note-list'
+    ;; So we !cons, reverse upon completion, and insert-sorted thereon
+    (setq nt-note-list (reverse nt-note-list))))
 
 ;;; Font Locks
 ;;;; Spec Handling

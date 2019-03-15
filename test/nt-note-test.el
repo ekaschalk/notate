@@ -100,8 +100,10 @@
           (sorted `(,@(nt-notes<-line 1)
                     ,@(nt-notes<-line 4)
                     ,@(nt-notes<-line 7))))
+      ;; I chose for notes mock to be sorted for easier destructuring
+      ;; So no need to explictly call `nt-notes--sort' here
       (should (equal sorted
-                     (nt-notes--sort notes))))))
+                     notes)))))
 
 ;;; Roots
 
