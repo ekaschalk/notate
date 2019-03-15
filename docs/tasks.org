@@ -1,0 +1,17 @@
+Throwing todo comments in here.
+
+Don't expect it to be kept up-to-date or organized at this point of time.
+
+* TODOS
+
+  - Think about making nt-bound-fn act on a region instead of a NOTE
+  - Rename `nt-note-list' to `nt-notes'
+
+  (note decompose hook)
+  ;; TODO Below will be replaced with the new deletion implementation that
+  ;; doesn't require calling masks-for.
+
+
+  Place this somewhere less prominent:
+  ;; `hl-todo' users, remove highlighting of NOTE in docstrings with:
+  ;;   (setq hl-todo-keyword-faces (--remove (s-equals? (car it) "NOTE") hl-todo-keyword-faces))

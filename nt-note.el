@@ -6,9 +6,6 @@
 
 ;; Notation overlay management, instantiation, etc.
 
-;; `hl-todo' users, remove highlighting of NOTE in docstrings with:
-;;   (setq hl-todo-keyword-faces (--remove (s-equals? (car it) "NOTE") hl-todo-keyword-faces))
-
 ;;; Code:
 ;;;; Requires
 
@@ -22,12 +19,6 @@
 
 (defvar-local nt-note--init-in-progress? nil
   "Are we instantiating the initial notes?")
-
-;;;; Debugging
-
-(defface nt-note--face
-  `((t (:height 1)))
-  "Face applied to notes.")
 
 ;;; Access
 ;;;; Fundamentals
@@ -116,22 +107,8 @@
           (root (nt-notes->roots   rest (cons root roots)))
           ((reverse roots)))))
 
-;;; Unorganized
-
-(defun nt-note--delete (note)
-  "Delete NOTE."
-  (delq note nt-note-list)
-  (delete-overlay note))
-
-(defun nt--delete-region (start end)
-  "Delete NOTES in START and END then refresh the masks they cover."
-  (let* ((notes (nt-notes<-region start end))
-         (roots (nt-notes->roots notes))
-         (bounds (-map #'nt-note->bound roots)))
-    (-each notes
-      #'nt-note--delete)
-    (-each bounds
-      (-applify #'nt-mask--refresh-region))))
+;;; Management
+;;;; Insertion
 
 (defun nt-note--insert-sorted (note)
   "Insert NOTE into `nt-note-list' maintaining sorted order."
@@ -147,11 +124,31 @@
       (!cons note nt-note-list)
     (nt-note--insert-sorted note)))
 
+;;;; Deletion
+
+;; TODO
+(defun nt-note--delete (note)
+  "Delete NOTE."
+  (delq note nt-note-list)
+  (delete-overlay note))
+
+;; TODO
+(defun nt--delete-region (start end)
+  "Delete NOTES in START and END then refresh the masks they cover."
+  (let* ((notes (nt-notes<-region start end))
+         (roots (nt-notes->roots notes))
+         (bounds (-map #'nt-note->bound roots)))
+    (-each notes
+      #'nt-note--delete)
+    (-each bounds
+      (-applify #'nt-mask--refresh-region))))
+
+;;; Modification Hook
+
+;; TODO
 (defun nt-note--decompose-hook (note post-modification? start end &optional _)
   "Decompose NOTE upon modification as a modification-hook."
   (when post-modification?
-    ;; TODO Below will be replaced with the new deletion implementation that
-    ;; doesn't require calling masks-for.
     (nt--remove-note-from-masks note)
     (nt-note--delete note)))
 
@@ -169,8 +166,6 @@
 
 (defun nt-note--init (string replacement start end)
   "Build note overlay for STRING to REPLACEMENT between START and END."
-  ;; TODO Think about making nt-bound-fn act on a region instead of a NOTE
-  ;; TODO Rename `nt-note-list' to `nt-notes'
   (let* ((note (nt-note--init-ov string replacement start end))
          (bound (funcall (symbol-value #'nt-bound-fn) note)))
     (-doto note

@@ -14,6 +14,13 @@
 
 (require 'nt-note)
 
+;;; Configuration
+;;;; Debugging
+
+(defface nt-note--face
+  `((t (:height 1)))
+  "Face applied to notes.")
+
 ;;; Specs
 
 (defun nt-note--validate (string replacement)
