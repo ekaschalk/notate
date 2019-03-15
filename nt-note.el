@@ -84,8 +84,8 @@
   "Compare lt two notes."
   (funcall (-on #'< #'overlay-start) self other))
 
-(defun nt-notes--sort (notes &optional in-place?)
-  "Return NOTES sorted according to start position, optionally IN-PLACE?."
+(defun nt-notes--sort (notes)
+  "Return NOTES sorted according to start position."
   (-sort #'nt-notes--lt notes))
 
 ;;;; Root-Finding
@@ -110,6 +110,10 @@
           (root (nt-notes->roots   rest (cons root roots)))
           ((reverse roots)))))
 
+(defun nt-notes->maximal-intervals (notes)
+  "Return maximal disjoint intervals of NOTES."
+  (->> notes nt-notes->roots (-map #'nt-note->bound)))
+
 ;;; Management
 ;;;; Insertion
 
@@ -129,22 +133,30 @@
 
 ;;;; Deletion
 
-;; TODO
+(defun nt-note--delete-internal (note)
+  "Delete a single NOTE overlay. Internal-use only."
+  (nt-notes--delete-internal (list note)))
+
+(defun nt-notes--delete-internal (notes)
+  "Delete NOTES overlays. Internal-use only."
+  (setq nt-notes (-remove (-partial #'-contains? notes) nt-notes))
+  (-each notes #'delete-overlay))
+
 (defun nt-note--delete (note)
-  "Delete NOTE."
-  (delq note nt-notes)
-  (delete-overlay note))
+  "Delete a single NOTE, updating masks."
+  (nt-notes--delete (list note)))
 
 ;; TODO
-(defun nt--delete-region (start end)
-  "Delete NOTES in START and END then refresh the masks they cover."
-  (let* ((notes (nt-notes<-region start end))
-         (roots (nt-notes->roots notes))
-         (bounds (-map #'nt-note->bound roots)))
-    (-each notes
-      #'nt-note--delete)
-    (-each bounds
-      (-applify #'nt-mask--refresh-region))))
+(defun nt-notes--delete (notes)
+  "Delete NOTES, updating masks."
+  (let ((intervals (nt-notes->maximal-intervals notes)))
+    (-each notes #'nt-note--delete-internal)
+    (-each intervals (-applify #'nt-mask--refresh-region))))
+
+;; TODO
+(defun nt-notes--delete-region (start end)
+  "Delete notes in START and END then refresh the masks they cover."
+  (nt-notes--delete (nt-notes<-region start end)))
 
 ;;; Modification Hook
 
