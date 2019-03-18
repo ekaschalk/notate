@@ -175,58 +175,54 @@ Eventually rewrite with vector for constant-time idxing.")
 ;;;; Internal
 ;;;;; Rendering
 
-(defun nt-mask--render (mask)
+(defun nt-mask--render-internal (mask)
   "Set display-based overlay properties for MASK."
   (-doto mask
     (overlay-put 'face    (if nt-display-render-status? 'underline nil))
     (overlay-put 'display " ")))
 
-(defun nt-mask--unrender (mask)
+(defun nt-mask--unrender-internal (mask)
   "Remove display-based overlay properties for MASK."
   (-doto mask
     (overlay-put 'face    nil)
     (overlay-put 'display nil)))
 
-(defun nt-masks--render (masks)
-  "Set display-based overlay properties for MASKS."
-  (-each masks #'nt-mask--render))
-
-(defun nt-masks--unrender (masks)
-  "Remove display-based overlay properties for MASKS."
-  (-each masks #'nt-mask--unrender))
-
-(defun nt-masks--render-buffer (&rest _)
-  "Set display-based overlay properties for masks in buffer (as a hook)."
-  (nt-masks--render nt-masks))
-
-(defun nt-masks--unrender-buffer (&rest _)
-  "Remove display-based overlay properties for masks in buffer (as a hook)."
-  (nt-masks--unrender nt-masks))
-
-;;;;; Components
-
-(defun nt-mask--reset-opaque-end (mask)
-  "Update MASK's 'opaque-end based on contributing notes."
-  (overlay-put mask 'nt-opaque-end
-               (+ 1 (overlay-start mask) (nt-mask->width mask))))
-
-(defun nt-mask--recenter-maybe (mask)
-  "Recenter MASK if it won't cross lines doing so."
-  (when (nt-mask--enough-space? mask)
-    (move-overlay mask
-                  (overlay-start mask)
-                  (nt-mask->opaque-end mask))))
-
-(defun nt-mask--reset-display (mask)
-  "Reset display and face text properties of MASK."
+(defun nt-mask--refresh-render (mask)
+  "Reset rendering status of MASK."
   (if (nt-mask--render? mask)
-      (nt-mask--render mask)
-    (nt-mask--unrender mask)))
+      (nt-mask--render-internal mask)
+    (nt-mask--unrender-internal mask)))
 
-(defun nt-mask--reset-prefix (mask)
+(defun nt-masks--reset-render (masks)
+  "Reset rendering status of MASKS."
+  (-each masks #'nt-mask--refresh-render))
+
+;;;;; End Positions
+
+(defun nt-mask--refresh-opaque-end-internal (mask)
+  "Reset MASK's 'opaque-end based on its notes."
+  (let ((mask-width (nt-mask->width mask))
+        (start (overlay-start mask)))
+    (overlay-put mask 'nt-opaque-end (+ 1 start mask-width))))
+
+(defun nt-mask--refresh-end-internal (mask)
+  "Reset MASK's true end based on its 'opaque-end."
+  (move-overlay mask (overlay-start mask) (nt-mask->opaque-end mask)))
+
+(defun nt-mask--refresh-ends (mask)
+  "Reset MASK's 'opaque-end and true-end, if there is space to do so."
+  (nt-mask--refresh-opaque-end-internal mask)
+  (when (nt-mask--enough-space? mask)
+    (nt-mask--refresh-end-internal mask)))
+
+;;;;; Prefixes
+
+(defun nt-mask--refresh-prefix (mask)
   "Reset the `line-prefix' text property for MASK."
   (when nt-display-prefixes?
     (->> mask nt-mask--format-prefix (overlay-put mask 'line-prefix))))
+
+;;;;; Notes
 
 ;; TODO Not in use yet, to test
 ;; (defun nt-mask--refresh-notes (mask)
@@ -234,30 +230,32 @@ Eventually rewrite with vector for constant-time idxing.")
 ;;   (setf (overlay-get mask 'nt-notes)
 ;;         (->> mask nt-mask->notes (-filter #'nt-ov--deleted?))))
 
-;;;; Exposes
+;;;; Commands
+
+(defun nt-mask--refresh-internal (mask)
+  "Reset bounds and boundary-dependent properties of MASK based on its notes."
+  (-doto mask  ; Refreshing ordering here not arbitrary
+    (nt-mask--refresh-ends)
+    (nt-mask--refresh-prefix)
+    (nt-mask--refresh-render)))
 
 (defun nt-mask--refresh (mask)
-  "Reset bounds and boundary-dependent properties of MASK based on its notes."
-  ;; The ordering here is _not_ arbitrary
-  (-doto mask
-    (nt-mask--reset-opaque-end)
-    (nt-mask--recenter-maybe)
-    (nt-mask--reset-prefix)
-    (nt-mask--reset-display)))
-
-(defun nt-mask--refresh-maybe (mask)
-  "Perform `nt-mask--refresh' when we should and return back MASK."
+  "Refresh and give back MASK."
   (unless nt-mask--wait-for-refresh?
-    (nt-mask--refresh mask))
+    (nt-mask--refresh-internal mask))
   mask)
 
 (defun nt-masks--refresh (masks)
-  "Refresh MASKS."
-  (-map #'nt-mask--refresh-maybe masks))
+  "Refresh and give back MASKS."
+  (-map #'nt-mask--refresh masks))
 
 (defun nt-masks--refresh-region (start end)
-  "Regresh masks in START and END."
+  "Refresh and give back masks in START and END."
   (nt-masks--refresh (nt-masks<-region start end)))
+
+(defun nt-masks--refresh-lines (start-line end-line)
+  "Refresh and give back masks in [START-LINE END-LINE)."
+  (nt-masks--refresh (nt-masks<-lines start-line end-line)))
 
 (defun nt-masks--refresh-buffer ()
   "Refresh `nt-masks'."
@@ -288,7 +286,7 @@ Eventually rewrite with vector for constant-time idxing.")
       mask)))
 
 (defun nt-masks--init (&optional start-line end-line)
-  "Line-by-line buildup `nt-masks', optionally [a b) bounded start/end."
+  "Line-by-line buildup `nt-masks', optionally [START-LINE END-LINE) bounded."
   (let ((nt-mask--init-in-progress? t))
     (nt-lines--foreach start-line end-line
       (nt-mask--init)

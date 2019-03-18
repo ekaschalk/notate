@@ -68,7 +68,7 @@
   (forward-line (- line (line-number-at-pos))))
 
 (defmacro nt-lines--foreach (start-line end-line &rest form)
-  "Execute FORM on each line within [START-LINE END-LINE)."
+  "Execute FORM on each line within optionally bounded [START-LINE END-LINE)."
   (declare (indent 2))
   `(save-excursion
      (nt-line--goto (or ,start-line 1))

@@ -111,12 +111,12 @@ side-by-side comparisons to be aligned.")
 (defun nt--add-note-to-mask (note mask)
   "Add NOTE to a MASK, possibly refresh mask, and return back mask."
   (push note (overlay-get mask 'nt-notes))
-  (nt-mask--refresh-maybe mask))
+  (nt-mask--refresh mask))
 
 (defun nt--remove-note-from-mask (note mask)
   "Remove NOTE from MASK, possibly refresh mask, and return back mask."
   (delq note (overlay-get mask 'nt-notes))
-  (nt-mask--refresh-maybe mask))
+  (nt-mask--refresh mask))
 
 (defun nt--add-note-to-masks (note)
   "Add NOTE to all masks it contributes to and return them."
