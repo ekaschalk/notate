@@ -67,7 +67,7 @@
   "Delete NOTES and refresh the masks they contributed to."
   (let* ((notes (-sort (-on #'>= #'nt-note-indent)
                        notes))
-         (masks (-map (-compose #'nt-mask--at
+         (masks (-map (-compose #'nt-mask<-line
                                 #'nt-note->line)
                       notes))
          (masks-notes (-map #'nt-mask->notes
@@ -75,7 +75,7 @@
     (nt-alg--construct-chains-1 notes masks-notes)))
 
 (defun nt-alg--clear-masks ()
-  (let ((mask (nt-mask--at (line-number-at-pos)))
+  (let ((mask (nt-mask<-line (line-number-at-pos)))
         (notes (nt-mask->notes mask))
         (continue? (-any? #'nt-ov--deleted? notes)))
     (when continue?

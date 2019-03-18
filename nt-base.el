@@ -45,6 +45,11 @@
           (progn (nt-line--goto (1- end-line))
                  (line-end-position)))))
 
+(defun nt-lines<-region (start end)
+  "Get start-line and end-line containing region in START and END."
+  (list (line-number-at-pos start)
+        (1+ (line-number-at-pos end))))
+
 ;;;;; Indentation
 
 (defun nt-line->indent (line)

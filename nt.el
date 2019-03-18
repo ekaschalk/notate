@@ -93,24 +93,6 @@ side-by-side comparisons to be aligned.")
 (defvar nt-render-masks? t
   "Should masks render? Note that line-prefixes, if set to, still display.")
 
-;;;; Managed
-;;;;; Core
-
-(defvar nt-mask-list nil
-  "List of indent overlays currently managed.
-
-This an ordered list s.t. nt-mask-list[i] = mask-at-line-i+1.
-
-Accessing this should be done through `nt-mask--at' and friends to avoid
-confusing indexings.
-
-NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
-
-;;;;; Transitory
-
-(defvar nt-mask--wait-for-refresh nil
-  "Let-bind true to hold off on refreshing masks during batch modifications.")
-
 ;;; Note-Mask Interactions
 
 (defun nt--masks-for (note)
@@ -119,7 +101,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
    note
    (funcall (symbol-value #'nt-bound?-fn))
    (funcall (symbol-value #'nt-bound-fn))
-   (apply #'nt-masks--in)
+   (apply #'nt-masks<-lines)
    (-remove (-partial #'nt-mask--contains? note))))
 
 (defun nt--map-over-masks (fn note)
@@ -164,7 +146,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 (defun nt-enable--agnostic ()
   "Setup all *major-mode-agnostic* components."
   (nt-masks--init)
-  (nt-masks--refresh nt-mask-list))
+  (nt-masks--refresh nt-masks))
 
 (defun nt-disable--agnostic ()
   "Disable all *major-mode-agnostic* components."
@@ -192,7 +174,8 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 (defun nt-disable--just-in-case ()
   "TEMP Reset vars that _should_ never need to be reset."
   (setq nt-mask--wait-for-refresh nil)
-  (setq nt-note--init-in-progress nil))
+  (setq nt-note--init-in-progress nil)
+  (setq nt-mask--init-in-progress nil))
 
 ;;;; Commands
 

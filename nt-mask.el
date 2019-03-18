@@ -13,40 +13,73 @@
 
 (require 'nt-ov)
 
-;;; Lines
+;;; Configuration
+;;;; Managed
 
-(defun nt-mask--at (line)
-  "Retrieve mask at LINE."
-  (nth (1- line) nt-mask-list))
+(defvar nt-masks nil
+  "List of indent overlays currently managed.
 
-(defun nt-masks--at (lines)
-  "Retrieve masks at LINES."
-  (-select-by-indices (-map #'1- lines) nt-mask-list))
+This an ordered list s.t. nt-masks[i] = mask-at-line-i+1.
 
-(defun nt-masks--in (start-line end-line)
-  "Retrieve masks within START-LINE and END-LINE."
-  (-slice nt-mask-list (1- start-line) (1- end-line)))
+Accessing this should be done through `nt-mask<-line' and friends to avoid
+confusing indexings.
 
-(defun nt-masks--in-region (start end)
+NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
+
+
+(defvar nt-mask--wait-for-refresh nil
+  "Let-bind true to hold off on refreshing masks during batch modifications.")
+
+
+(defvar nt-mask--init-in-progress? nil
+  "Are we instantiating the initial masks?")
+
+;;; Access
+;;;; Fundamentals
+
+(defun nt-mask<-line (line)
+  "Get mask at LINE."
+  (-some-> line 1- (nth nt-masks)))
+
+(defun nt-masks<-lines (start-line end-line)
+  "Get masks in [START-LINE END-LINE)."
+  (-slice nt-masks (1- start-line) (1- end-line)))
+
+;;;; Extensions
+
+(defun nt-masks<-region (start end)
   "Retrieve masks in START and END."
-  (nt-masks--in (nt-lines->region start end)))
+  (apply #'nt-masks<-lines (nt-lines<-region start end)))
 
-(defun nt-mask--insert-at (mask line)
-  "Insert MASK at LINE into `nt-mask-list'."
-  (setq nt-mask-list (-insert-at (1- line) mask nt-mask-list)))
+;;; Management
+;;;; Insertion
+
+(defun nt-mask--insert-sorted (mask)
+  "Insert MASK into `nt-masks' maintaining order."
+  (setq nt-masks (-some-> mask nt-mask->line 1- (-insert-at mask nt-masks))))
+
+(defun nt-mask--insert (mask)
+  "Insert MASK into `nt-masks' according to the current context."
+  (if nt-mask--init-in-progress?
+      (!cons mask nt-masks)
+    (nt-mask--insert-sorted mask)))
 
 ;;; Transforms
-;;;; Aliases
+;;;; Overlay Wrappers
+
+(defun nt-mask->line (mask)
+  "Return MASK's line."
+  (-some-> mask overlay-start line-number-at-pos))
 
 (defun nt-mask->notes (mask)
   "Wrapper to access notes contributing to MASK."
-  (overlay-get mask 'nt-notes))
+  (-some-> mask (overlay-get 'nt-notes)))
 
 (defun nt-mask->opaque-end (mask)
   "Return MASK's 'opaque-end text property."
-  (overlay-get mask 'nt-opaque-end))
+  (-some-> mask (overlay-get 'nt-opaque-end)))
 
-;;;; Methods
+;;;; Misc
 
 (defun nt-mask->indent (mask)
   "Return true indent of line containing MASK."
@@ -55,10 +88,6 @@
 (defun nt-mask->width (mask)
   "Calculate width of MASK's notes."
   (-> mask nt-mask->notes nt-notes->width))
-
-(defun nt-mask->line (mask)
-  "Return MASK's line."
-  (-> mask overlay-start line-number-at-pos))
 
 ;;; Predicates
 
@@ -90,7 +119,7 @@
 
 (defun nt-mask--delete (mask)
   "Delete MASK."
-  (delq mask nt-mask-list)
+  (delq mask nt-masks)
   (delete-overlay mask))
 
 (defun nt-mask--refresh-notes (mask)
@@ -155,11 +184,11 @@
 
 (defun nt-masks--render-buffer (&rest _)
   "Set display-based overlay properties for masks in buffer (as a hook)."
-  (nt-masks--render nt-mask-list))
+  (nt-masks--render nt-masks))
 
 (defun nt-masks--unrender-buffer (&rest _)
   "Remove display-based overlay properties for masks in buffer (as a hook)."
-  (nt-masks--unrender nt-mask-list))
+  (nt-masks--unrender nt-masks))
 
 (defun nt-mask--reset-display (mask)
   "Reset display and face text properties of MASK."
@@ -193,11 +222,11 @@
 
 (defun nt-masks--refresh-region (start end)
   "Regresh masks in START and END."
-  (nt-masks--refresh (nt-masks--in-region start end)))
+  (nt-masks--refresh (nt-masks<-region start end)))
 
 (defun nt-masks--refresh-buffer ()
-  "Refresh `nt-mask-list'."
-  (nt-masks--refresh nt-mask-list))
+  "Refresh `nt-masks'."
+  (nt-masks--refresh nt-masks))
 
 ;;; Init
 
@@ -220,18 +249,21 @@
            (start (line-beginning-position))
            (end   (1+ start))
            (mask  (nt-mask--init-ov (make-overlay start end))))
-      (nt-mask--insert-at mask line)
+      (nt-mask--insert mask)
       mask)))
 
 (defun nt-masks--init (&optional start-line end-line)
-  "Line-by-line buildup `nt-mask-list', optionally [a b) bounded start/end."
-  (save-excursion
-    (nt-line--goto (or start-line 1))
+  "Line-by-line buildup `nt-masks', optionally [a b) bounded start/end."
+  (let ((nt-mask--init-in-progress? t))
+    (save-excursion
+      (nt-line--goto (or start-line 1))
 
-    (while (and (not (eobp))
-                (if end-line (< (line-number-at-pos) end-line) t))
-      (nt-mask--init)
-      (forward-line))))
+      (while (and (not (eobp))
+                  (if end-line (< (line-number-at-pos) end-line) t))
+        (nt-mask--init)
+        (forward-line)))
+
+    (setq nt-masks (reverse nt-masks))))
 
 ;;; Provide
 

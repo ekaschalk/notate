@@ -19,11 +19,11 @@
 12345
      note)
 "
-    (should= (-> 3 nt-mask--at nt-mask->indent)
+    (should= (-> 3 nt-mask<-line nt-mask->indent)
              (-> 3 nt-line->indent)
              5)))
 
-;;;; Widths/Notes
+;;;; Widths and Notes
 
 (ert-deftest masks:transforms:widths:simple-1 ()
   (nt-test--with-context 'simple "
@@ -33,9 +33,9 @@
 "
     (nt-test--mock-notes '(("foo" "f")))
 
-    (should* (-> 1 nt-mask--at nt-mask--empty?)
-             (-> 3 nt-mask--at nt-mask--empty?))
-    (should= (-> 2 nt-mask--at nt-mask->width)
+    (should* (-> 1 nt-mask<-line nt-mask--empty?)
+             (-> 3 nt-mask<-line nt-mask--empty?))
+    (should= (-> 2 nt-mask<-line nt-mask->width)
              (- 3 1))))
 
 (ert-deftest masks:transforms:widths:simple-2 ()
@@ -46,9 +46,9 @@
 "
     (nt-test--mock-notes '(("foo" "f")))
 
-    (should (-> 1 nt-mask--at nt-mask--empty?))
-    (should= (-> 2 nt-mask--at nt-mask->width)
-             (-> 3 nt-mask--at nt-mask->width)
+    (should (-> 1 nt-mask<-line nt-mask--empty?))
+    (should= (-> 2 nt-mask<-line nt-mask->width)
+             (-> 3 nt-mask<-line nt-mask->width)
              (- 3 1))))
 
 (ert-deftest masks:transforms:widths:complex ()
@@ -64,16 +64,16 @@
 
     (let ((note-1-width (- 3 1))
           (note-2-width (- 4 3)))
-      (should* (= (-> 2 nt-mask--at nt-mask->width)
+      (should* (= (-> 2 nt-mask<-line nt-mask->width)
                   (+ note-1-width
                      note-2-width))
-               (= (-> 3 nt-mask--at nt-mask->width)
+               (= (-> 3 nt-mask<-line nt-mask->width)
                   (+ note-1-width
                      note-2-width
                      note-1-width))
-               (= (-> 4 nt-mask--at nt-mask->width)
+               (= (-> 4 nt-mask<-line nt-mask->width)
                   note-1-width)
-               (-> 5 nt-mask--at nt-mask--empty?)))))
+               (-> 5 nt-mask<-line nt-mask--empty?)))))
 
 ;;; Init
 ;;;; Single
@@ -86,9 +86,9 @@
 3 foo
 4 foo
 "
-    (should-not nt-mask-list)
+    (should-not nt-masks)
     (nt-mask--init 2)
-    (should-size nt-mask-list 1)))
+    (should-size nt-masks 1)))
 
 ;;;; Multiple
 
@@ -100,9 +100,9 @@
 3 foo
 4 foo
 "
-    (should-not nt-mask-list)
+    (should-not nt-masks)
     (nt-masks--init)
-    (should-size nt-mask-list 4)))
+    (should-size nt-masks 4)))
 
 (ert-deftest masks:init:ranges:start-only ()
   (nt-test--with-context 'no-setup
@@ -112,10 +112,10 @@
 3 foo
 4 foo
 "
-    (should-not nt-mask-list)
+    (should-not nt-masks)
     (let ((start 2) end)
       (nt-masks--init start end))
-    (should-size nt-mask-list (- 4 1))))
+    (should-size nt-masks (- 4 1))))
 
 (ert-deftest masks:init:ranges:end-only ()
   (nt-test--with-context 'no-setup
@@ -125,10 +125,10 @@
 3 foo
 4 foo
 "
-    (should-not nt-mask-list)
+    (should-not nt-masks)
     (let (start (end 4))
       (nt-masks--init start end))
-    (should-size nt-mask-list (- 4 1))))
+    (should-size nt-masks (- 4 1))))
 
 (ert-deftest masks:init:ranges ()
   (nt-test--with-context 'no-setup
@@ -138,7 +138,7 @@
 3 foo
 4 foo
 "
-    (should-not nt-mask-list)
+    (should-not nt-masks)
     (let ((start 2) (end 4))
       (nt-masks--init start end))
-    (should-size nt-mask-list (- 4 1 1))))
+    (should-size nt-masks (- 4 1 1))))

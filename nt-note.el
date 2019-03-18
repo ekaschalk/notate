@@ -20,6 +20,7 @@
 (defvar nt-notes nil
   "List of note overlays, kept sorted by start position.")
 
+
 (defvar-local nt-note--init-in-progress? nil
   "Are we instantiating the initial notes?")
 
@@ -118,7 +119,7 @@
 ;;;; Insertion
 
 (defun nt-note--insert-sorted (note)
-  "Insert NOTE into `nt-notes' maintaining sorted order."
+  "Insert NOTE into `nt-notes' maintaining order."
   (setq nt-notes
         (-if-let (idx (-find-index (-partial #'nt-notes--lt note)
                                    nt-notes))
