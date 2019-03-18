@@ -66,21 +66,25 @@ Eventually rewrite with vector for constant-time idxing.")
 ;;;; Overlay Wrappers
 
 (defun nt-mask->line (mask)
-  "Return MASK's line."
+  "Access MASK's line."
   (-some-> mask overlay-start line-number-at-pos))
 
 (defun nt-mask->notes (mask)
-  "Wrapper to access notes contributing to MASK."
+  "Access MASK's notes."
   (-some-> mask (overlay-get 'nt-notes)))
 
 (defun nt-mask->opaque-end (mask)
-  "Return MASK's 'opaque-end text property."
+  "Access MASK's opaque-end."
   (-some-> mask (overlay-get 'nt-opaque-end)))
 
 ;;;; Misc
 
+(defun nt-mask->opaque-line (mask)
+  "Get line of MASK's opaque-end."
+  (-some-> mask nt-mask->opaque-end line-number-at-pos))
+
 (defun nt-mask->indent (mask)
-  "Return true indent of line containing MASK."
+  "Get true indent of MASK's line."
   (save-excursion (nt-ov--goto mask) (nt-line->indent-col)))
 
 (defun nt-mask->width (mask)
@@ -88,19 +92,22 @@ Eventually rewrite with vector for constant-time idxing.")
   (-> mask nt-mask->notes nt-notes->width))
 
 ;;; Predicates
+;;;; General Purpose
 
 (defun nt-mask--empty? (mask)
-  "Is MASK currently empty of notes?"
-  (-> mask nt-mask->width (= 0)))
+  "Does MASK have no notes?"
+  (-> mask nt-mask->notes null))
+
+(defun nt-mask--contains? (note mask)
+  "Does MASK contain NOTE?"
+  (-> mask nt-mask->notes (-contains? note)))
+
+;;;; Rendering
 
 (defun nt-mask--enough-space? (mask)
   "Does MASK's line contain enough space for rendering?"
   (= (nt-mask->line mask)
-     (-> mask nt-mask->opaque-end line-number-at-pos)))
-
-(defun nt-mask--contains? (note mask)
-  "Does MASK already contain NOTE?"
-  (-> mask nt-mask->notes (-contains? note)))
+     (nt-mask->opaque-line mask)))
 
 (defun nt-mask--ends-agree? (mask)
   "Does MASK's opaque-end and actual end agree?"
