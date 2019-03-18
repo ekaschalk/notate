@@ -127,6 +127,15 @@ Eventually rewrite with vector for constant-time idxing.")
   (delq mask nt-masks)
   (delete-overlay mask))
 
+;; TODO test first
+(defun nt-mask--delete-lines (start-line end-line)
+  "Delete masks in [START-LINE END-LINE)."
+  ;; (-each #'delete-overlay (nt-masks<-lines start-line end-line))
+  ;; (setq nt-masks
+  ;;       (append (nt-masks<-lines 0 start-line)
+  ;;               (nt-masks<-lines end-line (length nt-masks))))
+  )
+
 ;;; Decomposition
 
 (defun nt-mask--decompose (mask)
