@@ -48,20 +48,6 @@ Eventually rewrite with vector for constant-time idxing.")
   "Get masks in START and END."
   (apply #'nt-masks<-lines (nt-lines<-region start end)))
 
-;;; Management
-;;;; Insertion
-
-(defun nt-mask--insert-sorted (mask)
-  "Insert MASK into `nt-masks' maintaining order."
-  (setq nt-masks
-        (-some-> mask nt-mask->line 1- (-insert-at mask nt-masks))))
-
-(defun nt-mask--insert (mask)
-  "Insert MASK into `nt-masks' according to the current context."
-  (if nt-mask--init-in-progress?
-      (!cons mask nt-masks)
-    (nt-mask--insert-sorted mask)))
-
 ;;; Transforms
 ;;;; Overlay Wrappers
 
@@ -120,12 +106,52 @@ Eventually rewrite with vector for constant-time idxing.")
        (not (nt-mask--empty? mask))
        (nt-mask--ends-agree? mask)))
 
-;;; Overlays
+;;; Management
+;;;; Insertion
+
+(defun nt-mask--insert-sorted (mask)
+  "Insert MASK into `nt-masks' maintaining order."
+  (setq nt-masks
+        (-some-> mask nt-mask->line 1- (-insert-at mask nt-masks))))
+
+(defun nt-mask--insert (mask)
+  "Insert MASK into `nt-masks' according to the current context."
+  (if nt-mask--init-in-progress?
+      (!cons mask nt-masks)
+    (nt-mask--insert-sorted mask)))
+
+;;;; Deletion
 
 (defun nt-mask--delete (mask)
   "Delete MASK."
   (delq mask nt-masks)
   (delete-overlay mask))
+
+;;; Decomposition
+
+(defun nt-mask--decompose (mask)
+  "Workhorse of `nt-mask--decompose-hook'."
+  ;; TODO This function will likely be hard to implement perfectly, probably
+  ;; harder than note's decomposition hook...
+
+  ;; Few observations:
+  ;; 1. probably need to handle deleting forward differently
+  ;; 2. probably need to handle visual deletion differently
+  ;; 3. probably interacting in a bad way with `undo-tree-undo'
+
+  (let* ((inhibit-modification-hooks t)
+         (width                      (nt-mask->width mask))
+         (invis-spaces-to-delete     (1+ width)))
+    (nt-mask--delete mask)
+    (evil-with-single-undo
+      (delete-char (- invis-spaces-to-delete)))))
+
+(defun nt-mask--decompose-hook (mask post-mod? start end &optional _)
+  "Decompose MASK upon modification as a modification-hook."
+  (when post-mod?
+    (nt-mask--decompose mask)))
+
+;;; Overlays
 
 (defun nt-mask--refresh-notes (mask)
   "Remove deleted notes from MASK."
@@ -133,18 +159,7 @@ Eventually rewrite with vector for constant-time idxing.")
   (setf (overlay-get mask 'nt-notes)
         (->> mask nt-mask->notes (-filter #'nt-ov--deleted?))))
 
-(defun nt-mask--decompose-hook (mask post-mod? start end &optional _)
-  "Overlay modification hook to delete indent ov upon modification within it."
-  ;; NOTE probably need to handle deleting forward differently
-  ;; NOTE probably need to handle visual deletion differently
-  ;; NOTE nearly certain this is interacting in a bad way with `undo-tree-undo'
-  (when post-mod?
-    (let* ((inhibit-modification-hooks t)
-           (width                      (nt-mask->width mask))
-           (invis-spaces-to-delete     (1+ width)))
-      (nt-mask--delete mask)
-      (evil-with-single-undo
-        (delete-char (- invis-spaces-to-delete))))))
+
 
 (defun nt-mask--format-prefix (mask)
   "Format the `line-prefix' overlay text property for MASK."

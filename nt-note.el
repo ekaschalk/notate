@@ -137,11 +137,11 @@
 ;;;; Deletion
 
 (defun nt-note--delete-internal (note)
-  "Delete a single NOTE overlay. Internal-use only by other deletion methods."
+  "Delete a single NOTE overlay. Internal-use by other deletion methods only."
   (nt-notes--delete-internal (list note)))
 
 (defun nt-notes--delete-internal (notes)
-  "Delete NOTES overlays. Internal-use only by other deletion methods."
+  "Delete NOTES overlays. Internal-use by other deletion methods only."
   (setq nt-notes (-remove (-partial #'-contains? notes) nt-notes))
   (-each notes #'delete-overlay))
 
@@ -161,13 +161,17 @@
     (-each notes #'nt-note--delete-internal)
     (-each regions (-applify #'nt-mask--refresh-region))))
 
-;;; Modification Hook
+;;; Decomposition
 
-;; TODO Rewrite (this must do a lot more (I think, possibly it is this simple))
+;; TODO probably much more involved than this...
+(defun nt-note--decompose (note)
+  "Workhorse of `nt-note--decompose-hook'."
+  (nt-note--delete note))
+
 (defun nt-note--decompose-hook (note post-modification? start end &optional _)
   "Decompose NOTE upon modification as a modification-hook."
   (when post-modification?
-    (nt-note--delete note)))
+    (nt-note--decompose note)))
 
 ;;; Init
 
