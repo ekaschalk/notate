@@ -160,15 +160,7 @@ Eventually rewrite with vector for constant-time idxing.")
   (when post-mod?
     (nt-mask--decompose mask)))
 
-;;; Overlays
-
-(defun nt-mask--refresh-notes (mask)
-  "Remove deleted notes from MASK."
-  ;; TODO Check this properly sets
-  (setf (overlay-get mask 'nt-notes)
-        (->> mask nt-mask->notes (-filter #'nt-ov--deleted?))))
-
-
+;;; Prefixes
 
 (defun nt-mask--format-prefix (mask)
   "Format the `line-prefix' overlay text property for MASK."
@@ -179,17 +171,9 @@ Eventually rewrite with vector for constant-time idxing.")
    (-interpose "|")
    (apply #'s-concat)))
 
-(defun nt-mask--reset-prefix (mask)
-  "Reset the `line-prefix' text property for MASK."
-  (when nt-display-prefixes?
-    (->> mask nt-mask--format-prefix (overlay-put mask 'line-prefix))))
-
-(defun nt-mask--recenter-maybe (mask)
-  "Recenter MASK if it won't cross lines doing so."
-  (when (nt-mask--enough-space? mask)
-    (move-overlay mask
-                  (overlay-start mask)
-                  (nt-mask->opaque-end mask))))
+;;; Refreshing
+;;;; Internal
+;;;;; Rendering
 
 (defun nt-mask--render (mask)
   "Set display-based overlay properties for MASK."
@@ -219,20 +203,42 @@ Eventually rewrite with vector for constant-time idxing.")
   "Remove display-based overlay properties for masks in buffer (as a hook)."
   (nt-masks--unrender nt-masks))
 
-(defun nt-mask--reset-display (mask)
-  "Reset display and face text properties of MASK."
-  (if (nt-mask--render? mask)
-      (nt-mask--render mask)
-    (nt-mask--unrender mask)))
+;;;;; Components
 
 (defun nt-mask--reset-opaque-end (mask)
   "Update MASK's 'opaque-end based on contributing notes."
   (overlay-put mask 'nt-opaque-end
                (+ 1 (overlay-start mask) (nt-mask->width mask))))
 
+(defun nt-mask--recenter-maybe (mask)
+  "Recenter MASK if it won't cross lines doing so."
+  (when (nt-mask--enough-space? mask)
+    (move-overlay mask
+                  (overlay-start mask)
+                  (nt-mask->opaque-end mask))))
+
+(defun nt-mask--reset-display (mask)
+  "Reset display and face text properties of MASK."
+  (if (nt-mask--render? mask)
+      (nt-mask--render mask)
+    (nt-mask--unrender mask)))
+
+(defun nt-mask--reset-prefix (mask)
+  "Reset the `line-prefix' text property for MASK."
+  (when nt-display-prefixes?
+    (->> mask nt-mask--format-prefix (overlay-put mask 'line-prefix))))
+
+;; TODO Not in use yet, to test
+;; (defun nt-mask--refresh-notes (mask)
+;;   "Remove deleted notes from MASK."
+;;   (setf (overlay-get mask 'nt-notes)
+;;         (->> mask nt-mask->notes (-filter #'nt-ov--deleted?))))
+
+;;;; Exposes
+
 (defun nt-mask--refresh (mask)
   "Reset bounds and boundary-dependent properties of MASK based on its notes."
-  ;; These mutations must occur in the order presented
+  ;; The ordering here is _not_ arbitrary
   (-doto mask
     (nt-mask--reset-opaque-end)
     (nt-mask--recenter-maybe)
