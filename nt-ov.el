@@ -51,24 +51,33 @@
   "Return OV's line. Note that all nt ovs don't span lines, so this is ok."
   (-> ov overlay-start line-number-at-pos))
 
-;;; Point-Based
+;;; Access
+
+(defun nt-ov<-pos (pos)
+  "Return first nt overlay at POS."
+  (-any #'nt-ov? (overlays-at pos)))
+
+;; Fill these out if I find a point to doing so, pun-intended
+;; (defun nt-ovs<-region (start end))
+;; (defun nt-ovs<-line (line))
+;; (defun nt-ovs<-lines (start-line end-line))
+
+(defun nt-ov--at-point ()
+  "Execute `nt-ov--at' point."
+  (nt-ov<-pos (point)))
+
+;;; Management
 
 (defun nt-ov--goto (ov)
   "Goto start of OV."
   (-> ov overlay-start goto-char))
 
-(defun nt-ov--at (pos)
-  "Return first nt overlay at POS."
-  (-any #'nt-ov? (overlays-at pos)))
-
-(defun nt-ov--at-point ()
-  "Execute `nt-ov--at' point."
-  (nt-ov--at (point)))
-
-;;; Management
+(defun nt-ov--extend (ov end)
+  "Execute `move-overlay' for only an END."
+  (move-overlay ov (overlay-start ov) end))
 
 (defun nt-ov--remove-all ()
-  "Remove all `nt' overlays from current buffer."
+  "Remove all `nt' overlays from current buffer, no questions asked."
   (remove-overlays nil nil 'nt? t)
   (setq nt-masks nil)
   (setq nt-notes nil))

@@ -207,10 +207,10 @@ Eventually rewrite with vector for constant-time idxing.")
 
 (defun nt-mask--refresh-end-internal (mask)
   "Reset MASK's true end based on its 'opaque-end."
-  (move-overlay mask (overlay-start mask) (nt-mask->opaque-end mask)))
+  (-some->> mask nt-mask->opaque-end (nt-ov--extend mask)))
 
 (defun nt-mask--refresh-ends (mask)
-  "Reset MASK's 'opaque-end and true-end, if there is space to do so."
+  "Reset MASK's 'opaque-end, and possibly true-end if there is space to do so."
   (nt-mask--refresh-opaque-end-internal mask)
   (when (nt-mask--enough-space? mask)
     (nt-mask--refresh-end-internal mask)))
