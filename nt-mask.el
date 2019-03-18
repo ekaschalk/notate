@@ -17,18 +17,15 @@
 ;;;; Managed
 
 (defvar nt-masks nil
-  "List of indent overlays currently managed.
+  "Line-ordered list of indent overlays, covering the buffer.
 
-This an ordered list s.t. nt-masks[i] = mask-at-line-i+1.
+Always access through `nt-mask<-line' and friends to not confuse 0 vs 1-idxing.
 
-Accessing this should be done through `nt-mask<-line' and friends to avoid
-confusing indexings.
-
-NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
+Eventually rewrite with vector for constant-time idxing.")
 
 
-(defvar nt-mask--wait-for-refresh nil
-  "Let-bind true to hold off on refreshing masks during batch modifications.")
+(defvar nt-mask--wait-for-refresh? nil
+  "Let-bind true to hold off on refreshing masks during batch updates.")
 
 
 (defvar nt-mask--init-in-progress? nil
@@ -48,7 +45,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 ;;;; Extensions
 
 (defun nt-masks<-region (start end)
-  "Retrieve masks in START and END."
+  "Get masks in START and END."
   (apply #'nt-masks<-lines (nt-lines<-region start end)))
 
 ;;; Management
@@ -56,7 +53,8 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 (defun nt-mask--insert-sorted (mask)
   "Insert MASK into `nt-masks' maintaining order."
-  (setq nt-masks (-some-> mask nt-mask->line 1- (-insert-at mask nt-masks))))
+  (setq nt-masks
+        (-some-> mask nt-mask->line 1- (-insert-at mask nt-masks))))
 
 (defun nt-mask--insert (mask)
   "Insert MASK into `nt-masks' according to the current context."
@@ -93,7 +91,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 (defun nt-mask--empty? (mask)
   "Is MASK currently empty of notes?"
-  (= 0 (nt-mask->width mask)))
+  (-> mask nt-mask->width (= 0)))
 
 (defun nt-mask--enough-space? (mask)
   "Does MASK's line contain enough space for rendering?"
@@ -212,7 +210,7 @@ NOTE - This will be converted into a vector soon^tm for constant-time idxing.")
 
 (defun nt-mask--refresh-maybe (mask)
   "Perform `nt-mask--refresh' when we should and return back MASK."
-  (unless nt-mask--wait-for-refresh
+  (unless nt-mask--wait-for-refresh?
     (nt-mask--refresh mask))
   mask)
 

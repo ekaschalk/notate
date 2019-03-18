@@ -128,14 +128,14 @@ side-by-side comparisons to be aligned.")
 
 (defun nt--add-notes-to-masks (notes)
   "Batch add NOTES to their masks refreshing upon completion."
-  ;; (let ((nt-mask--wait-for-refresh t))
+  ;; (let ((nt-mask--wait-for-refresh? t))
   ;;   (-each notes #'nt--add-note-to-masks))
 
   ;; (nt-masks--refresh-buffer)
 
   ;; TODO Test this implementation compared to simpler version above
   (let ((masks))
-    (let ((nt-mask--wait-for-refresh t))
+    (let ((nt-mask--wait-for-refresh? t))
       (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
@@ -159,7 +159,7 @@ side-by-side comparisons to be aligned.")
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
-  (let ((nt-mask--wait-for-refresh t))
+  (let ((nt-mask--wait-for-refresh? t))
     (lisp-mode)
     (nt-notes--init))
   (nt-masks--refresh-buffer))
@@ -173,7 +173,7 @@ side-by-side comparisons to be aligned.")
 
 (defun nt-disable--just-in-case ()
   "TEMP Reset vars that _should_ never need to be reset."
-  (setq nt-mask--wait-for-refresh nil)
+  (setq nt-mask--wait-for-refresh? nil)
   (setq nt-note--init-in-progress nil)
   (setq nt-mask--init-in-progress nil))
 

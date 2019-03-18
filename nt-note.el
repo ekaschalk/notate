@@ -18,7 +18,7 @@
 ;;;; Managed
 
 (defvar nt-notes nil
-  "List of note overlays, kept sorted by start position.")
+  "Start-position-ordered list of note overlays.")
 
 
 (defvar-local nt-note--init-in-progress? nil
@@ -78,6 +78,11 @@
   "Get indent of NOTE's line."
   (-some-> note nt-ov->line nt-line->indent))
 
+(defun nt-note->idx (note)
+  "Get index of insertion of new NOTE into `nt-notes'."
+  (or (-find-index (-partial #'nt-notes--lt note) nt-notes)
+      (length nt-notes)))
+
 ;;; Relationships
 ;;;; Comparisons
 
@@ -121,10 +126,7 @@
 (defun nt-note--insert-sorted (note)
   "Insert NOTE into `nt-notes' maintaining order."
   (setq nt-notes
-        (-if-let (idx (-find-index (-partial #'nt-notes--lt note)
-                                   nt-notes))
-            (-insert-at idx note nt-notes)
-          (-snoc nt-notes note))))
+        (-some-> note nt-note->idx (-insert-at note nt-notes))))
 
 (defun nt-note--insert (note)
   "Insert NOTE into `nt-notes' according to the current context."
