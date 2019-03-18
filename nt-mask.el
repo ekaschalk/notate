@@ -270,7 +270,7 @@ Eventually rewrite with vector for constant-time idxing.")
   (-doto ov
     (overlay-put 'nt?      t)
     (overlay-put 'nt-mask? t)
-    (overlay-put 'nt-notes  nil)
+    (overlay-put 'nt-notes nil)
     (overlay-put 'nt-opaque-end (overlay-end ov))
 
     (overlay-put 'modification-hooks '(nt-mask--decompose-hook))))
@@ -290,14 +290,11 @@ Eventually rewrite with vector for constant-time idxing.")
 (defun nt-masks--init (&optional start-line end-line)
   "Line-by-line buildup `nt-masks', optionally [a b) bounded start/end."
   (let ((nt-mask--init-in-progress? t))
-    (save-excursion
-      (nt-line--goto (or start-line 1))
+    (nt-lines--foreach start-line end-line
+      (nt-mask--init)
+      (forward-line))
 
-      (while (and (not (eobp))
-                  (if end-line (< (line-number-at-pos) end-line) t))
-        (nt-mask--init)
-        (forward-line)))
-
+    ;; Later just build up nt-masks by backward-lining to avoid this call
     (setq nt-masks (reverse nt-masks))))
 
 ;;; Provide
