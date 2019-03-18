@@ -67,6 +67,8 @@
   ;; TODO Add a check that line isn't too far outside buffer
   (forward-line (- line (line-number-at-pos))))
 
+;;;; Macros
+
 (defmacro nt-lines--foreach (start-line end-line &rest form)
   "Execute FORM on each line within optionally bounded [START-LINE END-LINE)."
   (declare (indent 2))
@@ -75,7 +77,8 @@
 
      (while (and (not (eobp))
                  (if ,end-line (< (line-number-at-pos) ,end-line) t))
-       ,@form)))
+       ,@form
+       (forward-line))))
 
 ;;; Provide
 

@@ -263,34 +263,28 @@ Eventually rewrite with vector for constant-time idxing.")
 
 ;;; Init
 
-(defun nt-mask--init-ov (ov)
-  "Put always-on text properties for masks into OV."
-  (-doto ov
+(defun nt-mask--init-ov (start end)
+  "Instantiate mask overlay and its properties for `nt-mask--init'."
+  (-doto (make-overlay start end)
     (overlay-put 'nt?      t)
     (overlay-put 'nt-mask? t)
     (overlay-put 'nt-notes nil)
-    (overlay-put 'nt-opaque-end (overlay-end ov))
+    (overlay-put 'nt-opaque-end end)
 
     (overlay-put 'modification-hooks '(nt-mask--decompose-hook))))
 
 (defun nt-mask--init (&optional line)
-  "Create empty mask for LINE, otherwise current line."
-  (save-excursion
-    (when line (nt-line--goto line))
-
-    (let* ((line  (line-number-at-pos))
-           (start (line-beginning-position))
-           (end   (1+ start))
-           (mask  (nt-mask--init-ov (make-overlay start end))))
-      (nt-mask--insert mask)
-      mask)))
+  "Build empty mask for LINE, otherwise current line."
+  (let* ((start (nt-line->start (or line (line-number-at-pos))))
+         (mask (nt-mask--init-ov start (1+ start))))
+    (nt-mask--insert mask)
+    mask))
 
 (defun nt-masks--init (&optional start-line end-line)
   "Line-by-line buildup `nt-masks', optionally [START-LINE END-LINE) bounded."
   (let ((nt-mask--init-in-progress? t))
     (nt-lines--foreach start-line end-line
-      (nt-mask--init)
-      (forward-line))
+      (nt-mask--init))
 
     ;; Later just build up nt-masks by backward-lining to avoid this call
     (setq nt-masks (reverse nt-masks))))
