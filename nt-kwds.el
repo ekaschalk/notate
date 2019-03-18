@@ -5,6 +5,7 @@
 ;;; Commentary:
 
 ;; Interface between `nt-note', `font-lock-mode', and user note definitions.
+;; Such DEFS are string-replacement pairs with optional custom regex.
 
 ;;; Code:
 ;;;; Requires
@@ -40,7 +41,7 @@
 ;;;; Utilities
 
 (defun nt-kwd--string->rx (string)
-  "Construct regex matching STRING as the first group."
+  "Construct a regex matching STRING in the first subexp."
   (rx-to-string `(group ,string) 'no-shy-group))
 
 ;;;; Matching
@@ -64,10 +65,13 @@
 The translation of this kwd in `font-lock-add-keywords' documentation is not
 totally obvious. It exploits the following rule:
 
-  (MATCHER . HIGHLIGHT=MATCH-HIGHLIGHT=(SUBEXP=0 FACENAME=expression)).
+  (MATCHER=rx . HIGHLIGHT=MATCH-HIGHLIGHT=(SUBEXP=0 FACENAME=expression)).
 
-The expression is an arbitrary form, namely notate's overlay instantiation.
-If the expression returns a face, the matched region will have that face set."
+The expression is an arbitrary form, namely notate's note overlay instantiation.
+
+If the expression returns a face, the matched region will have that face set.
+See the variable `nt-normalize-height?' for information about the face.
+"
   (nt-kwd--def-validate string replacement)
   `(,(or rx
          (nt-kwd--string->rx string))
