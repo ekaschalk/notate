@@ -134,31 +134,33 @@
     (setq nt-notes (nt-note--insert-sorted note))))
 
 ;;;; Deletion
-
-(defun nt-note--delete-internal (note)
-  "Delete a single NOTE overlay. Internal-use by other deletion methods only."
-  (nt-notes--delete-internal (list note)))
+;;;;; Internal
 
 (defun nt-notes--delete-internal (notes)
   "Delete NOTES overlays. Internal-use by other deletion methods only."
   (setq nt-notes (-remove (-partial #'-contains? notes) nt-notes))
   (-each notes #'delete-overlay))
 
-(defun nt-note--delete (note)
-  "Delete a single NOTE, updating masks."
-  (nt-notes--delete (list note)))
+(defun nt-note--delete-internal (note)
+  "Delete a single NOTE overlay. Internal-use by other deletion methods only."
+  (nt-notes--delete-internal (list note)))
 
-;; TODO test
-(defun nt-notes--delete-region (start end)
-  "Delete notes in START and END, updating masks."
-  (nt-notes--delete (nt-notes<-region start end)))
+;;;;; Commands
 
-;; TODO test
+;; TODO Test
 (defun nt-notes--delete (notes)
   "Delete NOTES, updating masks."
   (let ((regions (nt-notes->maximal-regions notes)))
     (-each notes #'nt-note--delete-internal)
     (-each regions (-applify #'nt-mask--refresh-region))))
+
+(defun nt-note--delete (note)
+  "Delete a single NOTE, updating masks."
+  (nt-notes--delete (list note)))
+
+(defun nt-notes--delete-region (start end)
+  "Delete notes in START and END, updating masks."
+  (nt-notes--delete (nt-notes<-region start end)))
 
 ;;; Decomposition
 

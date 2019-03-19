@@ -7,6 +7,7 @@
 ;; - Transforms
 ;; - Sorting
 ;; - Root-Finding
+;; - Deletion (internal-only)
 
 ;; Implicitly Covered:
 ;; - Initiation (mocking bypasses font-lock-mode, not inititation methods)
@@ -14,7 +15,6 @@
 
 ;; Not Covered:
 ;; - Decomposition
-;; - Deletion
 
 ;;; Access
 ;;;; Fundamentals
@@ -201,3 +201,31 @@
 
 ;;; Management
 ;;;; Deletion
+;;;;; Internal
+
+(ert-deftest notes:management:deletion:internal ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      bar)
+"
+    (-let (((note foo)
+            (nt-test--mock-notes '(("note" "n") ("foo" "fo")))))
+
+      (should-equal nt-notes
+                    `(,note ,foo))
+
+      (nt-note--delete-internal foo)
+      (should-equal nt-notes
+                    `(,note))
+
+      (nt-note--delete-internal foo)  ; Check no error thrown
+      (should-equal nt-notes
+                    `(,note))
+
+      (nt-note--delete-internal note)
+      (should-not nt-notes))))
+
+;;;;; Commands
+
+;; tbd
