@@ -1,12 +1,16 @@
 ;;; nt-note-test.el --- Tests -*- lexical-binding: t -*-
 
-;; ~ Coverage ~
+;; ~ TEST COVERAGE ~
 
-;; Covered (fully unless stated otherwise):
+;; Covered:
 ;; - Access
 ;; - Transforms
 ;; - Sorting
 ;; - Root-Finding
+
+;; Implicitly Covered:
+;; - Initiation (mocking bypasses font-lock-mode, not inititation methods)
+;; - Insertion
 
 ;; Not Covered:
 ;; - Decomposition
@@ -149,6 +153,9 @@
 
 ;;;; Roots
 
+;; Notice that the CONTEXT does matter for root tests.
+;; These cases can be made more granular down the road, but good enough atm.
+
 (ert-deftest notes:relationships:roots:no-children ()
   (nt-test--with-context 'lispy "
 (note foo
@@ -193,29 +200,4 @@
                       ,(cadr notes))))))
 
 ;;; Management
-;;;; Insertion
-
-
 ;;;; Deletion
-
-;;; Init
-
-(ert-deftest notes:init:simple ()
-  (nt-test--with-context 'any "
-(string foo bar)
-"
-    (let ((notes (nt-test--mock-notes '(("string" "note")))))
-      (should-size notes 1))))
-
-(ert-deftest notes:init:complex ()
-  (nt-test--with-context 'any
-      "
-1 (string1 string2 string1
-2          string1) string2
-3
-4 (string2 foo
-5          bar)
-"
-    (let ((notes
-           (nt-test--mock-notes '(("string1" "note1") ("string2" "note2")))))
-      (should-size notes 6))))
