@@ -126,7 +126,7 @@
 (defun nt-note--insert-sorted (note)
   "Insert NOTE into `nt-notes' maintaining order."
   (setq nt-notes
-        (-some-> note nt-note->idx (-insert-at note nt-notes))))
+        (-> note nt-note->idx (-insert-at note nt-notes))))
 
 (defun nt-note--insert (note)
   "Insert NOTE into `nt-notes' according to the current context."

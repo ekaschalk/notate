@@ -36,11 +36,11 @@ Eventually rewrite with vector for constant-time idxing.")
 
 (defun nt-mask<-line (line)
   "Get mask at LINE."
-  (-some-> line 1- (nth nt-masks)))
+  (-some-> line nt-line->idx (nth nt-masks)))
 
 (defun nt-masks<-lines (start-line end-line)
   "Get masks in [START-LINE END-LINE)."
-  (-slice nt-masks (1- start-line) (1- end-line)))
+  (-slice nt-masks (nt-line->idx start-line) (nt-line->idx end-line)))
 
 ;;;; Extensions
 
@@ -112,7 +112,7 @@ Eventually rewrite with vector for constant-time idxing.")
 (defun nt-mask--insert-sorted (mask)
   "Insert MASK into `nt-masks' maintaining order."
   (setq nt-masks
-        (-some-> mask nt-mask->line 1- (-insert-at mask nt-masks))))
+        (-> mask nt-mask->line nt-line->idx (-insert-at mask nt-masks))))
 
 (defun nt-mask--insert (mask)
   "Insert MASK into `nt-masks' according to the current context."
