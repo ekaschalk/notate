@@ -33,7 +33,7 @@
 
 (defun nt-notes<-region (start end)
   "Get notes in START and END."
-  (-some->> (overlays-in start end) (-filter #'nt-ov--note?) reverse))
+  (-some->> (overlays-in start end) (-filter #'nt-ov--note?) nt-notes--sort))
 
 (defun nt-notes<-line (line)
   "Get notes on LINE."

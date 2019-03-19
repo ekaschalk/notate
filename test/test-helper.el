@@ -130,5 +130,6 @@ writing, it instantiates empty masks for the buffer and sets up managed vars."
             (should* ,@(cdr fi)))))
 
 (defmacro should= (f1 &rest fi) `(should (= ,f1 ,@fi)))
+(defmacro should-equal (f1 f2) `(should (equal ,f1 ,f2)))
 (defmacro should-s= (f1 f2) `(should (s-equals? ,f1 ,f2)))
 (defmacro should-size (coll size) `(should= (length ,coll) ,size))

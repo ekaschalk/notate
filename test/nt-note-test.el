@@ -11,6 +11,61 @@
 ;; - decompose hook
 ;; - font lock kwd construction and spec methods
 
+;;; Access
+;;;; Fundamentals
+
+(ert-deftest notes:access:fundamentals:pos ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      bar)
+"
+    (-let (((note)
+            (nt-test--mock-notes '(("note" "n")))))
+      (should (nt-note<-pos 3))
+      (should-not (nt-note<-pos 10)))))
+
+(ert-deftest notes:access:fundamentals:region ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      bar)
+"
+    (-let (((note)
+            (nt-test--mock-notes '(("note" "n")))))
+      (should (nt-notes<-region 3 10))
+      (should-not (nt-notes<-region 8 10))
+      (should-not (nt-notes<-region 0 1)))))
+
+(ert-deftest notes:access:fundamentals:line ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      bar)
+"
+    (-let ((notes
+            (nt-test--mock-notes '(("note" "n") ("foo" "n")))))
+      (should-equal (nt-notes<-line 1)
+                    notes)
+      (should-not (nt-notes<-line 2)))))
+
+;;;; Extensions
+
+(ert-deftest notes:access:extensions:lines ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      bar)
+"
+    (-let (((note bar)
+            (nt-test--mock-notes '(("note" "n") ("bar" "n")))))
+      (should-equal (nt-notes<-lines 1 2)
+                    `(,note))
+      (should-equal (nt-notes<-lines 1 3)
+                    `(,note ,bar))
+      (should-equal (nt-notes<-lines 2 3)
+                    `(,bar)))))
+
 ;;; Overlays
 
 (ert-deftest notes:overlays:presence ()
