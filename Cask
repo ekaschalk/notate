@@ -13,5 +13,4 @@
 
 (development
  (depends-on "ert-runner")
- (depends-on "f")
- (depends-on "faceup"))
+ (depends-on "f"))

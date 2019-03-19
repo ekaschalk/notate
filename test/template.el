@@ -1,8 +1,11 @@
 ;;; nt-[module]-test.el --- Tests -*- lexical-binding: t -*-
 
-;; ~ Testing Status ~
+;; ~ TEST COVERAGE ~
 
 ;; Covered:
+;; -
+
+;; Implicitly Covered:
 ;; -
 
 ;; Not Covered:
@@ -11,7 +14,7 @@
 ;;; [outline]
 
 (ert-deftest module:outline:xxx ()
-  (nt-test--with-context 'foo "
+  (nt-test--with-context 'minimal "
 foo
 "
     ))
