@@ -1,23 +1,16 @@
 ;;; nt-note-test.el --- Tests -*- lexical-binding: t -*-
 
-;; ~ Testing Status ~
+;; ~ Coverage ~
 
-;; Covered:
-;; - Access (fully tested)
-;; - Transforms (fully tested)
-
-;; Uncovered:
-;; -
-
-;; OLD
-;; Covered:
-;; - overlay methods
-;; - width transforms
-;; - Initiation and mocking
+;; Covered (fully unless stated otherwise):
+;; - Access
+;; - Transforms
+;; - Sorting
+;; - Root-Finding
 
 ;; Not Covered:
-;; - decompose hook
-;; - font lock kwd construction and spec methods
+;; - Decomposition
+;; - Deletion
 
 ;;; Access
 ;;;; Fundamentals
@@ -130,75 +123,80 @@
       (should= (-> (make-overlay (point-min) (point-min)) nt-note->idx)
                0))))
 
-;;; Sorting
+;;; Relationships
+;;;; Comparisons
 
-(ert-deftest note:sorting ()
-  (nt-test--with-context 'simple "
-1 (string1 foo
-2          bar)
+(ert-deftest notes:relationships:comparisons:sorting ()
+  (nt-test--with-context 'any "
+1 (note1 foo
+2        bar)
 3
-4 (string2 foo
-5          bar)
+4 (note2 foo
+5        bar)
 6
-7 (string1 string2
-8          foo
-9          bar)
+7 (note1 note2
+8        foo
+9        bar)
 "
-    (let ((notes (nt-test--mock-notes
-                  '(("string1" "note") ("string2" "note"))))
-          (sorted `(,@(nt-notes<-line 1)
-                    ,@(nt-notes<-line 4)
-                    ,@(nt-notes<-line 7))))
-      ;; I chose for notes mock to be sorted for easier destructuring
-      ;; So no need to explictly call `nt-notes--sort' here
-      (should (equal sorted
-                     notes)))))
+    ;; The mock itself sorts for easier destructuring, so dont need to
+    ;; explicitly call `nt-notes--sort'
+    (-let ((notes
+            (nt-test--mock-notes '(("note1" "n") ("note2" "n")))))
+      (should-equal notes
+                    `(,@(nt-notes<-line 1)
+                      ,@(nt-notes<-line 4)
+                      ,@(nt-notes<-line 7))))))
 
-;;; Roots
+;;;; Roots
 
-(ert-deftest nt:notes:roots:no-overlap ()
+(ert-deftest notes:relationships:roots:no-children ()
   (nt-test--with-context 'lispy "
-(string1 foo
-         bar)
+(note foo
+      bar)
 
-(string1 foo
-         bar)
+(note foo
+      bar)
 "
-    ;; ((2 3))
-    (let* ((notes (nt-test--mock-notes '(("string1" "note"))))
-           (roots (nt-notes->roots notes)))
-      (should (equal notes
-                     roots)))))
+    (-let ((notes
+            (nt-test--mock-notes '(("note" "n")))))
+      (should-equal (nt-notes->roots notes)
+                    notes))))
 
-(ert-deftest nt:notes:roots:some-overlap ()
+(ert-deftest notes:relationships:roots:one-root-with-children ()
   (nt-test--with-context 'lispy "
-(string1 foo
-         (string1 foo
-                  bar)
-         bar)
+(note foo
+      (note foo
+            bar)
+      bar)
 "
-    ;; ((2 5) (3 4))
-    (let* ((notes (nt-test--mock-notes '(("string1" "note"))))
-           (roots (nt-notes->roots notes)))
-      (should (equal `(,(car notes))
-                     roots)))))
+    (-let ((notes
+            (nt-test--mock-notes '(("note" "n")))))
+      (should-equal (nt-notes->roots notes)
+                    `(,(car notes))))))
 
-(ert-deftest nt:notes:roots:no-overlap-and-some-overlap ()
+(ert-deftest notes:relationships:roots:full-complexity ()
   (nt-test--with-context 'lispy "
-(string1 foo
-         bar)
+(note foo
+      bar)
 
-(string1 foo
-         (string1 foo
-                  bar)
-         bar)
+(note foo
+      (note foo (note foo bar)
+            (note foo
+                  foo bar)
+            bar)
+      bar)
 "
-    ;; ((2 3) (5 8) (6 7))
-    (let* ((notes (nt-test--mock-notes '(("string1" "note"))))
-           (roots (nt-notes->roots notes)))
-      (should (equal `(,(car notes)
-                       ,(cadr notes))
-                     roots)))))
+    (-let ((notes
+            (nt-test--mock-notes '(("note" "n")))))
+      (should-equal (nt-notes->roots notes)
+                    `(,(car notes)
+                      ,(cadr notes))))))
+
+;;; Management
+;;;; Insertion
+
+
+;;;; Deletion
 
 ;;; Init
 

@@ -94,7 +94,7 @@
   "Return NOTES sorted according to start position."
   (-sort #'nt-notes--lt notes))
 
-;;;; Root-Finding
+;;;; Roots
 
 (defun nt-notes->roots-1 (notes roots)
   "Internal, mutually-recursive component of `nt-notes->roots'."
