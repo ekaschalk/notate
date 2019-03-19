@@ -3,12 +3,39 @@
 ;; ~ Testing Status ~
 
 ;; Covered:
+;; -
+
+;; OLD
+;; Covered:
 ;; - True indent
 ;; - Notes contributing to masks
 ;; - Initiation
 
 ;; Not Covered:
 ;; - decompose hook
+
+;;; Access
+
+(ert-deftest masks:access:fundamentals:line ()
+  (nt-test--with-context 'minimal "
+1 foo
+2 foo
+"
+    (should* (not (nt-mask<-line 0))
+             (nt-mask<-line 1)
+             (nt-mask<-line 2)
+             (not (nt-mask<-line 3)))))
+
+(ert-deftest masks:access:fundamentals:lines ()
+  (nt-test--with-context 'minimal "
+1 foo
+2 foo
+"
+    (should* (not (nt-masks<-lines 0 1))
+             (nt-masks<-lines 1 2)
+             (nt-masks<-lines 1 3)
+             (nt-masks<-lines 0 3)
+             (not (nt-masks<-lines 3 4)))))
 
 ;;; Transforms
 ;;;; Indentation

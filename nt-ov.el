@@ -57,14 +57,14 @@
   "Return first nt overlay at POS."
   (-any #'nt-ov? (overlays-at pos)))
 
+(defun nt-ov--at-point ()
+  "Execute `nt-ov--at' point."
+  (nt-ov<-pos (point)))
+
 ;; Fill these out if I find a point to doing so, pun-intended
 ;; (defun nt-ovs<-region (start end))
 ;; (defun nt-ovs<-line (line))
 ;; (defun nt-ovs<-lines (start-line end-line))
-
-(defun nt-ov--at-point ()
-  "Execute `nt-ov--at' point."
-  (nt-ov<-pos (point)))
 
 ;;; Management
 

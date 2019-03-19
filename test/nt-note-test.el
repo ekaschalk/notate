@@ -27,8 +27,8 @@
 "
     (-let (((note)
             (nt-test--mock-notes '(("note" "n")))))
-      (should (nt-note<-pos 3))
-      (should-not (nt-note<-pos 10)))))
+      (should* (nt-note<-pos 3)
+               (not (nt-note<-pos 10))))))
 
 (ert-deftest notes:access:fundamentals:region ()
   (nt-test--with-context 'any
@@ -38,9 +38,9 @@
 "
     (-let (((note)
             (nt-test--mock-notes '(("note" "n")))))
-      (should (nt-notes<-region 3 10))
-      (should-not (nt-notes<-region 8 10))
-      (should-not (nt-notes<-region 0 1)))))
+      (should* (nt-notes<-region 3 10)
+               (not (nt-notes<-region 8 10))
+               (not (nt-notes<-region 0 1))))))
 
 (ert-deftest notes:access:fundamentals:line ()
   (nt-test--with-context 'any
@@ -184,13 +184,11 @@
 (ert-deftest notes:relationships:roots:no-duplicates ()
   ;; Under specific circumstances duplicate roots were present in past
   (nt-test--with-context 'lispy "
-(note foo
-      bar)
+(note foo bar)
 
 (note (note foo bar) bar)
 
-(note foo
-      bar)
+(note foo bar)
 "
     (-let ((notes
             (nt-test--mock-notes '(("note" "n")))))

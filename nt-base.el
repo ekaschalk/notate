@@ -63,8 +63,9 @@
 ;;;;; Misc
 
 (defun nt-line->idx (line)
-  "Convert 1-idxed LINE to an idx, for making intent more explicit."
-  (-some-> line 1-))
+  "Convert 1-idxed LINE to 0-idxed IDX."
+  (when (and line (> line 0))
+    (1- line)))
 
 ;;;; Methods
 

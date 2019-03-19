@@ -40,7 +40,9 @@ Eventually rewrite with vector for constant-time idxing.")
 
 (defun nt-masks<-lines (start-line end-line)
   "Get masks in [START-LINE END-LINE)."
-  (-slice nt-masks (nt-line->idx start-line) (nt-line->idx end-line)))
+  (let ((start (nt-line->idx start-line))
+        (end (nt-line->idx end-line)))
+    (-slice nt-masks (or start 0) end)))
 
 ;;;; Extensions
 
