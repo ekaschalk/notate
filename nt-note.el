@@ -110,11 +110,14 @@
     (nt-notes->roots next roots)))
 
 (defun nt-notes->roots (notes &optional roots)
-  "Return ROOTS of NOTES, ie. the set of notes with largest disjoint intervals."
-  (-let (((root . rest) notes))
+  "Return ROOTS of NOTES, ie. the set of notes with largest disjoint intervals.
+
+If 2+ roots have equiv. bounds, the first by buffer position is the only root."
+  (-let (((root . rest) notes)
+         (-compare-fn (-on #'equal #'nt-note->bound)))
     (cond (rest (nt-notes->roots-1 rest (cons root roots)))
           (root (nt-notes->roots   rest (cons root roots)))
-          ((reverse roots)))))
+          ((-distinct (reverse roots))))))
 
 (defun nt-notes->maximal-regions (notes)
   "Return maximal disjoint intervals of NOTES."

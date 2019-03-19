@@ -10,7 +10,7 @@
 ;; - Deletion (internal-only)
 
 ;; Implicitly Covered:
-;; - Initiation (mocking bypasses font-lock-mode, not inititation methods)
+;; - Initiation (note mocks bypass font-lock-mode, not inititation methods)
 ;; - Insertion
 
 ;; Not Covered:
@@ -181,23 +181,45 @@
       (should-equal (nt-notes->roots notes)
                     `(,(car notes))))))
 
-(ert-deftest notes:relationships:roots:full-complexity ()
+(ert-deftest notes:relationships:roots:no-duplicates ()
+  ;; Under specific circumstances duplicate roots were present in past
   (nt-test--with-context 'lispy "
 (note foo
       bar)
 
+(note (note foo bar) bar)
+
 (note foo
-      (note foo (note foo bar)
-            (note foo
-                  foo bar)
-            bar)
       bar)
 "
     (-let ((notes
             (nt-test--mock-notes '(("note" "n")))))
       (should-equal (nt-notes->roots notes)
                     `(,(car notes)
-                      ,(cadr notes))))))
+                      ,(cadr notes)
+                      ,(cadddr notes))))))
+
+(ert-deftest notes:relationships:roots:full-complexity ()
+  (nt-test--with-context 'lispy "
+(note foo
+      bar)
+
+(note foo (note foo
+                bar))
+
+(note foo
+      (note foo (note foo bar)
+            (note foo
+                  foo bar)
+            bar)
+      (note foo bar))
+"
+    (-let ((notes
+            (nt-test--mock-notes '(("note" "n")))))
+      (should-equal (nt-notes->roots notes)
+                    `(,(car notes)
+                      ,(cadr notes)
+                      ,(cadddr notes))))))
 
 ;;; Management
 ;;;; Deletion
