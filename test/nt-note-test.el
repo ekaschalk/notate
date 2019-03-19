@@ -3,6 +3,14 @@
 ;; ~ Testing Status ~
 
 ;; Covered:
+;; - Access (fully tested)
+;; - Transforms (fully tested)
+
+;; Uncovered:
+;; -
+
+;; OLD
+;; Covered:
 ;; - overlay methods
 ;; - width transforms
 ;; - Initiation and mocking
@@ -66,75 +74,61 @@
       (should-equal (nt-notes<-lines 2 3)
                     `(,bar)))))
 
-;;; Overlays
-
-(ert-deftest notes:overlays:presence ()
-  (nt-test--with-context 'any
-      "
-1 (string1 foo
-2          bar)
-3
-4 (string2 foo
-5          bar)
-"
-    (nt-test--mock-notes '(("string1" "note1") ("string2" "note2")))
-
-    (should-size (nt-notes<-lines 1 2) 1)
-    (should-not  (nt-notes<-line 2))
-    (should-size (nt-notes<-lines 3 5) 1)))
-
-(ert-deftest notes:overlays:access-by-line ()
-  (nt-test--with-context 'any
-      "
-1 (string1 string2
-2          string1)
-3
-4 (string2 foo
-5          bar)
-"
-    (nt-test--mock-notes '(("string1" "note1") ("string2" "note2")))
-
-    (should-size (nt-notes<-line 1) 2)
-    (should-size (nt-notes<-line 2) 1)
-    (should-not  (nt-notes<-line 3))
-    (should-size (nt-notes<-line 4) 1)))
-
 ;;; Transforms
-;;;; Widths
-
-(ert-deftest notes:transforms:width:base-case ()
-  (should= (nt-notes->width nil)
-           0))
-
-(ert-deftest notes:transforms:width:one-note ()
-  (nt-test--with-context 'any "
-(string foo bar)
-"
-    (let ((notes
-           (nt-test--mock-notes '(("string" "note")))))
-      (should= (nt-notes->width notes)
-               (- 6 4)))))
-
-(ert-deftest notes:transforms:width:some-notes ()
-  (nt-test--with-context 'any "
-(string foo bar)
-"
-    (let ((notes
-           (nt-test--mock-notes '(("string" "note") ("foo" "!")))))
-      (should= (nt-notes->width notes)
-               (+ (- 6 4)
-                  (- 3 1))))))
-
 ;;;; Misc
 
-(ert-deftest notes:transforms:string ()
-  (nt-test--with-context 'any "
-(string foo bar)
+(ert-deftest notes:transforms:misc:string ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      bar)
 "
-    (-let (((note _)
-            (nt-test--mock-notes '(("string" "note")))))
+    (-let (((note)
+            (nt-test--mock-notes '(("note" "n")))))
       (should-s= (nt-note->string note)
-                 "string"))))
+                 "note"))))
+
+(ert-deftest notes:transforms:misc:width ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      bar)
+"
+    (-let ((notes
+            (nt-test--mock-notes '(("note" "n") ("foo" "fo")))))
+      (should= (nt-notes->width notes)
+               (+ (- 4 1)
+                  (- 3 2))))))
+
+(ert-deftest notes:transforms:misc:indent ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      6bar)
+"
+    (-let (((note)
+            (nt-test--mock-notes '(("bar" "b")))))
+      (should= (nt-note->indent note)
+               6))))
+
+(ert-deftest notes:transforms:misc:idx ()
+  (nt-test--with-context 'any
+      "
+(note foo
+      bar)
+"
+    (-let (((note foo bar)
+            (nt-test--mock-notes '(("note" "n") ("foo" "f") ("bar" "b")))))
+      (should= (nt-note->idx note)
+               1)
+      (should= (nt-note->idx foo)
+               2)
+      (should= (nt-note->idx bar)
+               3)
+      (should= (-> (make-overlay (point-max) (point-max)) nt-note->idx)
+               3)
+      (should= (-> (make-overlay (point-min) (point-min)) nt-note->idx)
+               0))))
 
 ;;; Sorting
 

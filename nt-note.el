@@ -50,7 +50,7 @@
   (-some->> (nt-lines->region start-line end-line) (apply #'nt-notes<-region)))
 
 ;;; Transforms
-;;;; Overlay Wrappers
+;;;; Wrappers
 
 (defun nt-note->width (note)
   "Access NOTE's width."
@@ -64,11 +64,11 @@
   "Access NOTE's display."
   (-some-> note (overlay-get 'display)))
 
+;;;; Misc
+
 (defun nt-note->string (note)
   "Access NOTE's string."
   (-some->> note nt-ov->region (apply #'buffer-substring-no-properties)))
-
-;;;; Misc
 
 (defun nt-notes->width (notes)
   "Sum NOTES' widths."
