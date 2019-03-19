@@ -141,8 +141,8 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-notes--delete-internal (notes)
   "Delete NOTES overlays. Internal-use by other deletion methods only."
-  (setq nt-notes (-remove (-partial #'-contains? notes) nt-notes))
-  (-each notes #'delete-overlay))
+  (-each notes #'delete-overlay)
+  (setq nt-notes (-remove #'nt-ov--deleted? nt-notes)))
 
 (defun nt-note--delete-internal (note)
   "Delete a single NOTE overlay. Internal-use by other deletion methods only."
