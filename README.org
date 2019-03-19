@@ -1,4 +1,4 @@
-* Notate - Program with Personalized Notation
+* Νοτɑτɛ - Program with Personalized Notation
 
 (In-progress, current screenshot, *see bottom for current project status*)
 
