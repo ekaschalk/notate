@@ -124,15 +124,14 @@
 ;;;; Insertion
 
 (defun nt-note--insert-sorted (note)
-  "Insert NOTE into `nt-notes' maintaining order."
-  (setq nt-notes
-        (-> note nt-note->idx (-insert-at note nt-notes))))
+  "Get `nt-notes' with NOTE inserted maintaining order."
+  (-> note nt-note->idx (-insert-at note nt-notes)))
 
 (defun nt-note--insert (note)
   "Insert NOTE into `nt-notes' according to the current context."
   (if nt-note--init-in-progress?
       (!cons note nt-notes)
-    (nt-note--insert-sorted note)))
+    (setq nt-notes (nt-note--insert-sorted note))))
 
 ;;;; Deletion
 

@@ -63,6 +63,10 @@ Eventually rewrite with vector for constant-time idxing.")
   "Access MASK's opaque-end."
   (-some-> mask (overlay-get 'nt-opaque-end)))
 
+(defun nt-mask->true-end (mask)
+  "Alias for `overlay-end'."
+  (overlay-end mask))
+
 ;;;; Misc
 
 (defun nt-mask->opaque-line (mask)
@@ -77,12 +81,20 @@ Eventually rewrite with vector for constant-time idxing.")
   "Calculate width of MASK's notes."
   (-> mask nt-mask->notes nt-notes->width))
 
+(defun nt-mask->idx (mask)
+  "Get index of insertion of new MASK into `nt-masks'."
+  (-> mask nt-mask->line nt-line->idx))
+
 ;;; Predicates
 ;;;; General Purpose
 
 (defun nt-mask--empty? (mask)
   "Does MASK have no notes?"
   (-> mask nt-mask->notes null))
+
+(defun nt-mask--nonempty? (mask)
+  "Does MASK contain notes?"
+  (-> mask nt-mask--empty? null))
 
 (defun nt-mask--contains? (note mask)
   "Does MASK contain NOTE?"
@@ -97,28 +109,27 @@ Eventually rewrite with vector for constant-time idxing.")
 
 (defun nt-mask--ends-agree? (mask)
   "Does MASK's opaque-end and actual end agree?"
-  (= (overlay-end mask)
+  (= (nt-mask->true-end mask)
      (nt-mask->opaque-end mask)))
 
 (defun nt-mask--render? (mask)
   "Should MASK be rendered?"
   (and nt-render-masks?
-       (not (nt-mask--empty? mask))
+       (nt-mask--nonempty? mask)
        (nt-mask--ends-agree? mask)))
 
 ;;; Management
 ;;;; Insertion
 
 (defun nt-mask--insert-sorted (mask)
-  "Insert MASK into `nt-masks' maintaining order."
-  (setq nt-masks
-        (-> mask nt-mask->line nt-line->idx (-insert-at mask nt-masks))))
+  "Get `nt-masks' with MASK inserted maintaining order."
+  (-> mask nt-mask->idx (-insert-at mask nt-masks)))
 
 (defun nt-mask--insert (mask)
   "Insert MASK into `nt-masks' according to the current context."
   (if nt-mask--init-in-progress?
       (!cons mask nt-masks)
-    (nt-mask--insert-sorted mask)))
+    (setq nt-masks (nt-mask--insert-sorted mask))))
 
 ;;;; Deletion
 
