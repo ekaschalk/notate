@@ -3,13 +3,13 @@
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 ;;
 ;; Authors: Eric Kaschalk <ekaschalk@gmail.com>
-;; URL: http://github.com/ekaschalk/nt
+;; URL: http://github.com/ekaschalk/notate
 ;; Version: 0.1
 ;; Keywords: indentation, display, notes, major-modes
 ;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (s "1.12.0") (smartparens "1.11.0") (emacs "26.1"))
 
 ;;; Commentary:
-;;;; README Header
+;;;; Copy of README Header
 
 ;; Notate your programs with indentation-correcting visual replacements of
 ;; symbols with other symbols.
@@ -20,7 +20,7 @@
 
 ;; With notate, you can selectively APL-ize your code.
 
-;;;; nt.el
+;;;; Further Commentary
 
 ;; Collect `nt' modules and expose the user API.
 
@@ -99,6 +99,8 @@ side-by-side comparisons to be aligned.")
   "Should masks render? Note that line-prefixes, if set to, still display.")
 
 ;;; Note-Mask Interactions
+
+;; TODO Cleanup this entire section, rewrite it.
 
 (defun nt--masks-for (note)
   "Return all masks NOTE contributes to."

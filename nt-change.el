@@ -1,10 +1,10 @@
-;;; nt-change.el --- After Change Functions -*- lexical-binding: t; -*-
+;;; nt-change.el --- Buffer Modification Support -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
 ;;; Commentary:
 
-;; Support for buffer modifications, ie. text-editing, for Notate.
+;; Support for buffer modifications, ie. text-editing.
 
 ;;; Code:
 ;;;; Requires
@@ -15,22 +15,21 @@
 ;;;; Utils
 
 (defun nt-change--line-diff ()
-  "Lines added: +x, removed: -x, otherwise 0 since mask list last updated."
-  ;; NOTE 1- point-max easier than calling skip-line on last-line's mask
-  (- (line-number-at-pos (1- (point-max)))
-     (length nt-masks)))
+  "Get diff of current number of lines and lines since last `nt-masks' refresh."
+  (let ((prev-lines (length nt-masks))
+        (cur-lines (- (1+ (line-number-at-pos (point-max)))
+                      (line-number-at-pos (point-min)))))
+    (- cur-lines prev-lines)))
 
 (defun nt-change--new-lines? ()
-  "Return count of lines added since last update or nil."
-  (let ((line-change (nt-change--line-diff)))
-    (when (> line-change 0)
-      line-change)))
+  "Get count of new lines since last `nt-masks', if lines were added."
+  (let ((line-diff (nt-change--line-diff)))
+    (and (> line-diff 0) line-diff)))
 
 (defun nt-change--removed-lines? ()
-  "Return count of lines removed since last update or nil."
-  (let ((line-change (nt-change--line-diff)))
-    (when (< line-change 0)
-      (- line-change))))
+  "Get count of removed lines since last `nt-masks', if lines were removed."
+  (let ((line-diff (nt-change--line-diff)))
+    (and (< line-diff 0) line-diff)))
 
 ;;;; Insertion
 
