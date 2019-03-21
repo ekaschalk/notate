@@ -107,6 +107,9 @@ I want:
 - The core idea!
   - Toggling on/off works perfectly.
   - Deleting any part of a note updates indent on-the-fly correctly.
+  - Deleting any part of a mask deletes mask's region.
+    - That is, deleting near the beginning of a masked line behaves the same as
+      if the line wasn't masked at all.
 
 *** What Doesn't Work
 
