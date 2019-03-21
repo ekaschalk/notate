@@ -5,21 +5,14 @@
 ;; Covered:
 ;; - Access
 ;; - Transforms
+;; - Initiation
+;; - Insertion
 
 ;; Implicitly Covered:
-;; -
+;; - Notes added to masks
 
 ;; Not Covered:
-;; -
-
-
-;; OLD
-;; Covered:
-;; - Notes contributing to masks
-;; - Initiation
-
-;; Not Covered:
-;; - decompose hook
+;; - Decomposition
 
 ;;; Access
 ;;;; Fundamentals
@@ -127,6 +120,12 @@
                (-> 5 nt-mask<-line nt-mask--empty?)))))
 
 ;;; Init
+
+;; The 'no-setup context won't instantiate `nt-masks', allowing testing
+;; insertion of masks upon initiation. We cannot add assertions that use
+;; accessors like `nt-mask<-line' as they require `nt-masks' to be fully
+;; instantiated. Could be done manually via `nt-ov' methods, but not ideal.
+
 ;;;; Single
 
 (ert-deftest masks:init:single ()

@@ -288,8 +288,12 @@ Eventually rewrite with vector for constant-time idxing.")
 
 (defun nt-mask--init (&optional line)
   "Build empty mask for LINE, otherwise current line."
-  (let* ((start (nt-line->start (or line (line-number-at-pos))))
-         (mask (nt-mask--init-ov start (1+ start))))
+  (let* ((line
+          (or line (line-number-at-pos)))
+         (start
+          (nt-line->start line))
+         (mask
+          (nt-mask--init-ov start (1+ start))))
     (nt-mask--insert mask)
     mask))
 
