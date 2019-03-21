@@ -150,16 +150,10 @@ Eventually rewrite with vector for constant-time idxing.")
 
 ;; Could one decompose only a part of the mask? Things like iedit won't ever
 ;; touch masks (because spaces). Maybe multi-cursors might? Not sure how though.
-
-(defun nt-mask--decompose (mask)
-  "Workhorse of `nt-mask--decompose-hook'."
-  (let ((line-start (line-beginning-position)))
-    (nt-mask--delete mask)
-    (delete-region line-start (+ line-start (current-column)))))
+;; The decomposition can be cleaned up abit later.
 
 (defun nt-mask--decompose-hook (mask post-mod? start end &optional _)
   "Decompose MASK upon modification as a modification-hook."
-  ;; Is this always called on MASK's line? I think so, so we utilize that here.
   (let* ((deletion-length
           (- end start))
          (mask-length
@@ -168,9 +162,15 @@ Eventually rewrite with vector for constant-time idxing.")
           (- mask-length deletion-length))
          (whole-mask-deleted?  ; Still need to check edge-cases, but working atm
           (<= decompose-length 0)))
-    (when (and post-mod?
-               (not whole-mask-deleted?))
-      (nt-mask--decompose mask))))
+    (when post-mod?
+      (nt-mask--delete mask)
+
+      (unless whole-mask-deleted?
+        (let* ((line-start
+                (line-beginning-position))
+               (masked-indent
+                (+ line-start (current-column))))
+          (delete-region line-start masked-indent))))))
 
 ;;; Prefixes
 
