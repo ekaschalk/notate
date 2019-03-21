@@ -137,7 +137,7 @@ When working on nt, necessitating a transient testing buffer."
 
         ;; The notation!
         (nt-notes
-         (nt-kwds--make '(("and" "∧") ("or" "∨") ("int" "ℤ")))
+         (nt-kwds<-defs '(("and" "∧") ("or" "∨") ("int" "ℤ")))
          ;; (nt-kwds--make '(("and" "&&") ("or" "||") ("int" "ℤ")))
          )
 

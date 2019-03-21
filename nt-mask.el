@@ -140,7 +140,7 @@ Eventually rewrite with vector for constant-time idxing.")
   (delq mask nt-masks)
   (delete-overlay mask))
 
-;; TODO test first
+;; TODO Test
 (defun nt-mask--delete-lines (start-line end-line)
   "Delete masks in [START-LINE END-LINE)."
   ;; (-each #'delete-overlay (nt-masks<-lines start-line end-line))
@@ -151,22 +151,25 @@ Eventually rewrite with vector for constant-time idxing.")
 
 ;;; Decomposition
 
+;; TODO This functionality, I think, will be HARD to implement to handle
+;; everything (in a performant/reasonable manner)
+
+;; Few observations:
+;; 1. probably need to handle deleting forward differently
+;; 2. probably need to handle visual deletion differently
+;; 3. probably interacting in a bad way with `undo-tree-undo'
+
 (defun nt-mask--decompose (mask)
   "Workhorse of `nt-mask--decompose-hook'."
-  ;; TODO This function will likely be hard to implement perfectly, probably
-  ;; harder than note's decomposition hook...
+  (nt-mask--delete mask)
 
-  ;; Few observations:
-  ;; 1. probably need to handle deleting forward differently
-  ;; 2. probably need to handle visual deletion differently
-  ;; 3. probably interacting in a bad way with `undo-tree-undo'
-
-  (let* ((inhibit-modification-hooks t)
-         (width                      (nt-mask->width mask))
-         (invis-spaces-to-delete     (1+ width)))
-    (nt-mask--delete mask)
-    (evil-with-single-undo
-      (delete-char (- invis-spaces-to-delete)))))
+  ;; (let* ((inhibit-modification-hooks t)
+  ;;        (width                      (nt-mask->width mask))
+  ;;        (invis-spaces-to-delete     (1+ width)))
+  ;;   (nt-mask--delete mask)
+  ;;   (evil-with-single-undo
+  ;;     (delete-char (- invis-spaces-to-delete))))
+  )
 
 (defun nt-mask--decompose-hook (mask post-mod? start end &optional _)
   "Decompose MASK upon modification as a modification-hook."
@@ -240,7 +243,7 @@ Eventually rewrite with vector for constant-time idxing.")
 (defun nt-mask--refresh-notes (mask)
   "Remove deleted notes from MASK."
   (setf (overlay-get mask 'nt-notes)
-        (->> mask nt-mask->notes (-remove #'nt-ov--deleted? ))))
+        (->> mask nt-mask->notes (-remove #'nt-ov--deleted?))))
 
 ;;;; Commands
 
