@@ -64,8 +64,8 @@
 
 (defun nt-line->idx (line)
   "Convert 1-idxed LINE to 0-idxed IDX."
-  (when (and line (> line 0))
-    (1- line)))
+  (and line (> line 0)
+       (1- line)))
 
 ;;;; Methods
 
@@ -76,15 +76,15 @@
 
 ;;;; Macros
 
-(defmacro nt-lines--foreach (start-line end-line &rest form)
-  "Execute FORM on each line within optionally bounded [START-LINE END-LINE)."
+(defmacro nt-lines--foreach (start-line end-line &rest body)
+  "Execute BODY on each line within optionally bounded [START-LINE END-LINE)."
   (declare (indent 2))
   `(save-excursion
      (nt-line--goto (or ,start-line 1))
 
      (while (and (not (eobp))
                  (if ,end-line (< (line-number-at-pos) ,end-line) t))
-       ,@form
+       ,@body
        (forward-line))))
 
 ;;; Provide
