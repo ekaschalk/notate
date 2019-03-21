@@ -6,7 +6,7 @@
 ;; URL: http://github.com/ekaschalk/nt
 ;; Version: 0.1
 ;; Keywords: indentation, display, notes, major-modes
-;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (hierarchy "0.2.0") (s "1.12.0") (smartparens "1.11.0") (emacs "26.1"))
+;; Package-Requires: ((cl "1.0") (dash "2.14.1") (dash-functional "1.2.0") (s "1.12.0") (smartparens "1.11.0") (emacs "26.1"))
 
 ;;; Commentary:
 ;;;; README Header
@@ -87,7 +87,7 @@ side-by-side comparisons to be aligned.")
 
 ;;;; Debugging
 
-(defvar nt-display-prefixes? t
+(defvar nt-display-prefixes? nil
   "Whether to add the 'line-prefix property to indentation overlays.")
 
 

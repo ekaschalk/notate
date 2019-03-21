@@ -151,25 +151,17 @@ Eventually rewrite with vector for constant-time idxing.")
 
 ;;; Decomposition
 
-;; TODO This functionality, I think, will be HARD to implement to handle
-;; everything (in a performant/reasonable manner)
-
-;; Few observations:
+;; TODO Few observations:
 ;; 1. probably need to handle deleting forward differently
 ;; 2. probably need to handle visual deletion differently
 ;; 3. probably interacting in a bad way with `undo-tree-undo'
 
 (defun nt-mask--decompose (mask)
   "Workhorse of `nt-mask--decompose-hook'."
-  (nt-mask--delete mask)
-
-  ;; (let* ((inhibit-modification-hooks t)
-  ;;        (width                      (nt-mask->width mask))
-  ;;        (invis-spaces-to-delete     (1+ width)))
-  ;;   (nt-mask--delete mask)
-  ;;   (evil-with-single-undo
-  ;;     (delete-char (- invis-spaces-to-delete))))
-  )
+  (let* ((inhibit-modification-hooks t)
+         (line-start (line-beginning-position)))
+    (nt-mask--delete mask)
+    (delete-region line-start (+ line-start (current-column)))))
 
 (defun nt-mask--decompose-hook (mask post-mod? start end &optional _)
   "Decompose MASK upon modification as a modification-hook."
