@@ -55,37 +55,36 @@
   ;;      if we do -> update all notes bounds contained within that notes root
   )
 
+(defun nt-change--insertion-line-restricted (start end)
+  "Change function specialized for insertions of regions not crossing lines."
+  ;; Possibly check note boundaries and extend if needed
+  ;; Is region contained within any root, (so any notes applicable?)
+
+
+  ;; for any (just first?) note on current line:
+  ;; (new-bound (funcall (symbol-value #'nt-bound-fn) note))
+  ;; (if new-bound != bound) => extend bound of notes contained by root
+  ;; by the difference
+
+  (let ((line (line-number-at-pos start))
+        (bounds (nt-notes->maximal-bounds nt-notes)))
+    (-when-let ((start-line end-line)
+                (nt-bounds--contains? line bounds))
+      (let ((notes (nt-notes<-lines start-line end-line)))
+        ;; Check if note boundaries need to be extended
+
+
+
+        ))))
+
 (defun nt-change--insertion (start end)
   "Change function specialized for insertion, in START and END."
   (-when-let (new-lines (nt-change--new-lines?))
     (nt-change--insertion-lines start end new-lines))
 
-  ;; Below is old code, doesnt work
-  ;; (let* ((end-line (1+ (line-number-at-pos)))
-  ;;        (start-line (- end-line new-lines))
-  ;;        (line-before-change (1- start-line))
-
-  ;;        ;; Must init masks ASAP for `nt-masks' integrity
-  ;;        (masks
-  ;;         ;; (nt-masks--init start-line end-line)
-  ;;         (-map #'nt-mask--init
-  ;;               (number-sequence start-line (1- end-line)))
-  ;;         )
-
-  ;;        (mask-before-change (nt-mask<-line line-before-change))
-  ;;        (notes-before-change (overlay-get mask-before-change 'nt-notes))
-
-  ;;        (notes (-union notes-before-change
-  ;;                       (nt-notes<-line line-before-change))))
-
-  ;;   ;; The note is being added to mask but it takes 2 insertions to "kick in"
-  ;;   ;; for some reason?
-  ;;   ;; (nt--add-notes-to-masks notes)
-  ;;   (-each notes #'nt--add-note-to-masks)
-
-  ;;   ;; (message "%s %s" start end)
-  ;;   )
-  )
+  ;; Depending on how I implement `nt-change--insertion-lines', this may
+  ;; be done always or above will be an -if-let.
+  (nt-change--insertion-line-restricted start end))
 
 ;;;; Deletion
 

@@ -15,6 +15,14 @@
 (require 'nt-ov)
 
 ;;; General
+;;;; Bound-Based
+
+(defun nt-bounds--contains? (line bounds)
+  "Get bound in BOUNDS containing LINE."
+  (-when-let (bound (--first (<= (car it) line) bounds))
+    (and (< line (cadr bound))
+         bound)))
+
 ;;;; Overlay-Based
 
 ;; sp-region-ok-p is a possibly very useful function

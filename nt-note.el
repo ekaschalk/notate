@@ -21,6 +21,9 @@
   "Start-position-ordered list of note overlays.")
 
 
+;; TODO Potentially maintain `nt-roots' so dont recalculate all the time
+
+
 (defvar-local nt-note--init-in-progress? nil
   "Are we instantiating the initial notes?")
 
