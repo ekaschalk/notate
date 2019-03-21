@@ -111,17 +111,25 @@ I want:
     - That is, deleting near the beginning of a masked line behaves the same as
       if the line wasn't masked at all.
 
-*** What Doesn't Work
+*** Whats Being Worked On
+
+- Newline insertion.
+  - Handling non-cooperative users (insert unbalanced/sexp-completing text)
+    might be quite difficult to handle in a way that isn't just resetting the
+    entire region's notes.
+
+*** What Doesn't Work Yet
 
 - Buffer modification that adds or removes lines.
-  - Insertion close to working, don't think is difficult.
-  - Deletion not started.
 - Line up-down movement needs left/right offset equal to masked/unmasked indent.
 - Boundary functions need fleshing out.
   - Only concerned with lisp-like boundaries atm.
   - Special indent rules not handled yet.
   - Expectation is for contributors with deeper knowledge of various languages
     to contribute here.
+
+*** What Might Require Emacs C Source Modifications
+
 - Either height or width is normalized, not both.
   - Compare the two progress-2 images in [[./img]]. See the ~nt-normalize-height?~
     variable for commentary.
