@@ -55,51 +55,79 @@
   ;;      if we do -> update all notes bounds contained within that notes root
   )
 
-(defun nt-change--insertion-line-restricted (start end)
+(defun nt-change--insertion-line-restricted (line)
   "Change function specialized for insertions of regions not crossing lines."
-  ;; Possibly check note boundaries and extend if needed
-  ;; Is region contained within any root, (so any notes applicable?)
+  ;; I /think/ it is this simple. Need to enumerate assumptions on this.
 
+  ;; This relies on 'nt-bound not changing upon insertion of text in just line
+  ;; Is this assumption valid?
+  ;; It isn't valid if `sp-end-of-sexp' jumps to a different line.
+  ;; Inserting a ")" maybe does it?
 
-  ;; for any (just first?) note on current line:
-  ;; (new-bound (funcall (symbol-value #'nt-bound-fn) note))
-  ;; (if new-bound != bound) => extend bound of notes contained by root
-  ;; by the difference
+  ;; I think 'nt-bound's end could only ever decrease here.
 
-  (let ((line (line-number-at-pos start))
-        (bounds (nt-notes->maximal-bounds nt-notes)))
-    (-when-let ((start-line end-line)
-                (nt-bounds--contains? line bounds))
-      (let ((notes (nt-notes<-lines start-line end-line)))
-        ;; Check if note boundaries need to be extended
-
-
-
-        ))))
+  (-some-> line nt-notes<-line nt--add-notes-to-masks))
 
 (defun nt-change--insertion (start end)
   "Change function specialized for insertion, in START and END."
-  (-when-let (new-lines (nt-change--new-lines?))
-    (nt-change--insertion-lines start end new-lines))
 
   ;; Depending on how I implement `nt-change--insertion-lines', this may
   ;; be done always or above will be an -if-let.
-  (nt-change--insertion-line-restricted start end))
 
-;;;; Deletion
+  (-if-let (new-lines (nt-change--new-lines?))
+      (nt-change--insertion-lines start end new-lines)
+    (nt-change--insertion-line-restricted (line-number-at-pos start))))
+
+;;; Deletion
 
 (defun nt-change--deletion (pos chars-deleted)
   "Change function specialized for deletion, number CHARS-DELETED at POS."
   ;; (message "Deleting at pos %s, %s characters" pos chars-deleted)
   )
 
-;;;; Hook
+;;; Hook
 
 (defun nt-change--after-change-function (start end chars-deleted)
   "See `after-change-functions', dispatches the correct change function."
   (if (= 0 chars-deleted)
       (nt-change--insertion start end)
     (nt-change--deletion start chars-deleted)))
+
+;;; Scratch - Stream of Thought
+
+;; Possibly check note boundaries and extend if needed
+;; Is region contained within any root, (so any notes applicable?)
+
+;; for any (just first?) note on current line:
+;; (new-bound (funcall (symbol-value #'nt-bound-fn) note))
+;; (if new-bound != bound) => extend bound of notes contained by root
+;; by the difference
+
+;; (let ((line (line-number-at-pos start))
+;;       (bounds (nt-notes->maximal-bounds nt-notes)))
+;;   (-when-let ((start-line end-line)
+;;               (nt-bounds--contains? line bounds))
+;;     (let ((notes (nt-notes<-lines start-line end-line)))
+;;       ;; Check if note boundaries need to be extended
+
+;;       )))
+
+;; Call nt-bound?-fn on every note contained in line
+
+
+;; WAIT I'm thinking incorrectly. Current implementation has:
+;; bound being set regardless of whether it actually contributes to any mask
+
+;; It's the nt--masks-for that actually adds it
+
+;; Wait where am I even adding the masks atm?
+
+;; Notes are only being added to masks atm in `nt-note--init'
+
+;; If the boundaries are "ideal" boundaries, then the only thing that matters
+;; is whether nt-bound?-fn has changed
+
+;; I think nt-bound?-fn can only change for note on the current line.
 
 ;;; Provide
 
