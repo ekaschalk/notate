@@ -25,7 +25,7 @@ Eventually rewrite with vector for constant-time idxing.")
 
 
 (defvar nt-mask--wait-for-refresh? nil
-  "Let-bind true to hold off on refreshing masks during batch updates.")
+  "Let-bind true to hold off on refreshing masks during batch note updates.")
 
 
 (defvar nt-mask--init-in-progress? nil
@@ -67,7 +67,7 @@ Eventually rewrite with vector for constant-time idxing.")
 
 (defun nt-mask->true-end (mask)
   "Alias for `overlay-end'."
-  (overlay-end mask))
+  (and mask (overlay-end mask)))
 
 ;;;; Misc
 

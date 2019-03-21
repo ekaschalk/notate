@@ -57,10 +57,13 @@ to matching the specified string.")
   "A function that should return whether a given NOTE modifies indentation.")
 
 
-(defvar nt-ignore-notes '("defun")
+(defvar nt-ignore-notes nil
   "List of strings identifying notes never contributing to indentation.
 
-There are better (ie. automated) ways to implement blacklisting, tbd.")
+Atm, provides way to handle specially-indented symbols without delving into
+special indentation rules and introspection.
+
+There are better (ie. automated) ways to implement this, tbd.")
 
 
 (defvar nt-normalize-height? nil
@@ -141,9 +144,8 @@ side-by-side comparisons to be aligned.")
       (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
-;;; Interactive
-;;;; Setup
-;;;;; Proper
+;;; Setup
+;;;; Solid
 
 (defun nt-enable--agnostic ()
   "Setup all *major-mode-agnostic* components."
@@ -154,13 +156,16 @@ side-by-side comparisons to be aligned.")
   "Disable all *major-mode-agnostic* components."
   (nt-ov--remove-all))
 
-;;;;; Development
+;;;; Temporary
 
 (defun nt-enable--temp ()
   "TEMP Setup components that will need to be redone more generally."
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
+  ;; TODO Does calling lisp-mode apply font-locks?
+  ;; If so, how do I hold off on fontifying (in a non-hacky way)?
+  ;; The `nt-notes--init' must be responsible for initiating notes
   (let ((nt-mask--wait-for-refresh? t))
     (lisp-mode)
     (nt-notes--init))
@@ -179,7 +184,7 @@ side-by-side comparisons to be aligned.")
   (setq nt-note--init-in-progress nil)
   (setq nt-mask--init-in-progress nil))
 
-;;;; Commands
+;;; Interactive
 
 (defun nt-disable ()
   "Delete overlays managed by nt."
