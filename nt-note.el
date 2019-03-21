@@ -103,7 +103,7 @@
           ((_ root-end)
            (nt-note->bound root))
           (next
-           (-drop-while (-compose (-partial #'> root-end)
+           (-drop-while (-compose (-partial #'>= root-end)
                                   #'car
                                   #'nt-note->bound)
                         notes)))
@@ -113,11 +113,10 @@
   "Return ROOTS of NOTES, ie. the set of notes with largest disjoint intervals.
 
 If 2+ roots have equiv. bounds, the first by buffer position is the only root."
-  (-let (((root . rest) notes)
-         (-compare-fn (-on #'equal #'nt-note->bound)))
+  (-let (((root . rest) notes))
     (cond (rest (nt-notes->roots-1 rest (cons root roots)))
           (root (nt-notes->roots   rest (cons root roots)))
-          ((-distinct (reverse roots))))))
+          ((reverse roots)))))
 
 (defun nt-notes->maximal-regions (notes)
   "Return maximal disjoint intervals of NOTES."
@@ -155,7 +154,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
   "Delete NOTES, updating masks."
   (let ((regions (nt-notes->maximal-regions notes)))
     (-each notes #'nt-note--delete-internal)
-    (-each regions (-applify #'nt-mask--refresh-region))))
+    (-each regions (-applify #'nt-masks--refresh-region))))
 
 (defun nt-note--delete (note)
   "Delete a single NOTE, updating masks."
