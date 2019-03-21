@@ -100,20 +100,15 @@ side-by-side comparisons to be aligned.")
 
 ;;; Note-Mask Interactions
 
-;; TODO Cleanup this entire section, rewrite it.
+;; TODO Section under rewrite
 
 (defun nt--masks-for (note)
   "Return all masks NOTE contributes to."
   (-some->>
    note
    (funcall (symbol-value #'nt-bound?-fn))
-   (funcall (symbol-value #'nt-bound-fn))
-   (apply #'nt-masks<-lines)
-   (-remove (-partial #'nt-mask--contains? note))))
-
-(defun nt--map-over-masks (fn note)
-  "Map FN partially applied on NOTE over masks for NOTE."
-  (->> note nt--masks-for (-map (-partial fn note))))
+   nt-note->bound
+   (apply #'nt-masks<-lines)))
 
 (defun nt--add-note-to-mask (note mask)
   "Add NOTE to a MASK, possibly refresh mask, and return back mask."
@@ -127,11 +122,16 @@ side-by-side comparisons to be aligned.")
 
 (defun nt--add-note-to-masks (note)
   "Add NOTE to all masks it contributes to and return them."
-  (nt--map-over-masks #'nt--add-note-to-mask note))
+  (->> note
+     nt--masks-for
+     (-remove (-partial #'nt-mask--contains? note))
+     (-map (-partial #'nt--add-note-to-mask note))))
 
 (defun nt--remove-note-from-masks (note)
   "Remove NOTE from all masks it contributes to."
-  (nt--map-over-masks #'nt--remove-note-from-mask note))
+  (->> note
+     nt--masks-for
+     (-map (-partial #'nt--remove-note-to-mask note))))
 
 (defun nt--add-notes-to-masks (notes)
   "Batch add NOTES to their masks refreshing upon completion."

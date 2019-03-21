@@ -196,8 +196,9 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
          (bound (funcall (symbol-value #'nt-bound-fn) note)))
     (-doto note
       (nt-note--insert)
-      (nt--add-note-to-masks)
-      (overlay-put 'nt-bound bound))))
+
+      (overlay-put 'nt-bound bound)
+      (nt--add-note-to-masks))))
 
 (defun nt-notes--init ()
   "Instantiate `nt-notes', ie. wrap `font-lock-ensure' with optimizations."
@@ -206,7 +207,11 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
     ;; During init we don't rely on the ordering of `nt-notes'
     ;; So we can !cons, reverse upon completion, and insert-sorted from thereon
-    (setq nt-notes (reverse nt-notes))))
+    (setq nt-notes (reverse nt-notes))
+
+    ;; Potentially build `nt-roots' here and manage here-on instead of
+    ;; calculating it all the time
+    ))
 
 ;;; Provide
 
