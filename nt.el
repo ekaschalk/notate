@@ -45,6 +45,8 @@
 
 Accepts an optional third element, a custom RX for the note. Otherwise defaults
 to matching the specified string.")
+;; TODO Support extra options for tailoring the RX without full-on providing it.
+;; In particular, tack-on a symbol match if like :symbol is present here.
 
 
 (defvar-local nt-bound-fn #'nt-bounds--lisps
@@ -74,8 +76,8 @@ A (possible) solution is to use 'specified spaces' (see emacs manual).
 The problem is complex enough as is, so while a significant
 upgrade, not the #1 priority at time of writing.
 
-For development purposes, it is recommended to have false to
-visually compare indentation more reliably.
+For development purposes, it is recommended to have false so
+your code is monospaced.
 
 For screenshot purposes, it is recommended to have true for
 side-by-side comparisons to be aligned.")
