@@ -165,9 +165,9 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 ;;; Decomposition
 
-;; TODO probably much more involved than this...
 (defun nt-note--decompose (note)
   "Workhorse of `nt-note--decompose-hook'."
+  ;; A separate func b.c. might not be this simple in full generality, idk yet.
   (nt-note--delete note))
 
 (defun nt-note--decompose-hook (note post-modification? start end &optional _)
