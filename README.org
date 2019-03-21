@@ -102,18 +102,28 @@ I want:
   possibilities Emacs offers and encourages.
 
 ** Status
-*** Lisp Status
+*** What Works
 
-- Doesn't yet recalculate masks on buffer modifications.
-  - Insertion close to working, deletion not started.
-- Line movement needs to adjust for the indentation masks.
-  - Moving point vertically across masks of different sizes will have horizontal
-    movement as difference of the sizes.
+- The core idea!
+  - Toggling on/off works perfectly.
+  - Deleting any part of a note updates indent on-the-fly correctly.
+
+*** What Doesn't Work
+
+- Buffer modification that adds or removes lines.
+  - Insertion close to working, don't think is difficult.
+  - Deletion not started.
+- Line up-down movement needs left/right offset equal to masked/unmasked indent.
 - Boundary functions need fleshing out.
-  - Only for lisps at the moment and indentation cases not exhausted yet.
+  - Only concerned with lisp-like boundaries atm.
+  - Special indent rules not handled yet.
+  - Expectation is for contributors with deeper knowledge of various languages
+    to contribute here.
 - Either height or width is normalized, not both.
-  - To see what I mean, compare the two progress-2 images in [[./img]]. See the
-    ~nt-normalize-height?~ variable for commentary.
+  - Compare the two progress-2 images in [[./img]]. See the ~nt-normalize-height?~
+    variable for commentary.
+  - Possibly something just have to deal with. Solving at lisp-level will make
+    things quite a bit more complicated and obfuscated.
 
 # *** Project Status
 
