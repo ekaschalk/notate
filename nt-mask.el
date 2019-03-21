@@ -237,17 +237,17 @@ Eventually rewrite with vector for constant-time idxing.")
 
 ;;;;; Notes
 
-;; TODO Not in use yet, to test
-;; (defun nt-mask--refresh-notes (mask)
-;;   "Remove deleted notes from MASK."
-;;   (setf (overlay-get mask 'nt-notes)
-;;         (->> mask nt-mask->notes (-filter #'nt-ov--deleted?))))
+(defun nt-mask--refresh-notes (mask)
+  "Remove deleted notes from MASK."
+  (setf (overlay-get mask 'nt-notes)
+        (->> mask nt-mask->notes (-remove #'nt-ov--deleted? ))))
 
 ;;;; Commands
 
 (defun nt-mask--refresh-internal (mask)
   "Reset bounds and boundary-dependent properties of MASK based on its notes."
   (-doto mask  ; Refreshing ordering here not arbitrary
+    (nt-mask--refresh-notes)
     (nt-mask--refresh-ends)
     (nt-mask--refresh-prefix)
     (nt-mask--refresh-render)))

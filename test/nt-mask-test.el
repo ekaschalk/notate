@@ -103,7 +103,7 @@
      bar
      bar)
 "
-    (nt-test--mock-notes '(("foo" "f") ("bazz" "bro")))
+    (nt-test--mock-notes '(("foo" "f") ("bazz" "bob")))
 
     (let ((note-1-width (- 3 1))
           (note-2-width (- 4 3)))
@@ -192,3 +192,56 @@
     (let ((start 2) (end 4))
       (nt-masks--init start end))
     (should-size nt-masks (- 4 1 1))))
+
+;;; Refreshing
+
+(ert-deftest masks:refreshing:internal:notes ()
+  (nt-test--with-context 'simple-2 "
+1 (foo bar
+2      bar
+3
+4      baz)
+"
+    ;; - Test is a bit verbose, but very straightforward as a result.
+    ;; - `nt-note--delete' implicitly calls `nt-mask--refresh-notes'
+    ;; - Beware I intentionally chose context s.t. only 1 root is present.
+
+    (-let (((foo bar1 bar2)
+            (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
+      (should-size (-> 1 nt-mask<-line nt-mask->notes)
+                   0)
+      (should-size (-> 2 nt-mask<-line nt-mask->notes)
+                   2)
+      (should-size (-> 3 nt-mask<-line nt-mask->notes)
+                   3)
+      (should-size (-> 4 nt-mask<-line nt-mask->notes)
+                   1)
+
+      (nt-note--delete bar1)
+
+      (should-size (-> 1 nt-mask<-line nt-mask->notes)
+                   0)
+      (should-size (-> 2 nt-mask<-line nt-mask->notes)
+                   1)
+      (should-size (-> 3 nt-mask<-line nt-mask->notes)
+                   2)
+      (should-size (-> 4 nt-mask<-line nt-mask->notes)
+                   1)
+
+      (nt-note--delete foo)
+
+      (should-size (-> 1 nt-mask<-line nt-mask->notes)
+                   0)
+      (should-size (-> 2 nt-mask<-line nt-mask->notes)
+                   0)
+      (should-size (-> 3 nt-mask<-line nt-mask->notes)
+                   1)
+      (should-size (-> 4 nt-mask<-line nt-mask->notes)
+                   1)
+
+      (nt-note--delete bar2)
+
+      (should* (null (-> 1 nt-mask<-line nt-mask->notes))
+               (null (-> 2 nt-mask<-line nt-mask->notes))
+               (null (-> 3 nt-mask<-line nt-mask->notes))
+               (null (-> 4 nt-mask<-line nt-mask->notes))))))

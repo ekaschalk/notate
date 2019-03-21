@@ -17,9 +17,9 @@
 ;;; Configuration
 ;;;; Debugging
 
-(defface nt-kwd--face
+(defface nt-kwd--normalize-height-face
   `((t (:height 1)))
-  "Face applied to notes.")
+  "See `nt-normalize-height?' for commentary.")
 
 ;;; Definitions
 ;;;; Validation
@@ -76,7 +76,7 @@ See the variable `nt-normalize-height?' for information about the face.
   `(,(or rx
          (nt-kwd--string->rx string))
     (0 (prog1 `,(and nt-normalize-height?
-                     'nt-kwd--face)
+                     'nt-kwd--normalize-height-face)
          (nt-kwd--def->matcher ,string ,replacement)))))
 
 (defun nt-kwds<-defs (defs)

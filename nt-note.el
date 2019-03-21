@@ -118,7 +118,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
           (root (nt-notes->roots   rest (cons root roots)))
           ((reverse roots)))))
 
-(defun nt-notes->maximal-regions (notes)
+(defun nt-notes->maximal-bounds (notes)
   "Return maximal disjoint intervals of NOTES."
   (->> notes nt-notes->roots (-map #'nt-note->bound)))
 
@@ -149,12 +149,11 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 ;;;;; Commands
 
-;; TODO Test
 (defun nt-notes--delete (notes)
   "Delete NOTES, updating masks."
-  (let ((regions (nt-notes->maximal-regions notes)))
+  (let ((bounds (nt-notes->maximal-bounds notes)))
     (-each notes #'nt-note--delete-internal)
-    (-each regions (-applify #'nt-masks--refresh-region))))
+    (-each bounds (-applify #'nt-masks--refresh-lines))))
 
 (defun nt-note--delete (note)
   "Delete a single NOTE, updating masks."
