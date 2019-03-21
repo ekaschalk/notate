@@ -51,6 +51,11 @@
   "Return OV's line. Note that all nt ovs don't span lines, so this is ok."
   (-> ov overlay-start line-number-at-pos))
 
+(defun nt-ov->length (ov)
+  "Return number of chars covered by OV."
+  (-let (((start end) (nt-ov->region ov)))
+    (- end start)))
+
 ;;; Access
 
 (defun nt-ov<-pos (pos)

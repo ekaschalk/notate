@@ -140,33 +140,37 @@ Eventually rewrite with vector for constant-time idxing.")
   (delq mask nt-masks)
   (delete-overlay mask))
 
-;; TODO Test
 (defun nt-mask--delete-lines (start-line end-line)
   "Delete masks in [START-LINE END-LINE)."
-  ;; (-each #'delete-overlay (nt-masks<-lines start-line end-line))
-  ;; (setq nt-masks
-  ;;       (append (nt-masks<-lines 0 start-line)
-  ;;               (nt-masks<-lines end-line (length nt-masks))))
-  )
+  ;; Later do a filter to optimize batch mask deletion.
+  ;; Just like how note deletions are handled.
+  (-each #'nt-mask--delete (nt-masks<-lines start-line end-line)))
 
 ;;; Decomposition
 
-;; TODO Few observations:
-;; 1. probably need to handle deleting forward differently
-;; 2. probably need to handle visual deletion differently
-;; 3. probably interacting in a bad way with `undo-tree-undo'
+;; Could one decompose only a part of the mask? Things like iedit won't ever
+;; touch masks (because spaces). Maybe multi-cursors might? Not sure how though.
 
 (defun nt-mask--decompose (mask)
   "Workhorse of `nt-mask--decompose-hook'."
-  (let* ((inhibit-modification-hooks t)
-         (line-start (line-beginning-position)))
+  (let ((line-start (line-beginning-position)))
     (nt-mask--delete mask)
     (delete-region line-start (+ line-start (current-column)))))
 
 (defun nt-mask--decompose-hook (mask post-mod? start end &optional _)
   "Decompose MASK upon modification as a modification-hook."
-  (when post-mod?
-    (nt-mask--decompose mask)))
+  ;; Is this always called on MASK's line? I think so, so we utilize that here.
+  (let* ((deletion-length
+          (- end start))
+         (mask-length
+          (nt-ov->length mask))
+         (decompose-length
+          (- mask-length deletion-length))
+         (whole-mask-deleted?  ; Still need to check edge-cases, but working atm
+          (<= decompose-length 0)))
+    (when (and post-mod?
+               (not whole-mask-deleted?))
+      (nt-mask--decompose mask))))
 
 ;;; Prefixes
 
