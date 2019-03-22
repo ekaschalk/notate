@@ -24,6 +24,8 @@
 
 ;; Collect `nt' modules and expose the user API.
 
+;; Majority of code is contained with `nt-note' and `nt-mask'
+
 ;;; Code:
 ;;;; Requires
 
@@ -101,7 +103,7 @@ side-by-side comparisons to be aligned.")
 
 ;;; Note-Mask Interactions
 
-;; TODO Section under rewrite
+;; TODO Section is half-legacy, half-still-in-use
 
 (defun nt--masks-for (note)
   "Return all masks NOTE contributes to."
@@ -166,9 +168,6 @@ side-by-side comparisons to be aligned.")
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
-  ;; TODO Does calling lisp-mode apply font-locks?
-  ;; If so, how do I hold off on fontifying (in a non-hacky way)?
-  ;; The `nt-notes--init' must be responsible for initiating notes
   (let ((nt-mask--wait-for-refresh? t))
     (lisp-mode)
     (nt-notes--init))
@@ -176,7 +175,6 @@ side-by-side comparisons to be aligned.")
 
 (defun nt-disable--temp ()
   "TEMP Disable components that will need to be redone more generally."
-  ;; todo remove all instances of 'nt-note--face
   (remove-hook 'lisp-mode-hook #'nt-kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
   (setq font-lock-keywords nil))

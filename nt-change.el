@@ -4,6 +4,8 @@
 
 ;;; Commentary:
 
+;; UNDER DEVELOPMENT
+
 ;; Support for buffer modifications, ie. text-editing.
 
 ;;; Code:
@@ -74,10 +76,6 @@
 
 (defun nt-change--insertion (start end)
   "Change function specialized for insertion, in START and END."
-
-  ;; Depending on how I implement `nt-change--insertion-lines', this may
-  ;; be done always or above will be an -if-let.
-
   (-if-let (new-lines (nt-change--new-lines?))
       (nt-change--insertion-lines start end new-lines)
     (nt-change--insertion-line-restricted (line-number-at-pos start))))
@@ -99,14 +97,6 @@
 
 ;;; Scratch - Stream of Thought
 
-;; Possibly check note boundaries and extend if needed
-;; Is region contained within any root, (so any notes applicable?)
-
-;; for any (just first?) note on current line:
-;; (new-bound (funcall (symbol-value #'nt-bound-fn) note))
-;; (if new-bound != bound) => extend bound of notes contained by root
-;; by the difference
-
 ;; (let ((line (line-number-at-pos start))
 ;;       (bounds (nt-notes->maximal-bounds nt-notes)))
 ;;   (-when-let ((start-line end-line)
@@ -115,23 +105,6 @@
 ;;       ;; Check if note boundaries need to be extended
 
 ;;       )))
-
-;; Call nt-bound?-fn on every note contained in line
-
-
-;; WAIT I'm thinking incorrectly. Current implementation has:
-;; bound being set regardless of whether it actually contributes to any mask
-
-;; It's the nt--masks-for that actually adds it
-
-;; Wait where am I even adding the masks atm?
-
-;; Notes are only being added to masks atm in `nt-note--init'
-
-;; If the boundaries are "ideal" boundaries, then the only thing that matters
-;; is whether nt-bound?-fn has changed
-
-;; I think nt-bound?-fn can only change for note on the current line.
 
 ;;; Provide
 
