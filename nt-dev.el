@@ -13,30 +13,29 @@
 (require 'nt)
 
 ;;; Configuration
+;;;; Development
 
 (defconst nt-dev--modules
-  '("nt-dev.el"
+  '("nt-dev.el" "nt.el"
 
-    ;; Modules
-    "nt-bounds.el"
-    "nt-kwds.el"
-    "nt-mask.el"
-    "nt-note.el"
-    "nt-ov.el"
-
-    ;; In-progress
-    "nt-change.el"
-
-    ;; Core
-    "nt.el"
-    "nt-base.el")
+    ;; Components
+    "nt-base.el" "nt-bounds.el" "nt-change.el" "nt-kwds.el" "nt-ov.el"
+    "nt-mask.el" "nt-note.el")
+  ;; Yes I'll make this automatic later
   "A list of nt's elisp file names, for reloading dev utility.")
 
 (defconst nt-dev--test-buffer "*nt-development*"
-  "Buffer name to contain `nt-dev--test-text' for experimenting with nt.")
+  "Buffer name for notate experiments.")
+
+;;;; Test Buffer
+
+(defconst nt-dev--test-defs
+  '(("hello" "∧")
+    ("bye" "!∨"))
+  "Notes for testing.")
 
 (defconst nt-dev--test-text
-  ";; Test-bed for nt
+  ";; Test-bed for notate
 
 (hello hello
        (bye foo
@@ -48,7 +47,31 @@
 
 ;; End of testing
 "
-  "Text to use for ad-hoc testing.")
+  "Text to for ad-hoc testing.")
+
+;;;; Screenshot Buffer
+
+(defconst nt-dev--screenshot-defs
+  '(("and" "∧")
+    ("or" "∨")
+    ("int" "ℤ")
+
+    ;; ("and" "&&")
+    ;; ("or" "||")
+    )
+  "Notes for screenshots.")
+
+(defconst nt-dev--screenshot-text
+  ";; Notate - Indentation-Aware Visual Replacements
+
+(and notation is
+     (or great
+         and
+         amazing)
+
+     agreed?)
+"
+  "Text for screenshots.")
 
 ;;; Printing
 
@@ -104,6 +127,17 @@ opaque-end: %s
   "Print nt OV at point."
   (interactive) (nt-dev--print (nt-ov--at-point)))
 
+(defun nt-dev--switch-to-test-buffer-internal (text)
+  (switch-to-buffer-other-window (get-buffer-create nt-dev--test-buffer))
+
+  (delete-region (point-min) (point-max))
+  (insert text)
+  (goto-char (point-min))
+
+  (local-set-key "q" 'quit-window)
+  (when (fboundp 'evil-local-set-key)
+    (evil-local-set-key 'normal "q" 'quit-window)))
+
 ;;;###autoload
 (defun nt-dev--switch-to-test-buffer ()
   "Get or create an nt test buffer with `nt-dev--test-text' inserted.
@@ -114,54 +148,27 @@ We can easily find ourselves with the error:
 When working on nt, necessitating a transient testing buffer."
   (interactive)
 
-  (switch-to-buffer-other-window (get-buffer-create nt-dev--test-buffer))
+  (let ((nt-defs
+         nt-dev--test-defs))
+    (nt-dev--switch-to-test-buffer-internal nt-dev--test-text)
 
-  (delete-region (point-min) (point-max))
-  (insert nt-dev--test-text)
-  (goto-char (point-min))
-
-  (local-set-key "q" 'quit-window)
-  (when (fboundp 'evil-local-set-key)
-    (evil-local-set-key 'normal "q" 'quit-window)))
+    (nt-enable)))
 
 ;;;###autoload
 (defun nt-dev--switch-to-screenshot-buffer ()
-  "Perform `nt-dev--switch-to-test-buffer' with screenshot friendly settings."
+  "Perform `nt-dev--switch-to-test-buffer-internal' screenshot friendly settings."
   (interactive)
 
-  (let (;; I swap between true and nil, I'm aware let (sym nil) = let sym
-        (nt-display-prefixes? nil)
-        (nt-display-render-status? nil)
-        (nt-normalize-height? nil)
+  (let ((nt-defs
+         nt-dev--screenshot-defs))
+    (nt-dev--switch-to-test-buffer-internal nt-dev--screenshot-text)
 
-        (nt-defs '(
-                   ("and" "∧")
-                   ("or" "∨")
-                   ("int" "ℤ")
-
-                   ;; ("and" "&&")
-                   ;; ("or" "||")
-                   ))
-
-        (nt-dev--test-text (s-trim "
-(and notation is
-     (or great
-         and
-         amazing)
-
-     agreed?)
-")))
-    (nt-dev--switch-to-test-buffer)
     (nt-enable)))
 
 ;;;###autoload
 (defun nt-dev--reload ()
   "(Re)load all `nt-dev--modules'."
   (interactive) (-each nt-dev--modules #'load-file))
-
-(defun nt-dev--remove-note-at-point ()
-  "Delete note at point if it exists and update masks."
-  (interactive) (nt--delete-note (nt-note--at-point)))
 
 ;;;; Bind Keys
 

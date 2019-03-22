@@ -46,7 +46,8 @@
 Accepts an optional third element, a custom RX for the note. Otherwise defaults
 to matching the specified string.")
 ;; TODO Support extra options for tailoring the RX without full-on providing it.
-;; In particular, tack-on a symbol match if like :symbol is present here.
+;; Probably make optional third element a plist where you can eg. tack-on a
+;; symbol match if it sees like :symbol or something.
 
 
 (defvar-local nt-bound-fn #'nt-bounds--lisps
