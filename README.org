@@ -2,7 +2,7 @@
 
 (In-progress, current screenshot, *see bottom for current project status*)
 
-[[./img/notate-screencast-gfycat.gif]]
+[[./img/notate-screencast-2.gif]]
 
 Notate your programs with indentation-correcting visual replacements of symbols
 with other symbols.
