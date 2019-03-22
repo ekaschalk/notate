@@ -2,7 +2,7 @@
 
 (In-progress, current screenshot, *see bottom for current project status*)
 
-[[./img/progress-2-stdize-height.png]]
+[[./img/notate-screencast.gif]]
 
 Notate your programs with indentation-correcting visual replacements of symbols
 with other symbols.

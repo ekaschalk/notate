@@ -67,9 +67,9 @@
     ("compose" "∘" ,(rx (: symbol-start "compose" symbol-end)))
     ("everyone" "")
     ("great" "")
-
     ("in"   "∈" ,(rx (: symbol-start "in" symbol-end)))
-    ("not" "¬" ,(rx (: symbol-start "not" symbol-end)))
+
+    ;; ("not" "¬" ,(rx (: symbol-start "not" symbol-end)))
     )
   "Notes for screenshots.")
 
@@ -182,8 +182,11 @@ opaque-end: %s
     (setq nt-normalize-height? nil)
     ;; (setq nt-normalize-height? t)
 
+    ;; same for these two
+    ;; (setq nt-display-render-status? t)
+    (setq nt-display-render-status? nil)
+
     (setq nt-display-prefixes? nil)
-    (setq nt-display-render-status? t)
     (setq nt-render-masks? t)
 
     (make-indirect-buffer nt-dev--test-buffer nt-dev--test-buffer-indirect 'clone)
