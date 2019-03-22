@@ -185,29 +185,16 @@ Eventually rewrite with vector for constant-time idxing.")
 
 ;;; Refreshing
 ;;;; Internal
-;;;;; Rendering
 
-(defun nt-mask--render-internal (mask)
-  "Set display-based overlay properties for MASK."
-  (-doto mask
-    (overlay-put 'face    (if nt-display-render-status? 'underline nil))
-    (overlay-put 'display " ")))
+;; These internal components of refreshing are organized in the order they
+;; should take place, see the composition `nt-mask--refresh-internal'.
 
-(defun nt-mask--unrender-internal (mask)
-  "Remove display-based overlay properties for MASK."
-  (-doto mask
-    (overlay-put 'face    nil)
-    (overlay-put 'display nil)))
+;;;;; Notes
 
-(defun nt-mask--refresh-render (mask)
-  "Reset rendering status of MASK."
-  (if (nt-mask--render? mask)
-      (nt-mask--render-internal mask)
-    (nt-mask--unrender-internal mask)))
-
-(defun nt-masks--reset-render (masks)
-  "Reset rendering status of MASKS."
-  (-each masks #'nt-mask--refresh-render))
+(defun nt-mask--refresh-notes (mask)
+  "Remove deleted notes from MASK."
+  (setf (overlay-get mask 'nt-notes)
+        (->> mask nt-mask->notes (-remove #'nt-ov--deleted?))))
 
 ;;;;; End Positions
 
@@ -234,12 +221,17 @@ Eventually rewrite with vector for constant-time idxing.")
   (when nt-display-prefixes?
     (->> mask nt-mask--format-prefix (overlay-put mask 'line-prefix))))
 
-;;;;; Notes
+;;;;; Rendering
 
-(defun nt-mask--refresh-notes (mask)
-  "Remove deleted notes from MASK."
-  (setf (overlay-get mask 'nt-notes)
-        (->> mask nt-mask->notes (-remove #'nt-ov--deleted?))))
+(defun nt-mask--refresh-render (mask)
+  "Reset rendering status of MASK."
+  (if (nt-mask--render? mask)
+      (-doto mask
+        (overlay-put 'display " ")
+        (overlay-put 'face    (if nt-display-render-status? 'underline nil)))
+    (-doto mask
+      (overlay-put 'display nil)
+      (overlay-put 'face    nil))))
 
 ;;;; Commands
 

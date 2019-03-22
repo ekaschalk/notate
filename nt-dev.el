@@ -128,6 +128,7 @@ opaque-end: %s
   (interactive) (nt-dev--print (nt-ov--at-point)))
 
 (defun nt-dev--switch-to-test-buffer-internal (text)
+  "Switch to a buffer for experimenting with notate."
   (switch-to-buffer-other-window (get-buffer-create nt-dev--test-buffer))
 
   (delete-region (point-min) (point-max))
@@ -140,17 +141,17 @@ opaque-end: %s
 
 ;;;###autoload
 (defun nt-dev--switch-to-test-buffer ()
-  "Get or create an nt test buffer with `nt-dev--test-text' inserted.
-
-We can easily find ourselves with the error:
-  'Changes to be undone are outside visible portion of buffer'.
-
-When working on nt, necessitating a transient testing buffer."
+  "Perform `nt-dev--switch-to-test-buffer-internal' experiment friendly settings."
   (interactive)
 
   (let ((nt-defs
          nt-dev--test-defs))
     (nt-dev--switch-to-test-buffer-internal nt-dev--test-text)
+
+    (setq nt-normalize-height? nil)
+    (setq nt-display-prefixes? nil)
+    (setq nt-display-render-status? t)
+    (setq nt-render-masks? t)
 
     (nt-enable)))
 
@@ -162,6 +163,11 @@ When working on nt, necessitating a transient testing buffer."
   (let ((nt-defs
          nt-dev--screenshot-defs))
     (nt-dev--switch-to-test-buffer-internal nt-dev--screenshot-text)
+
+    (setq nt-normalize-height? nil)
+    (setq nt-display-prefixes? nil)
+    (setq nt-display-render-status? nil)
+    (setq nt-render-masks? t)
 
     (nt-enable)))
 
