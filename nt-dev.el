@@ -27,6 +27,9 @@
 (defconst nt-dev--test-buffer "*nt-development*"
   "Buffer name for notate experiments.")
 
+(defconst nt-dev--test-buffer-indirect "*nt-development-no-notes*"
+  "Buffer name for notate experiments indirect counterpart.")
+
 ;;;; Test Buffer
 
 (defconst nt-dev--test-defs
@@ -169,7 +172,9 @@ opaque-end: %s
     (setq nt-display-render-status? nil)
     (setq nt-render-masks? t)
 
-    (nt-enable)))
+    (make-indirect-buffer nt-dev--test-buffer nt-dev--test-buffer-indirect 'clone)
+    (nt-enable)
+    (switch-to-buffer-other-window (get-buffer nt-dev--test-buffer-indirect))))
 
 ;;;###autoload
 (defun nt-dev--reload ()
