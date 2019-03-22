@@ -43,6 +43,7 @@
   (-any (-partial #'s-equals? (nt-note->string note))
         nt-ignore-notes))
 
+;; TODO If the replacement covers a form-opener only partially, should return t
 (defun nt-bounds?--lisps-form-opener? (note)
   "Does NOTE open a form?
 

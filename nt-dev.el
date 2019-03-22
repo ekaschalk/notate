@@ -55,24 +55,35 @@
 ;;;; Screenshot Buffer
 
 (defconst nt-dev--screenshot-defs
-  '(("and" "∧")
-    ("or" "∨")
-    ("int" "ℤ")
-
-    ;; ("and" "&&")
+  `(
+    ;; ("and" "∧")
+    ;; ("or" "∨")
     ;; ("or" "||")
+    ;; ("int" "ℤ")
+
+    ;; Yes I will make the symbol capture nicer to define later.
+    ("and" "&&")
+    ("loop" "∀" ,(rx (: symbol-start "loop" symbol-end)))
+    ("compose" "∘" ,(rx (: symbol-start "compose" symbol-end)))
+    ("everyone" "")
+    ("great" "")
+
+    ("in"   "∈" ,(rx (: symbol-start "in" symbol-end)))
+    ("not" "¬" ,(rx (: symbol-start "not" symbol-end)))
     )
   "Notes for screenshots.")
 
 (defconst nt-dev--screenshot-text
   ";; Notate - Indentation-Aware Visual Replacements
 
-(and notation is
-     (or great
-         and
-         amazing)
+(loop symbols in (and math our-dreams)
+      (compose be possible in
 
-     agreed?)
+               programming)
+
+      without annoying
+      (everyone right?
+                great))
 "
   "Text for screenshots.")
 
@@ -167,9 +178,12 @@ opaque-end: %s
          nt-dev--screenshot-defs))
     (nt-dev--switch-to-test-buffer-internal nt-dev--screenshot-text)
 
+    ;; I go back-and-forth on whether to have true or nil. Both are useful.
     (setq nt-normalize-height? nil)
+    ;; (setq nt-normalize-height? t)
+
     (setq nt-display-prefixes? nil)
-    (setq nt-display-render-status? nil)
+    (setq nt-display-render-status? t)
     (setq nt-render-masks? t)
 
     (make-indirect-buffer nt-dev--test-buffer nt-dev--test-buffer-indirect 'clone)
