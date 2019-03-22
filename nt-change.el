@@ -66,6 +66,10 @@
 
   ;; I think 'nt-bound's end could only ever decrease here.
 
+  ;; What if: nt-bounds saves if the sexp isn't being completed
+  ;; then this operates on notes backward from point up until root that
+  ;; are being "completed" still
+
   (-some-> line nt-notes<-line nt--add-notes-to-masks))
 
 (defun nt-change--insertion (start end)

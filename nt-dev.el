@@ -129,21 +129,21 @@ When working on nt, necessitating a transient testing buffer."
   "Perform `nt-dev--switch-to-test-buffer' with screenshot friendly settings."
   (interactive)
 
-  (let (nt-display-prefixes?
-        nt-display-render-status?
-
-        ;; both nil and t are valid choices here
+  (let (;; I swap between true and nil, I'm aware let (sym nil) = let sym
+        (nt-display-prefixes? nil)
+        (nt-display-render-status? nil)
         (nt-normalize-height? nil)
 
-        ;; The notation!
-        (nt-notes
-         (nt-kwds<-defs '(("and" "∧") ("or" "∨") ("int" "ℤ")))
-         ;; (nt-kwds--make '(("and" "&&") ("or" "||") ("int" "ℤ")))
-         )
+        (nt-defs '(
+                   ("and" "∧")
+                   ("or" "∨")
+                   ("int" "ℤ")
 
-        ;; The text to apply the notation to
-        (nt-dev--test-text
-         (s-trim "
+                   ;; ("and" "&&")
+                   ;; ("or" "||")
+                   ))
+
+        (nt-dev--test-text (s-trim "
 (and notation is
      (or great
          and
@@ -152,7 +152,6 @@ When working on nt, necessitating a transient testing buffer."
      agreed?)
 ")))
     (nt-dev--switch-to-test-buffer)
-    ;; the screenshot configuration is let-bound so must enable within the cmd
     (nt-enable)))
 
 ;;;###autoload
