@@ -151,13 +151,22 @@ side-by-side comparisons to be aligned.")
 
 ;;; Advice
 
+;; SECTION IN DEVELOPMENT
+
 (defun nt-masks--indent-difference (start-line end-line)
   "Get difference of START-LINE and END-LINE's masked indents."
   (- (nt-mask->width (nt-mask<-line start-line))
      (nt-mask->width (nt-mask<-line end-line))))
 
-(defun nt--advise-line-movement-of-masked-indent (next-line-fn &rest args)
-  "Calculate and apply masked-indent as column offset for `next-line'."
+(defun nt-masks--col-offset (start-line end-line)
+  "Get masked column offset from START-LINE to END-LINE."
+  (if (nt-mask--render? (nt-mask<-line end-line))
+      (nt-masks--indent-difference start-line end-line)
+    0))
+
+(defun nt--advise-line-movement-of-masked-indent (line-fn &rest args)
+  "Account for masked-indent column offsets in line up-down movement."
+  ;; advises `next-line' and `previous-line'
   (-let* (((line-count)
            args)
           (start-line
@@ -165,14 +174,12 @@ side-by-side comparisons to be aligned.")
           (end-line
            (+ start-line line-count))
           (col-offset
-           (nt-masks--indent-difference start-line end-line)))
-    (apply next-line-fn args)
+           (nt-masks--col-offset end-line start-line)))
+    (message "offset %s" col-offset)
+    (apply line-fn args)
+    (message "cur-col %s" (current-column))
+    (message "---")
     (forward-char col-offset)))
-
-;; (advice-add 'next-line :around
-;;             #'nt--advise-line-movement-of-masked-indent)
-;; (advice-add 'previous-line :around
-;;             #'nt--advise-line-movement-of-masked-indent)
 
 ;;; Setup
 ;;;; Solid
@@ -193,6 +200,11 @@ side-by-side comparisons to be aligned.")
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
+  ;; (add-function :around '(local next-line)
+  ;;               #'nt--advise-line-movement-of-masked-indent)
+  (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
+  ;; (advice-add #'previous-line :around #'nt--advise-line-movement-of-masked-indent)
+
   (let ((nt-mask--wait-for-refresh? t))
     (lisp-mode)
     (nt-notes--init))
@@ -202,6 +214,12 @@ side-by-side comparisons to be aligned.")
   "TEMP Disable components that will need to be redone more generally."
   (remove-hook 'lisp-mode-hook #'nt-kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
+
+  ;; (remove-function #'next-line
+  ;;                  #'nt--advise-line-movement-of-masked-indent)
+  (advice-remove #'next-line #'nt--advise-line-movement-of-masked-indent)
+  ;; (advice-remove #'previous-line #'nt--advise-line-movement-of-masked-indent)
+
   (setq font-lock-keywords nil))
 
 (defun nt-disable--just-in-case ()

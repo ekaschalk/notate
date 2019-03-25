@@ -274,6 +274,7 @@ Eventually rewrite with vector for constant-time idxing.")
     (overlay-put 'nt-mask? t)
     (overlay-put 'nt-notes nil)
     (overlay-put 'nt-opaque-end end)
+    ;; TODO Save 'nt-rendered? property as an optimization
 
     (overlay-put 'modification-hooks '(nt-mask--decompose-hook))))
 
