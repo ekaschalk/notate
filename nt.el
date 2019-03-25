@@ -154,15 +154,15 @@ side-by-side comparisons to be aligned.")
 ;; SECTION IN DEVELOPMENT
 
 (defun nt-masks--indent-difference (start-line end-line)
-  "Get difference of START-LINE and END-LINE's masked indents."
-  (- (nt-mask->width (nt-mask<-line start-line))
-     (nt-mask->width (nt-mask<-line end-line))))
+  "Get difference of END-LINE and START-LINE masked indents."
+  (- (nt-mask->width (nt-mask<-line end-line))
+     (nt-mask->width (nt-mask<-line start-line))))
 
-(defun nt-masks--col-offset (start-line end-line)
-  "Get masked column offset from START-LINE to END-LINE."
-  (if (nt-mask--render? (nt-mask<-line end-line))
-      (nt-masks--indent-difference start-line end-line)
-    0))
+;; (defun nt-masks--col-offset (start-line end-line)
+;;   "Get masked column offset from START-LINE to END-LINE."
+;;   (if (nt-mask--render? (nt-mask<-line end-line))
+;;       (nt-masks--indent-difference start-line end-line)
+;;     0))
 
 (defun nt--advise-line-movement-of-masked-indent (line-fn &rest args)
   "Account for masked-indent column offsets in line up-down movement."
@@ -173,29 +173,49 @@ side-by-side comparisons to be aligned.")
            (line-number-at-pos))
           (end-line
            (+ start-line line-count))
+          (end-line-indent-masked?
+           (nt-mask--render? (nt-mask<-line end-line)))
           (col-offset
-           (nt-masks--col-offset start-line end-line)))
+           (nt-masks--indent-difference start-line end-line)))
 
-    ;; (message "temporary-goal-column %s before" temporary-goal-column)
-    ;; (message "cur-col %s before line-next" (current-column))
+    (message "temporary-goal-column %s before" temporary-goal-column)
+    (message "cur-col %s before line-next" (current-column))
 
     (apply line-fn args)
 
-    ;; (message "temporary-goal-column %s after" temporary-goal-column)
-    ;; (message "cur-col %s after line-next" (current-column))
+    (message "temporary-goal-column %s after" temporary-goal-column)
+    (message "cur-col %s after line-next" (current-column))
+    (message "offset %s" col-offset)
 
-    (when (< 0 col-offset)
-      (forward-char (- 0 col-offset))
+    ;; Simplified version
+    ;; (setq temporary-goal-column
+    ;;       (+ (if end-line-indent-masked?
+    ;;              (current-column)
+    ;;            temporary-goal-column)
+    ;;          col-offset))
+
+    ;; FOUND ISSUE:
+    ;; It matters whether we are going up/down before/after the
+    ;; note on the current line...
+    ;; If moving down with point past note -> dont need to offset
+    ;;   as it is already offset
+    ;; If moving before note -> need to offset
+
+    ;; So:
+    ;; Count the width of notes occurring before POINT in:
+    ;;   (nt-mask->notes (nt-mask<-line start-line))
+    ;; not the entire note set
+
+    (unless end-line-indent-masked?
+      (setq temporary-goal-column (+ temporary-goal-column
+                                     col-offset)))
+
+    (when (and (> 0 col-offset)
+               end-line-indent-masked?)
+      (forward-char col-offset)
 
       ;; Really sneaky emacs developers...
       (setq temporary-goal-column (current-column)))
-
-    ;; The temporary goal column requires a bit more work
-    ;; Need like a "temporary mask offset" to match it
-    ;; I think it only occurs when moving into an unrendered mask
-    ;; as in that case, col-offset = 0
-    ;; Or rather, if we don't render -> still update temporary-goal-col
-    ;; with the offset
 
     ;; (message "cur-col %s after offset" (current-column))
     ;; (message "---")

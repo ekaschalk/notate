@@ -47,6 +47,7 @@
             baz)
        foo
        bar
+
        bar
        baz)
 
