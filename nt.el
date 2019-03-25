@@ -149,6 +149,31 @@ side-by-side comparisons to be aligned.")
       (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
+;;; Advice
+
+(defun nt-masks--indent-difference (start-line end-line)
+  "Get difference of START-LINE and END-LINE's masked indents."
+  (- (nt-mask->width (nt-mask<-line start-line))
+     (nt-mask->width (nt-mask<-line end-line))))
+
+(defun nt--advise-line-movement-of-masked-indent (next-line-fn &rest args)
+  "Calculate and apply masked-indent as column offset for `next-line'."
+  (-let* (((line-count)
+           args)
+          (start-line
+           (line-number-at-pos))
+          (end-line
+           (+ start-line line-count))
+          (col-offset
+           (nt-masks--indent-difference start-line end-line)))
+    (apply next-line-fn args)
+    (forward-char col-offset)))
+
+;; (advice-add 'next-line :around
+;;             #'nt--advise-line-movement-of-masked-indent)
+;; (advice-add 'previous-line :around
+;;             #'nt--advise-line-movement-of-masked-indent)
+
 ;;; Setup
 ;;;; Solid
 
