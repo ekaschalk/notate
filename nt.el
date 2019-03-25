@@ -184,12 +184,18 @@ side-by-side comparisons to be aligned.")
     ;; (message "temporary-goal-column %s after" temporary-goal-column)
     ;; (message "cur-col %s after line-next" (current-column))
 
-    (forward-char (- 0 col-offset))
+    (when (< 0 col-offset)
+      (forward-char (- 0 col-offset))
 
-    ;; Really sneaky emacs developers...
-    ;; This demonstrates better than any other instance I've seen why
-    ;; global mutations can cause very confusing behavior...
-    (setq temporary-goal-column (current-column))
+      ;; Really sneaky emacs developers...
+      (setq temporary-goal-column (current-column)))
+
+    ;; The temporary goal column requires a bit more work
+    ;; Need like a "temporary mask offset" to match it
+    ;; I think it only occurs when moving into an unrendered mask
+    ;; as in that case, col-offset = 0
+    ;; Or rather, if we don't render -> still update temporary-goal-col
+    ;; with the offset
 
     ;; (message "cur-col %s after offset" (current-column))
     ;; (message "---")
@@ -233,14 +239,12 @@ side-by-side comparisons to be aligned.")
   (remove-hook 'lisp-mode-hook #'nt-kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
 
-  ;; (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
-  ;; (advice-remove #'next-line #'nt--advise-line-movement-of-masked-indent)
-
   ;; This working in some, not all cases yet
-  (advice-add #'evil-line-move :around
-              #'nt--advise-line-movement-of-masked-indent)
-  (advice-remove #'evil-line-move
-                 #'nt--advise-line-movement-of-masked-indent)
+  (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
+  (advice-remove #'next-line #'nt--advise-line-movement-of-masked-indent)
+
+  ;; (advice-add #'previous-line :around #'nt--advise-line-movement-of-masked-indent)
+  ;; (advice-remove #'previous-line #'nt--advise-line-movement-of-masked-indent)
 
 
   (setq font-lock-keywords nil))

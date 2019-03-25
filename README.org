@@ -113,6 +113,8 @@ I want:
 
 *** Whats Being Worked On
 
+- Line up-down movement needs left/right offset equal to masked/unmasked indent.
+  - Working in most but not all cases.
 - Newline insertion.
   - Handling non-cooperative users (insert unbalanced/sexp-completing text)
     might be quite difficult to handle in a way that isn't just resetting the
