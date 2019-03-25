@@ -175,12 +175,25 @@ side-by-side comparisons to be aligned.")
            (+ start-line line-count))
           (col-offset
            (nt-masks--col-offset start-line end-line)))
-    (message "start-line %s" start-line)
-    (message "offset %s" col-offset)
+
+    ;; (message "temporary-goal-column %s before" temporary-goal-column)
+    ;; (message "cur-col %s before line-next" (current-column))
+
     (apply line-fn args)
-    (message "cur-col %s" (current-column))
-    (message "---")
-    (forward-char (- 0 col-offset))))
+
+    ;; (message "temporary-goal-column %s after" temporary-goal-column)
+    ;; (message "cur-col %s after line-next" (current-column))
+
+    (forward-char (- 0 col-offset))
+
+    ;; Really sneaky emacs developers...
+    ;; This demonstrates better than any other instance I've seen why
+    ;; global mutations can cause very confusing behavior...
+    (setq temporary-goal-column (current-column))
+
+    ;; (message "cur-col %s after offset" (current-column))
+    ;; (message "---")
+    ))
 
 ;; (remove-function #'next-line
 ;;                  #'nt--advise-line-movement-of-masked-indent)
@@ -223,17 +236,7 @@ side-by-side comparisons to be aligned.")
   ;; (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
   ;; (advice-remove #'next-line #'nt--advise-line-movement-of-masked-indent)
 
-  ;; IN:
-  ;;     )masked-indent decreases below
-  ;;    foo
-  ;;    foo
-  ;;    foo
-
-  ;; The decrease is correctly handled BUT the next line after
-  ;; goes back to the old column it wouldve gone to somehow
-  ;; and then stays correct afterwards. What is going on here??
-  ;; (this happens for both `evil-line-move' and `next-line')
-
+  ;; This working in some, not all cases yet
   (advice-add #'evil-line-move :around
               #'nt--advise-line-movement-of-masked-indent)
   (advice-remove #'evil-line-move
