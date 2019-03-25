@@ -135,25 +135,3 @@ I want:
     variable for commentary.
   - Possibly something just have to deal with. Solving at lisp-level will make
     things quite a bit more complicated and obfuscated.
-
-# *** Project Status
-
-# I'm further appreciating what Eli meant by "there are limits to what one can
-# reasonably do in lisp".
-
-# This project has, and will, grow quite large; to the point incurring the initial
-# time-commitment of learning C and Emac's source is not so discouraging.
-
-# To the point: I'm beginning to believe I must tackle Emac's indentation at the
-# primitive level.
-
-# So I'm annotating Emac's C source, understanding the following components before
-# continuing at lisp-level.
-
-# - ~src/indent.c~: Most indentation functions are at lisp-level, so what are the
-#   points of these primitives?
-# - ~stretch glyphs~: The likely (nudged to) data structure to reimplement
-#   indentation with.
-# - ~compose-region-internal~: Understanding this would be immensely useful as the
-#   ~display~ property-based implementation has a few usability issues that cannot
-#   be resolved at lisp-level.
