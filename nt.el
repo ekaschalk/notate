@@ -174,12 +174,20 @@ side-by-side comparisons to be aligned.")
           (end-line
            (+ start-line line-count))
           (col-offset
-           (nt-masks--col-offset end-line start-line)))
+           (nt-masks--col-offset start-line end-line)))
+    (message "start-line %s" start-line)
     (message "offset %s" col-offset)
     (apply line-fn args)
     (message "cur-col %s" (current-column))
     (message "---")
-    (forward-char col-offset)))
+    (forward-char (- 0 col-offset))))
+
+;; (remove-function #'next-line
+;;                  #'nt--advise-line-movement-of-masked-indent)
+;; (advice-remove #'previous-line #'nt--advise-line-movement-of-masked-indent)
+;; (add-function :around '(local next-line)
+;;               #'nt--advise-line-movement-of-masked-indent)
+;; (advice-add #'previous-line :around #'nt--advise-line-movement-of-masked-indent)
 
 ;;; Setup
 ;;;; Solid
@@ -200,10 +208,7 @@ side-by-side comparisons to be aligned.")
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
-  ;; (add-function :around '(local next-line)
-  ;;               #'nt--advise-line-movement-of-masked-indent)
   (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
-  ;; (advice-add #'previous-line :around #'nt--advise-line-movement-of-masked-indent)
 
   (let ((nt-mask--wait-for-refresh? t))
     (lisp-mode)
@@ -215,10 +220,25 @@ side-by-side comparisons to be aligned.")
   (remove-hook 'lisp-mode-hook #'nt-kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
 
-  ;; (remove-function #'next-line
-  ;;                  #'nt--advise-line-movement-of-masked-indent)
-  (advice-remove #'next-line #'nt--advise-line-movement-of-masked-indent)
-  ;; (advice-remove #'previous-line #'nt--advise-line-movement-of-masked-indent)
+  ;; (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
+  ;; (advice-remove #'next-line #'nt--advise-line-movement-of-masked-indent)
+
+  ;; IN:
+  ;;     )masked-indent decreases below
+  ;;    foo
+  ;;    foo
+  ;;    foo
+
+  ;; The decrease is correctly handled BUT the next line after
+  ;; goes back to the old column it wouldve gone to somehow
+  ;; and then stays correct afterwards. What is going on here??
+  ;; (this happens for both `evil-line-move' and `next-line')
+
+  (advice-add #'evil-line-move :around
+              #'nt--advise-line-movement-of-masked-indent)
+  (advice-remove #'evil-line-move
+                 #'nt--advise-line-movement-of-masked-indent)
+
 
   (setq font-lock-keywords nil))
 

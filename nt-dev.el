@@ -46,6 +46,8 @@
             bar
             baz)
        foo
+       bar
+       bar
        baz)
 
 ;; End of testing
