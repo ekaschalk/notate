@@ -200,7 +200,7 @@ opaque-end: %s
 
 ;;;; Bind Keys
 
-(when eric?
+(when (and (boundp 'eric?) eric?)
   (spacemacs/declare-prefix
     "d" "dev")
   (spacemacs/set-leader-keys
