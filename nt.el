@@ -149,130 +149,73 @@ side-by-side comparisons to be aligned.")
       (setq masks (-mapcat #'nt--add-note-to-masks notes)))
     (-> masks -distinct nt-masks--refresh)))
 
-;;; Advice
+;;; Advising Line Traversal
 
-;; SECTION IN DEVELOPMENT
-
-(defun nt-masks--indent-difference (start-line end-line)
-  "Get difference of END-LINE and START-LINE masked indents."
-  (- (nt-mask->width (nt-mask<-line end-line))
-     (nt-mask->width (nt-mask<-line start-line))))
-
-;; (defun nt-masks--col-offset (start-line end-line)
-;;   "Get masked column offset from START-LINE to END-LINE."
-;;   (if (nt-mask--render? (nt-mask<-line end-line))
-;;       (nt-masks--indent-difference start-line end-line)
-;;     0))
+;; SECTION IN-DEVELOPMENT
 
 (defun nt--advise-line-movement-of-masked-indent (line-fn &rest args)
-  "Account for masked-indent column offsets in line up-down movement."
-  ;; advises `next-line' (and later also `previous-line')
+  "Advises line movement to preserve visual rather than true column.
 
-  ;; This may seem like a complete mess, but it actually is working.
-  ;; in almost all cases. Only case I've found to still resolve
-  ;; if goal-col is past the lines end AND moving into an unrendered mask
+There are several challenges to overcome:
+1. Overlays with 'display length shorter than the covered region will break
+   visual line movement, as preserving the column is in-fact undesirable.
+2. Masked indentation also satisfies 1. but has additional considerations.
+3. Must manage `temporary-goal-column' directly.
+   - For proper behavior when line traversal touches the end-of-line.
+   - Normally exposed to use via `goal-column', which doesn't quite fit here.
 
-  (-let* (((line-count)
+Observe advising `next-line' also updates `evil-line-move' as appropriate."
+  (-let* (;; Lines
+          ((line-count)
            args)
           (start-line
            (line-number-at-pos))
           (end-line
            (+ start-line line-count))
+          (end-line-start
+           (nt-line->start end-line))
+
+          ;; Masks
+          (start-mask
+           (nt-mask<-line start-line))
           (end-mask
            (nt-mask<-line end-line))
-          (end-line-indent-masked?
+          (end-mask-rendered?
            (nt-mask--render? end-mask))
+
+          ;; Notes
+          (notes-masking-cols-at-start
+           (-intersection (nt-notes<-region (line-beginning-position) (point))
+                          (nt-mask->notes end-mask)))
+          (notes-masking-cols-at-end
+           (nt-notes<-region end-line-start (+ end-line-start (current-column))))
+
+          ;; Column Offset Calculations
+          (indent-offset
+           (- (nt-mask->width end-mask)
+              (nt-mask->width start-mask)))
+          (note-offset
+           (- (nt-notes->width notes-masking-cols-at-end)
+              (nt-notes->width notes-masking-cols-at-start)))
           (col-offset
-           (nt-masks--indent-difference start-line end-line))
-
-          ;; Will make these 2 clearer asap
-          (intersect
-           (-intersection
-            (nt-notes<-region (line-beginning-position) (point))
-            (nt-mask->notes end-mask)))
-          ;; What do i do if moving into a note? Anything?
-          (masked-before-col
-           (nt-notes<-region
-            (nt-line->start end-line)
-            (+ (nt-line->start end-line)
-               (current-column))))
-          )
-
-    ;; ALG:
-    ;; 1. Check if mask(end-line).notes contains notes occuring
-    ;;    on start-line after current-column
-    ;; 2. Subtract sum of such note's widths from the col-offset
-
-    ;; CASE TO HANDLE:
-    ;; Move forward past a note on the line we are moving into
-    ;; eg. put point far in "test-bed for notate" header
-    ;;     moving downwards with point past the first note will go <-
-    ;; It's essentially the mirror of the intersect above
-
-    ;; (message "INTERSECT %s" intersect)
-
-    (setq col-offset (+ (- col-offset
-                           (nt-notes->width intersect))
-                        (nt-notes->width masked-before-col)))
-
-    (message "temporary-goal-column %s before" temporary-goal-column)
-    (message "cur-col %s before line-next" (current-column))
-
+           (+ indent-offset note-offset)))
+    ;; Call `next-line'
     (apply line-fn args)
 
-    (message "temporary-goal-column %s after" temporary-goal-column)
-    (message "cur-col %s after line-next" (current-column))
-    (message "offset %s" col-offset)
+    ;; Apply column offset to point and `temporary-goal-column'
+    (cond
+     ;; Tasks on this case:
+     ;; 1. Need similar eol goal-col check here
+     ;; 2. store render status so don't have to recalculate
+     ((not end-mask-rendered?)
+      (setq temporary-goal-column (+ temporary-goal-column col-offset)))
 
-    ;; Simplified version
-    ;; (setq temporary-goal-column
-    ;;       (+ (if end-line-indent-masked?
-    ;;              (current-column)
-    ;;            temporary-goal-column)
-    ;;          col-offset))
-
-    ;; FOUND ISSUE:
-    ;; It matters whether we are going up/down before/after the
-    ;; note on the current line...
-    ;; If moving down with point past note -> dont need to offset
-    ;;   as it is already offset
-    ;; If moving before note -> need to offset
-
-    ;; So:
-    ;; Count the width of notes occurring before POINT in:
-    ;;   (nt-mask->notes (nt-mask<-line start-line))
-    ;; not the entire note set
-
-    (unless end-line-indent-masked?
-      ;; TODO need similar check to below on whether to
-      ;; modify the goal column if past end of line
-      (setq temporary-goal-column (+ temporary-goal-column
-                                     col-offset)))
-
-    (when (and (> 0 col-offset)
-               end-line-indent-masked?)
-      (forward-char col-offset)
-
-      ;; Really sneaky emacs developers...
-
-      ;; TODO We can lose our temporary-goal-column if:
-      ;; moving down to a smaller mask + at line end already
-      ;; so this should check if we are past end-column
-
-      (unless (> temporary-goal-column
-                 (save-excursion (end-of-line) (current-column)))
-        (setq temporary-goal-column (current-column))))
-
-    ;; (message "cur-col %s after offset" (current-column))
-    ;; (message "---")
-    ))
-
-;; (remove-function #'next-line
-;;                  #'nt--advise-line-movement-of-masked-indent)
-;; (advice-remove #'previous-line #'nt--advise-line-movement-of-masked-indent)
-;; (add-function :around '(local next-line)
-;;               #'nt--advise-line-movement-of-masked-indent)
-;; (advice-add #'previous-line :around #'nt--advise-line-movement-of-masked-indent)
+     ((> 0 col-offset)
+      (progn
+        (forward-char col-offset)
+        (unless (> temporary-goal-column
+                   (nt-line->end-col (line-number-at-pos)))
+          (setq temporary-goal-column (current-column))))))))
 
 ;;; Setup
 ;;;; Solid
@@ -293,7 +236,11 @@ side-by-side comparisons to be aligned.")
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
 
+
+  ;; ~~
+  ;; Mostly working..
   (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
+  ;; ~~
 
   (let ((nt-mask--wait-for-refresh? t))
     (lisp-mode)
@@ -305,13 +252,11 @@ side-by-side comparisons to be aligned.")
   (remove-hook 'lisp-mode-hook #'nt-kwds--add)
   (remove-hook 'after-change-functions #'nt-after-change-function 'local)
 
-  ;; This working in some, not all cases yet
+  ;; ~~
+  ;; Mostly working..
   (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
   (advice-remove #'next-line #'nt--advise-line-movement-of-masked-indent)
-
-  ;; (advice-add #'previous-line :around #'nt--advise-line-movement-of-masked-indent)
-  ;; (advice-remove #'previous-line #'nt--advise-line-movement-of-masked-indent)
-
+  ;; ~~
 
   (setq font-lock-keywords nil))
 

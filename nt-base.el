@@ -50,8 +50,13 @@
   (list (line-number-at-pos start)
         (1+ (line-number-at-pos end))))
 
-;;;;; Indentation
+;;;;; Columns
 
+(defun nt-line->end-col (line)
+  "Get end col of LINE."
+  (save-excursion (goto-char (nt-line->end line)) (current-column)))
+
+;; Colapse below two functions
 (defun nt-line->indent (line)
   "Get indentation col of LINE."
   (save-excursion (nt-line--goto line) (nt-line->indent-col)))
