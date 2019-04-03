@@ -63,7 +63,8 @@
 (defun nt-ov->width (ov)
   "Return difference of OV's length and its 'display properties length."
   (- (nt-ov->length ov)
-     (length (overlay-get ov 'display))))
+     (length (or (overlay-get ov 'display)
+                 '(nil-should-be-length-1)))))
 
 (defun nt-ovs->width (ovs)
   "Return sum of OVS widths."

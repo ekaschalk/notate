@@ -112,7 +112,9 @@ I want:
 *** Whats Being Worked On
 
 - Line up-down movement needs left/right offset equal to masked/unmasked indent.
-  - Down movement working in all cases but a specific, minor edge case.
+  - Down movement working in all cases now I think.
+    - Have to really dig in to see if I'm missing anything, and make it more
+      performant still.
 
 *** What Doesn't Work Yet
 
