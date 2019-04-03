@@ -40,7 +40,7 @@
 (defun nt-bounds?--ignore? (note)
   "Should NOTE never contribute to indentation?"
   (require 'nt-note)
-  (-any (-partial #'s-equals? (nt-note->string note))
+  (-any (-partial #'s-equals? (nt-ov->string note))
         nt-ignore-notes))
 
 ;; TODO If the replacement covers a form-opener only partially, should return t

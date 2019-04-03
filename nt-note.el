@@ -69,10 +69,6 @@
 
 ;;;; Misc
 
-(defun nt-note->string (note)
-  "Access NOTE's string."
-  (-some->> note nt-ov->region (apply #'buffer-substring-no-properties)))
-
 (defun nt-notes->width (notes)
   "Sum NOTES' widths."
   (->> notes (-map #'nt-note->width) -sum))

@@ -54,7 +54,7 @@
   ;; might work. MIGHT work.
 
   (-let* (((start end) (match-data 1)))
-    (unless (-some-> start nt-note<-pos nt-note->string (s-equals? string))
+    (unless (-some-> start nt-note<-pos nt-ov->string (s-equals? string))
       (nt-note--init string replacement start end))))
 
 ;;; Keywords

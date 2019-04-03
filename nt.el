@@ -150,21 +150,39 @@ side-by-side comparisons to be aligned.")
     (-> masks -distinct nt-masks--refresh)))
 
 ;;; Advising Line Traversal
+;;;; visual-column idea
+
+(defun nt--pos->col (pos)
+  "Get column of POS."
+  (save-excursion (goto-char pos) (current-column)))
+
+(defun nt--visual-col-at-point ()
+  (interactive)
+  (message "%s" (nt--pos->visual-col (point))))
+
+(defun nt--pos->visual-col (pos)
+  "Get visual column of POS.
+
+The visual column is the column taking into account 'display overlays.
+vis-colum  <= true-column as long as indentation expansions are not allowed."
+  (- (->> pos nt--pos->col)
+     (->> pos (nt-ovs<-region (line-beginning-position)) nt-ovs->width)))
+
+;;;; Original idea
 
 ;; SECTION IN-DEVELOPMENT
 
-(defun nt--advise-line-movement-of-masked-indent (line-fn &rest args)
+(defun nt--mask-line-movement (line-fn &rest args)
   "Advises line movement to preserve visual rather than true column.
 
 There are several challenges to overcome:
-1. Overlays with 'display length shorter than the covered region will break
-   visual line movement, as preserving the column is in-fact undesirable.
-2. Masked indentation also satisfies 1. but has additional considerations.
-3. Must manage `temporary-goal-column' directly.
-   - For proper behavior when line traversal touches the end-of-line.
-   - Normally exposed to use via `goal-column', which doesn't quite fit here.
+1. Overlays with 'display length shorter than the covered region (notes).
+2. Masked indentation satisfies 1. but has additional considerations.
+3. Must notify `temporary-goal-column'.
+   - Deals with columns when moving touches EOLs.
+   - Normally exposed via `goal-column', but that doesn't quite fit here.
 
-Observe advising `next-line' also updates `evil-line-move' as appropriate."
+Advising `next-line' also updates `evil-line-move' as appropriate."
   (-let* (;; Lines
           ((line-count)
            args)
@@ -185,6 +203,7 @@ Observe advising `next-line' also updates `evil-line-move' as appropriate."
 
           ;; Notes
           (notes-masking-cols-at-start
+           ;; (nt-notes<-region (line-beginning-position) (point))
            (-intersection (nt-notes<-region (line-beginning-position) (point))
                           (nt-mask->notes end-mask)))
           (notes-masking-cols-at-end
@@ -208,13 +227,16 @@ Observe advising `next-line' also updates `evil-line-move' as appropriate."
      ;; 1. Need similar eol goal-col check here
      ;; 2. store render status so don't have to recalculate
      ((not end-mask-rendered?)
-      (setq temporary-goal-column (+ temporary-goal-column col-offset)))
+      (cl-incf temporary-goal-column col-offset))
 
-     ((> 0 col-offset)
+     (
+      ;; (> 0 col-offset)
+      t
       (progn
         (forward-char col-offset)
-        (unless (> temporary-goal-column
-                   (nt-line->end-col (line-number-at-pos)))
+        (when (and (> 0 col-offset)
+                   (<= temporary-goal-column
+                      (nt-line->end-col (line-number-at-pos))))
           (setq temporary-goal-column (current-column))))))))
 
 ;;; Setup
@@ -239,7 +261,7 @@ Observe advising `next-line' also updates `evil-line-move' as appropriate."
 
   ;; ~~
   ;; Mostly working..
-  (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
+  (advice-add #'next-line :around #'nt--mask-line-movement)
   ;; ~~
 
   (let ((nt-mask--wait-for-refresh? t))
@@ -254,8 +276,8 @@ Observe advising `next-line' also updates `evil-line-move' as appropriate."
 
   ;; ~~
   ;; Mostly working..
-  (advice-add #'next-line :around #'nt--advise-line-movement-of-masked-indent)
-  (advice-remove #'next-line #'nt--advise-line-movement-of-masked-indent)
+  (advice-add #'next-line :around #'nt--mask-line-movement)
+  (advice-remove #'next-line #'nt--mask-line-movement)
   ;; ~~
 
   (setq font-lock-keywords nil))

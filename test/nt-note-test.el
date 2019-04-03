@@ -82,7 +82,7 @@
 "
     (-let (((note)
             (nt-test--mock-notes '(("note" "n")))))
-      (should-s= (nt-note->string note)
+      (should-s= (nt-ov->string note)
                  "note"))))
 
 (ert-deftest notes:transforms:misc:width ()

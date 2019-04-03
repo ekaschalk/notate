@@ -56,6 +56,19 @@
   (-let (((start end) (nt-ov->region ov)))
     (- end start)))
 
+(defun nt-ov->string (ov)
+  "Return string covered by OV."
+  (-some->> ov nt-ov->region (apply #'buffer-substring-no-properties)))
+
+(defun nt-ov->width (ov)
+  "Return difference of OV's length and its 'display properties length."
+  (- (nt-ov->length ov)
+     (length (overlay-get ov 'display))))
+
+(defun nt-ovs->width (ovs)
+  "Return sum of OVS widths."
+  (->> ovs (-map #'nt-ov->width) -sum))
+
 ;;; Access
 
 (defun nt-ov<-pos (pos)
@@ -66,8 +79,10 @@
   "Execute `nt-ov--at' point."
   (nt-ov<-pos (point)))
 
+(defun nt-ovs<-region (start end)
+  (-filter #'nt-ov? (overlays-in start end)))
+
 ;; Fill these out if I find a point to doing so, pun-intended
-;; (defun nt-ovs<-region (start end))
 ;; (defun nt-ovs<-line (line))
 ;; (defun nt-ovs<-lines (start-line end-line))
 
