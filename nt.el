@@ -88,6 +88,15 @@ your code is monospaced.
 For screenshot purposes, it is recommended to have true for
 side-by-side comparisons to be aligned.")
 
+;;;; Managed
+
+(defvar nt--temporary-goal-column-vis nil
+  "A visual-column version of `temporary-goal-column' for masking line mvmnt.
+
+It is implemented in terms of `temporary-goal-column' so it doesn't share
+semantics quite the same. Used for tracking goal columns when moving lines
+interacts with EOLs.")
+
 ;;;; Debugging
 
 (defvar nt-display-prefixes? nil
@@ -150,75 +159,26 @@ side-by-side comparisons to be aligned.")
     (-> masks -distinct nt-masks--refresh)))
 
 ;;; Advising Line Traversal
-;;;; visual-column idea
-;;;;; Scratch
-
-;; Apply column offset to point and `temporary-goal-column'
-;; (cond
-;;  ;; Tasks on this case:
-;;  ;; 1. Need similar eol goal-col check here
-;;  ;; 2. store render status so don't have to recalculate
-;;  ((not end-mask-rendered?)
-;;   (cl-incf temporary-goal-column col-offset))
-
-;;  (
-;;   ;; (> 0 col-offset)
-;;   t
-;;   (progn
-;;     (forward-char col-offset)
-;;     (when (and (> 0 col-offset)
-;;                (<= temporary-goal-column
-;;                   (nt-line->end-col (line-number-at-pos))))
-;;       (setq temporary-goal-column (current-column))))))
-
-;; (end (nt--col+line->pos col end-line))
-;; (vis-col-end (nt--pos->vis-col end))
-;; (vis-col-offset (- vis-col-end vis-col-start))
-;; (end-line-start (nt-line->start end-line))
-;; (-let* ((max-col (nt-line->end-col end-line))))
-
-;; (setq nt--temporary-goal-column-vis
-;;       (or nt--temporary-goal-column-vis temporary-goal-column))
-;; this right here (was) the culprit
-;; the col/vis-col are equal -> temp vis goal becomes true goal
-
-;; When we enter first contained empty line
-;; vis-goal should be set to 2
-;; instead it is being set to 6 (the temporary-goal-column)
-
-;; (setq nt--temporary-goal-column-vis
-;;       (- temporary-goal-column
-;;          (- (nt--pos->col (line-end-position))
-;;             (nt--pos->vis-col (line-end-position)))))
-
-(defun nt--vis-col-at-point ()
-  (interactive)
-  (message "%s" (nt--pos->vis-col (point))))
-
-;;;; Implementation
-
-(defun nt--col+line->pos (col line)
-  (save-excursion (nt-line--goto end-line) (forward-char col) (point)))
-
-(defun nt--pos->col (pos)
-  "Get column of POS."
-  (save-excursion (goto-char pos) (current-column)))
 
 (defun nt--pos->vis-col (pos)
-  "Get visual column of POS (no relatation to `visual-line-mode').
+  "Get visual column of POS.
+
+No relatation to `visual-line-mode', truncation, etc.
 
 The visual column is the column taking into account 'display overlays.
 vis-colum  <= true-column as long as indentation expansions are not allowed."
-  (- (->> pos nt--pos->col)
-     (->> pos (nt-ovs<-region (line-beginning-position)) nt-ovs->width)))
+  (let* ((col (nt-pos->col pos))
+         (ovs (nt-ovs<-region (line-beginning-position) pos))
+         (hidden-chars (nt-ovs->width ovs)))
+    (- col hidden-chars)))
 
+;; TODO This is inefficient, write a smarter solution
 (defun nt--goto-vis-col (vis-col)
   "Goto VIS-COL of current line, or line's end if VIS-COL is out of range.
 
 Return the visual column reached."
-  ;; TODO This is inefficient, write a smarter solution once working
   (let ((vis-col-limit (nt--pos->vis-col (line-end-position))))
-    (if (>= vis-col vis-col-limit)
+    (if (>= vis-col vis-col-limit)  ; Fast-track EOL handling
         (goto-char (line-end-position))
 
       (goto-char (line-beginning-position))
@@ -226,113 +186,24 @@ Return the visual column reached."
         (forward-char))))
   (nt--pos->vis-col (point)))
 
-(defun nt--eol-tracking? ()
-  "Is `temporary-goal-column' referencing arbitrary EOLs?"
-  (= most-positive-fixnum temporary-goal-column))
-
-(setq nt--temporary-goal-column-vis nil)
-(defun nt--mask-line-movement (line-fn &rest args)
+(defun nt--mask-line-movement (line-move-fn &rest args)
   "Vis-col based version of line movement masking."
-  (-let* (;; Lines
-          (start (point))
-          ((line-count) args)
+  (-let* (((line-count) args)
+          (col (current-column))
+          (vis-col (nt--pos->vis-col (point)))
           (start-line (line-number-at-pos))
           (end-line (+ start-line line-count))
+          (goal-vis-col (or nt--temporary-goal-column-vis vis-col)))
+    (apply line-move-fn args)
 
-          ;; Cols
-          (col (current-column))
-          (col-limit (nt-line->end-col end-line))
-          (vis-col-limit (nt--pos->vis-col (line-end-position end-line))))
+    (if (= (nt--goto-vis-col goal-vis-col) goal-vis-col)
+        (progn
+          (setq goal-vis-col nil)
+          (setq temporary-goal-column (current-column)))
+      (when (= most-positive-fixnum temporary-goal-column)
+        (setq goal-vis-col temporary-goal-column)))
 
-    ;; (message "true-goal %s vis-goal %s vis-col %s"
-    ;;          temporary-goal-column
-    ;;          nt--temporary-goal-column-vis
-    ;;          (nt--pos->vis-col start))
-
-    (unless nt--temporary-goal-column-vis
-      (setq nt--temporary-goal-column-vis (nt--pos->vis-col start)))
-
-    (apply line-fn args)
-
-    (let ((vis-col (nt--goto-vis-col nt--temporary-goal-column-vis)))
-      (if (= vis-col nt--temporary-goal-column-vis)
-          (progn
-            (setq nt--temporary-goal-column-vis nil)
-            (setq temporary-goal-column (current-column)))
-        (when (nt--eol-tracking?)
-          (setq nt--temporary-goal-column-vis temporary-goal-column)
-          )))))
-
-;;;; Original idea
-
-;; SECTION IN-DEVELOPMENT
-
-;; (defun nt--mask-line-movement (line-fn &rest args)
-;;   "Advises line movement to preserve visual rather than true column.
-
-;; There are several challenges to overcome:
-;; 1. Overlays with 'display length shorter than the covered region (notes).
-;; 2. Masked indentation satisfies 1. but has additional considerations.
-;; 3. Must notify `temporary-goal-column'.
-;;    - Deals with columns when moving touches EOLs.
-;;    - Normally exposed via `goal-column', but that doesn't quite fit here.
-
-;; Advising `next-line' also updates `evil-line-move' as appropriate."
-;;   (-let* (;; Lines
-;;           ((line-count)
-;;            args)
-;;           (start-line
-;;            (line-number-at-pos))
-;;           (end-line
-;;            (+ start-line line-count))
-;;           (end-line-start
-;;            (nt-line->start end-line))
-
-;;           ;; Masks
-;;           (start-mask
-;;            (nt-mask<-line start-line))
-;;           (end-mask
-;;            (nt-mask<-line end-line))
-;;           (end-mask-rendered?
-;;            (nt-mask--render? end-mask))
-
-;;           ;; Notes
-;;           (notes-masking-cols-at-start
-;;            ;; (nt-notes<-region (line-beginning-position) (point))
-;;            (-intersection (nt-notes<-region (line-beginning-position) (point))
-;;                           (nt-mask->notes end-mask)))
-;;           (notes-masking-cols-at-end
-;;            (nt-notes<-region end-line-start (+ end-line-start (current-column))))
-
-;;           ;; Column Offset Calculations
-;;           (indent-offset
-;;            (- (nt-mask->width end-mask)
-;;               (nt-mask->width start-mask)))
-;;           (note-offset
-;;            (- (nt-notes->width notes-masking-cols-at-end)
-;;               (nt-notes->width notes-masking-cols-at-start)))
-;;           (col-offset
-;;            (+ indent-offset note-offset)))
-;;     ;; Call `next-line'
-;;     (apply line-fn args)
-
-;;     ;; Apply column offset to point and `temporary-goal-column'
-;;     (cond
-;;      ;; Tasks on this case:
-;;      ;; 1. Need similar eol goal-col check here
-;;      ;; 2. store render status so don't have to recalculate
-;;      ((not end-mask-rendered?)
-;;       (cl-incf temporary-goal-column col-offset))
-
-;;      (
-;;       ;; (> 0 col-offset)
-;;       t
-;;       (progn
-;;         (forward-char col-offset)
-;;         (when (and (> 0 col-offset)
-;;                    (<= temporary-goal-column
-;;                        (nt-line->end-col (line-number-at-pos))))
-;;           (setq temporary-goal-column (current-column))))))))
+    (setq nt--temporary-goal-column-vis goal-vis-col)))
 
 ;;; Setup
 ;;;; Solid
@@ -355,8 +226,9 @@ Return the visual column reached."
 
 
   ;; ~~
-  ;; Mostly working..
+  ;; Working..
   (advice-add #'next-line :around #'nt--mask-line-movement)
+  (advice-add #'previous-line :around #'nt--mask-line-movement)
   ;; ~~
 
   (let ((nt-mask--wait-for-refresh? t))
@@ -373,12 +245,16 @@ Return the visual column reached."
   ;; Mostly working..
   (advice-add #'next-line :around #'nt--mask-line-movement)
   (advice-remove #'next-line #'nt--mask-line-movement)
+  (advice-add #'previous-line :around #'nt--mask-line-movement)
+  (advice-remove #'previous-line #'nt--mask-line-movement)
   ;; ~~
 
-  (setq font-lock-keywords nil))
+  ;; (setq font-lock-keywords nil)
+  )
 
 (defun nt-disable--just-in-case ()
   "TEMP Reset vars that _should_ never need to be reset."
+  (setq nt--temporary-goal-column-vis nil)
   (setq nt-mask--wait-for-refresh? nil)
   (setq nt-note--init-in-progress nil)
   (setq nt-mask--init-in-progress nil))

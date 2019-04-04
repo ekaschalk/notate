@@ -108,18 +108,16 @@ I want:
   - Toggling on/off works as expected.
   - Deleting any part of a note updates indentation on-the-fly.
   - Deleting near the beginning of masked lines behaves as if not masked.
+- Line movement user commands use /visual-columns/ rather than true columns.
+  - Accounts for EOLs properly.
 
 *** Whats Being Worked On
 
-- Line up-down movement needs left/right offset equal to masked/unmasked indent.
-  - Down movement working in all cases now I think.
-    - Have to really dig in to see if I'm missing anything, and make it more
-      performant still.
+- Tests for masking line movement/visual column concept.
 
 *** What Doesn't Work Yet
 
 - Buffer modification that adds or removes lines.
-- Line up-down movement needs left/right offset equal to masked/unmasked indent.
 - Boundary functions need fleshing out.
   - Only concerned with lisp-like boundaries atm.
   - Special indent rules not handled yet.

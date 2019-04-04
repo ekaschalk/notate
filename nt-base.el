@@ -92,6 +92,12 @@
        ,@body
        (forward-line))))
 
+;;; Points
+
+(defun nt-pos->col (pos)
+  "Get column of POS."
+  (save-excursion (goto-char pos) (current-column)))
+
 ;;; Provide
 
 (provide 'nt-base)
