@@ -27,11 +27,11 @@ For example, render ~and~ as ~∧~:
 #+BEGIN_SRC lisp
 (and foo   ; The actual text
      bar)
-(∧ foo     ; What we see when working - bar isn't aligned!
+(∧ foo     ; Now bar isn't aligned!
      bar)
 (∧ foo     ; What we want to see when working...
    bar)
-(and foo   ; But now the true indentation is incorrect!
+(and foo   ; But now true indentation is incorrect!
    bar)
 #+END_SRC
 
@@ -64,13 +64,12 @@ simple as a toggle.
     display engine does is *fundamentally wrong*, and is not what these features
     were designed for."
 
-    notate attempts to so egregiously abuse Emac's display engine that a skilled
+    Notate attempts to so egregiously abuse Emac's display engine that a skilled
     user cannot help themselves but to correct me (by extending Emac's C display
     engine with indentation metrics smarter than fixed-width columns).
 
     I'm joking - this project would complement and ideally inform an extension
-    of Emac's indentation engine and native ligature support. And in time, I
-    will try my hand at it myself.
+    of Emac's indentation engine. And in time, I will try my hand at it myself.
 
 - Similar work? :: Notate is a novel extension of the concept of
                    ~prettify-symbols~, which itself has only a counterpart in
@@ -108,12 +107,10 @@ I want:
   - Toggling on/off works as expected.
   - Deleting any part of a note updates indentation on-the-fly.
   - Deleting near the beginning of masked lines behaves as if not masked.
-- Line movement user commands use /visual-columns/ rather than true columns.
-  - Accounts for EOLs properly.
 
 *** Whats Being Worked On
 
-- Tests for masking line movement/visual column concept.
+- Visual-column line movement
 
 *** What Doesn't Work Yet
 
