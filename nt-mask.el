@@ -20,15 +20,14 @@
   "Line-ordered list of indent overlays, covering the buffer.
 
 Always access through `nt-mask<-line' and friends to not confuse 0 vs 1-idxing.
-
 Eventually rewrite with vector for constant-time idxing.")
 
 
-(defvar nt-mask--wait-for-refresh? nil
+(defvar-local nt-mask--wait-for-refresh? nil
   "Let-bind true to hold off on refreshing masks during batch note updates.")
 
 
-(defvar nt-mask--init-in-progress? nil
+(defvar-local nt-mask--init-in-progress? nil
   "Are we instantiating the initial masks?")
 
 ;;; Access
@@ -86,6 +85,15 @@ Eventually rewrite with vector for constant-time idxing.")
 (defun nt-mask->idx (mask)
   "Get index of insertion of new MASK into `nt-masks'."
   (-> mask nt-mask->line nt-line->idx))
+
+(defun nt-mask->line-prefix (mask)
+  "Format the `line-prefix' overlay text property for MASK."
+  (->>
+   (list (-> "%02d" (format (nt-mask->indent mask)))
+         (-> "%02d" (format (nt-mask->width mask)))
+         (-> "+%d " (format (length (nt-mask->notes mask)))))
+   (-interpose "|")
+   (apply #'s-concat)))
 
 ;;; Predicates
 ;;;; General Purpose
@@ -172,17 +180,6 @@ Eventually rewrite with vector for constant-time idxing.")
                 (+ line-start (current-column))))
           (delete-region line-start masked-indent))))))
 
-;;; Prefixes
-
-(defun nt-mask--format-prefix (mask)
-  "Format the `line-prefix' overlay text property for MASK."
-  (->>
-   (list (-> "%02d" (format (nt-mask->indent mask)))
-         (-> "%02d" (format (nt-mask->width mask)))
-         (-> "+%d " (format (length (nt-mask->notes mask)))))
-   (-interpose "|")
-   (apply #'s-concat)))
-
 ;;; Refreshing
 ;;;; Internal
 
@@ -219,19 +216,16 @@ Eventually rewrite with vector for constant-time idxing.")
 (defun nt-mask--refresh-prefix (mask)
   "Reset the `line-prefix' text property for MASK."
   (when nt-display-prefixes?
-    (->> mask nt-mask--format-prefix (overlay-put mask 'line-prefix))))
+    (->> mask nt-mask->line-prefix (overlay-put mask 'line-prefix))))
 
 ;;;;; Rendering
 
 (defun nt-mask--refresh-render (mask)
   "Reset rendering status of MASK."
-  (if (nt-mask--render? mask)
-      (-doto mask
-        (overlay-put 'display " ")
-        (overlay-put 'face    (if nt-display-render-status? 'underline nil)))
+  (let ((render? (nt-mask--render? mask)))
     (-doto mask
-      (overlay-put 'display nil)
-      (overlay-put 'face    nil))))
+      (overlay-put 'display (and render? " "))
+      (overlay-put 'face (and render? nt-display-render-status? 'underline)))))
 
 ;;;; Commands
 
