@@ -103,8 +103,7 @@ To allow identifying what Notate is doing at a glance.")
 
 (defun nt-enable--agnostic ()
   "Setup all *major-mode-agnostic* components."
-  (nt-masks--init)
-  (nt-masks--refresh nt-masks))
+  (nt-masks--init))
 
 (defun nt-disable--agnostic ()
   "Disable all *major-mode-agnostic* components."
@@ -116,26 +115,31 @@ To allow identifying what Notate is doing at a glance.")
   "TEMP Setup components that will need to be redone more generally."
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
-
-  (let ((nt-mask--wait-for-refresh? t))
-    (lisp-mode)
-    (nt-notes--init))
-  (nt-masks--refresh-buffer)
-
-  (nt-vis--advice-add-line-movement))
+  (lisp-mode)
+  (nt-notes--init))
 
 (defun nt-disable--temp ()
   "TEMP Disable components that will need to be redone more generally."
   (remove-hook 'lisp-mode-hook #'nt-kwds--add)
-  (remove-hook 'after-change-functions #'nt-after-change-function 'local)
-
-  (nt-vis--advice-remove-line-movement))
+  (remove-hook 'after-change-functions #'nt-after-change-function 'local))
 
 (defun nt-disable--just-in-case ()
   "TEMP Reset vars that _should_ never need to be reset."
   (setq nt-mask--wait-for-refresh? nil)
   (setq nt-mask--init-in-progress nil)
   (setq nt-note--init-in-progress nil))
+
+;;;; In-Progress
+
+(defun nt-enable--in-progress ()
+  "TEMP Enable Notate components that are in active development"
+  ;; (nt-vis--advice-add-line-movement)
+  )
+
+(defun nt-disable--in-progress ()
+  "TEMP Disable Notate components that are in active development."
+  (nt-vis--advice-remove-line-movement)
+  )
 
 ;;; Interactive
 
@@ -145,7 +149,8 @@ To allow identifying what Notate is doing at a glance.")
 
   (nt-disable--agnostic)
   (nt-disable--temp)
-  (nt-disable--just-in-case))
+  (nt-disable--just-in-case)
+  (nt-disable--in-progress))
 
 ;;;###autoload
 (defun nt-enable ()
@@ -155,7 +160,8 @@ To allow identifying what Notate is doing at a glance.")
   (nt-disable)
 
   (nt-enable--agnostic)
-  (nt-enable--temp))
+  (nt-enable--temp)
+  (nt-enable--in-progress))
 
 ;;; Provide
 

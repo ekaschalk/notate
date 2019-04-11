@@ -25,9 +25,6 @@
 (defvar-local nt-note--init-in-progress? nil
   "Are we instantiating the initial notes?")
 
-
-;; TODO Potentially maintain `nt-roots' so dont recalculate all the time
-
 ;;; Access
 ;;;; Fundamentals
 
@@ -236,7 +233,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-notes--init ()
   "Instantiate `nt-notes', ie. wrap `font-lock-ensure' with optimizations."
-  (let ((nt-note--init-in-progress t)
+  (let ((nt-note--init-in-progress? t)
         (nt-mask--wait-for-refresh? t))
     (font-lock-ensure))
 
