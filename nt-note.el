@@ -11,6 +11,7 @@
 
 (require 'nt-base)
 
+(require 'nt-mask)
 (require 'nt-ov)
 
 
@@ -21,11 +22,11 @@
   "Start-position-ordered list of note overlays.")
 
 
-;; TODO Potentially maintain `nt-roots' so dont recalculate all the time
-
-
 (defvar-local nt-note--init-in-progress? nil
   "Are we instantiating the initial notes?")
+
+
+;; TODO Potentially maintain `nt-roots' so dont recalculate all the time
 
 ;;; Access
 ;;;; Fundamentals
@@ -66,6 +67,16 @@
 (defun nt-note->replacement (note)
   "Access NOTE's display."
   (-some-> note (overlay-get 'display)))
+
+;;;; Masks
+
+(defun nt-note->masks (note)
+  "Calculate all masks NOTE contributes to."
+  (-some->>
+   note
+   (funcall (symbol-value #'nt-bound?-fn))
+   nt-note->bound
+   (apply #'nt-masks<-lines)))
 
 ;;;; Misc
 
@@ -174,7 +185,36 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
   (when post-modification?
     (nt-note--decompose note)))
 
+;;; Update Masks
+
+(defun nt-note--update-mask (note mask)
+  "Add NOTE to a MASK, possibly refresh mask, and return back mask."
+  (push note (overlay-get mask 'nt-notes))
+  (nt-mask--refresh mask))
+
+(defun nt-note--update-masks (note masks)
+  "Add NOTE to MASKS, possibly refresh, and return back masks."
+  (->> masks
+     (-remove (-partial #'nt-mask--contains? note))
+     (-map (-partial #'nt-note--update-mask note))))
+
+(defun nt-note--update-bounded (note)
+  "Add NOTE to masks within its bound, possibly refresh, and return back masks."
+  (nt-note--update-masks note (nt-note->masks note)))
+
+(defun nt-notes--update-bounded (notes)
+  "Add NOTES to masks within their bounds, with optimized batch refreshing."
+  (let ((bounds (nt-notes->maximal-bounds notes)))
+    (let ((nt-mask--wait-for-refresh? t))
+      (-each notes #'nt-note--update-bounded))
+    (-each bounds (-applify #'nt-masks--refresh-lines))))
+
 ;;; Init
+
+(defun nt-note--init-bound (note)
+  "Init NOTE's 'nt-bound text property."
+  (let ((bound (funcall (symbol-value #'nt-bound-fn) note)))
+    (overlay-put note 'nt-bound bound)))
 
 (defun nt-note--init-ov (string replacement start end)
   "Instantiate note overlay and its properties for `nt-note--init'."
@@ -184,30 +224,25 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
     (overlay-put 'nt-width (- (length string) (length replacement)))
 
     (overlay-put 'display replacement)
-    (overlay-put 'modification-hooks '(nt-note--decompose-hook))))
+    (overlay-put 'modification-hooks '(nt-note--decompose-hook))
+
+    (nt-note--init-bound)))
 
 (defun nt-note--init (string replacement start end)
   "Build note overlay for STRING to REPLACEMENT between START and END."
-  (let* ((note (nt-note--init-ov string replacement start end))
-         (bound (funcall (symbol-value #'nt-bound-fn) note)))
-    (-doto note
-      (nt-note--insert)
-
-      (overlay-put 'nt-bound bound)
-      (nt--add-note-to-masks))))
+  (-doto (nt-note--init-ov string replacement start end)
+    (nt-note--insert)
+    (nt-note--update-bounded)))
 
 (defun nt-notes--init ()
   "Instantiate `nt-notes', ie. wrap `font-lock-ensure' with optimizations."
-  (let ((nt-note--init-in-progress t))
-    (font-lock-ensure)
+  (let ((nt-note--init-in-progress t)
+        (nt-mask--wait-for-refresh? t))
+    (font-lock-ensure))
 
-    ;; During init we don't rely on the ordering of `nt-notes'
-    ;; So we can !cons, reverse upon completion, and insert-sorted from thereon
-    (setq nt-notes (reverse nt-notes))
-
-    ;; Potentially build `nt-roots' here and manage here-on instead of
-    ;; calculating it all the time
-    ))
+  ;; Ordering `nt-notes' only matters after notes are instantiated, !consing it
+  (setq nt-notes (reverse nt-notes))
+  (nt-masks--refresh-buffer))
 
 ;;; Provide
 

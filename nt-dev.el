@@ -111,7 +111,7 @@
          (string (buffer-substring-no-properties start end))
          (replacement (overlay-get note 'display))
          (width (- (length string) (length replacement)))
-         (masks (nt--masks-for note)))
+         (masks (nt-note->masks note)))
     (format "Note overlay:
 start: %s
 end: %s

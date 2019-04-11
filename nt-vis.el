@@ -1,4 +1,4 @@
-;;; nt-vis-cols.el --- Visual Columns -*- lexical-binding: t; -*-
+;;; nt-vis.el --- Visual Columns -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 
@@ -14,6 +14,8 @@
 ;;;; Requires
 
 (require 'nt-base)
+
+(require 'nt-ov)
 
 ;;; Configuration
 
@@ -83,6 +85,20 @@ Return the visual column reached."
         (setq temporary-goal-column (current-column))))
 
     (setq nt-vis--temporary-goal-column goal-vis-col)))
+
+;;; Advice
+
+(defun nt-vis--advice-add-line-movement ()
+  (setq nt-vis--temporary-goal-column nil)  ; just-in-case
+
+  (advice-add #'next-line :around #'nt-vis--mask-line-movement)
+  (advice-add #'previous-line :around #'nt-vis--mask-line-movement))
+
+(defun nt-vis--advice-remove-line-movement ()
+  (setq nt-vis--temporary-goal-column nil)  ; just-in-case
+
+  (advice-remove #'next-line #'nt-vis--mask-line-movement)
+  (advice-remove #'previous-line #'nt-vis--mask-line-movement))
 
 ;;; Notes
 

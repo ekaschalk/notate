@@ -72,7 +72,7 @@
   ;; then this operates on notes backward from point up until root that
   ;; are being "completed" still
 
-  (-some-> line nt-notes<-line nt--add-notes-to-masks))
+  (-some-> line nt-notes<-line nt-notes--update-bounded))
 
 (defun nt-change--insertion (start end)
   "Change function specialized for insertion, in START and END."
