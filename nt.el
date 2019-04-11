@@ -78,30 +78,25 @@ your code is monospaced.
 For screenshot purposes, it is recommended to have true for
 side-by-side comparisons to be aligned.")
 
-;;;; Managed
-
-(defvar nt-vis--temporary-goal-column nil
-  "A visual-column version of `temporary-goal-column' for masking line mvmnt.
-
-It is implemented in terms of `temporary-goal-column' so it doesn't share
-semantics quite the same. Used for tracking goal columns when moving lines
-interacts with EOLs.")
-
 ;;;; Debugging
 
 (defvar nt-display-prefixes? nil
-  "Whether to add the 'line-prefix property to indentation overlays.")
+  "Add 'line-prefix property to all indentation overlays?
+
+Prefixes prefix will prefix each line with:
+
+  xx:yy:+z
+   with values true-indent:masked-indent:notes-contributing-to-masks
+
+To allow identifying what Notate is doing at a glance.")
 
 
 (defvar nt-display-render-status? t
-  "Whether to add a 'face property to rendered indentation overlays.")
+  "Underline first char of every line with masked indentation?")
 
 
 (defvar nt-render-masks? t
-  "Should masks render? Note that line-prefixes, if set to, still display.")
-
-;;; Note-Mask Interactions
-
+  "Actually mask the indentation? Line prefixes may still be used and seen.")
 
 ;;; Setup
 ;;;; Solid

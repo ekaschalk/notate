@@ -18,9 +18,14 @@
 (require 'nt-ov)
 
 ;;; Configuration
+;;;; Managed
 
 (defvar nt-vis--temporary-goal-column nil
-  "Our own version of simple.el's `temporary-goal-column'.")
+  "A visual-column version of `temporary-goal-column' for masking line mvmnt.
+
+It is implemented in terms of `temporary-goal-column' so it doesn't share
+semantics quite the same. Used for tracking goal columns when moving lines
+interacts with EOLs.")
 
 ;;; Fundamentals
 
