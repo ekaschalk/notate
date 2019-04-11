@@ -12,5 +12,8 @@
 (depends-on "smartparens")
 
 (development
+ (depends-on "buttercup")
+
+ ;; Below won't be needed once migration is complete
  (depends-on "ert-runner")
  (depends-on "f"))

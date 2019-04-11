@@ -1,5 +1,6 @@
 ;;; test-helper.el --- Testing Macros -*- lexical-binding: t -*-
 
+(require 'buttercup)
 (require 'ert)
 (require 'f)
 
