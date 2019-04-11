@@ -1,6 +1,6 @@
 ;; SECTION IN-DEVELOPMENT
 
-;; (defun nt--mask-line-movement (line-fn &rest args)
+;; (defun nt-vis--mask-line-movement (line-fn &rest args)
 ;;   "Advises line movement to preserve visual rather than true column.
 
 ;; There are several challenges to overcome:
@@ -70,7 +70,7 @@
 
 ;; (message "true-goal %s vis-goal %s vis-col %s"
 ;;          temporary-goal-column
-;;          nt--temporary-goal-column-vis
+;;          nt-vis--temporary-goal-column
 ;;          (nt--pos->vis-col start))
 
 
@@ -83,18 +83,18 @@
 ;;   (= most-positive-fixnum temporary-goal-column))
 
 ;; (let ((vis-col (nt--goto-temporary-vis-col)))
-;;   (if (= vis-col nt--temporary-goal-column-vis)
+;;   (if (= vis-col nt-vis--temporary-goal-column)
 ;;       (progn
-;;         (setq nt--temporary-goal-column-vis nil)
+;;         (setq nt-vis--temporary-goal-column nil)
 ;;         (setq temporary-goal-column (current-column)))
 ;;     (when (= most-positive-fixnum temporary-goal-column)
-;;       (setq nt--temporary-goal-column-vis temporary-goal-column)
+;;       (setq nt-vis--temporary-goal-column temporary-goal-column)
 ;;       )))
 
 ;; (defun nt--goto-temporary-vis-col ()
-;;   (when (= nt--temporary-goal-column-vis
-;;            (nt--goto-vis-col nt--temporary-goal-column-vis))
-;;     (setq nt--temporary-goal-column-vis nil)
+;;   (when (= nt-vis--temporary-goal-column
+;;            (nt--goto-vis-col nt-vis--temporary-goal-column))
+;;     (setq nt-vis--temporary-goal-column nil)
 ;;     (setq temporary-goal-column (current-column))))
 
 ;; Apply column offset to point and `temporary-goal-column'
@@ -121,8 +121,8 @@
 ;; (end-line-start (nt-line->start end-line))
 ;; (-let* ((max-col (nt-line->end-col end-line))))
 
-;; (setq nt--temporary-goal-column-vis
-;;       (or nt--temporary-goal-column-vis temporary-goal-column))
+;; (setq nt-vis--temporary-goal-column
+;;       (or nt-vis--temporary-goal-column temporary-goal-column))
 ;; this right here (was) the culprit
 ;; the col/vis-col are equal -> temp vis goal becomes true goal
 
@@ -130,7 +130,7 @@
 ;; vis-goal should be set to 2
 ;; instead it is being set to 6 (the temporary-goal-column)
 
-;; (setq nt--temporary-goal-column-vis
+;; (setq nt-vis--temporary-goal-column
 ;;       (- temporary-goal-column
 ;;          (- (nt--pos->col (line-end-position))
 ;;             (nt--pos->vis-col (line-end-position)))))
