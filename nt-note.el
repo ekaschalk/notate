@@ -36,15 +36,15 @@
   "Get notes in START and END."
   (-some->> (overlays-in start end) (-filter #'nt-ov--note?) nt-notes--sort))
 
-(defun nt-notes<-line (line)
-  "Get notes on LINE."
-  (-some->> line nt-line->region (apply #'nt-notes<-region)))
-
 ;;;; Extensions
 
 (defun nt-note--at-point ()
   "Get note at point."
   (-> (point) nt-note<-pos))
+
+(defun nt-notes<-line (line)
+  "Get notes on LINE."
+  (-some->> line nt-line->region (apply #'nt-notes<-region)))
 
 (defun nt-notes<-lines (start-line end-line)
   "Get notes in [START-LINE END-LINE)."

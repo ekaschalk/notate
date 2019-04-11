@@ -103,7 +103,8 @@ To allow identifying what Notate is doing at a glance.")
 
 (defun nt-enable--agnostic ()
   "Setup all *major-mode-agnostic* components."
-  (nt-masks--init))
+  (nt-masks--init)
+  (nt-notes--init))
 
 (defun nt-disable--agnostic ()
   "Disable all *major-mode-agnostic* components."
@@ -115,8 +116,7 @@ To allow identifying what Notate is doing at a glance.")
   "TEMP Setup components that will need to be redone more generally."
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
   (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
-  (lisp-mode)
-  (nt-notes--init))
+  (lisp-mode))
 
 (defun nt-disable--temp ()
   "TEMP Disable components that will need to be redone more generally."
@@ -159,8 +159,8 @@ To allow identifying what Notate is doing at a glance.")
 
   (nt-disable)
 
+  (nt-enable--temp)  ; This should happen first atm
   (nt-enable--agnostic)
-  (nt-enable--temp)
   (nt-enable--in-progress))
 
 ;;; Provide

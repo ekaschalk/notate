@@ -1,11 +1,45 @@
 ;;; test-helper.el --- Testing Macros -*- lexical-binding: t -*-
 
-(require 'buttercup)
-(require 'ert)
-(require 'f)
+;; (require 'buttercup)
+;; (require 'ert)
+;; (require 'f)
 
-(progn (add-to-list 'load-path (-> (f-this-file) (f-parent) (f-parent)))
-       (require 'nt))
+;; (progn (add-to-list 'load-path (-> (f-this-file) (f-parent) (f-parent)))
+;;        (require 'nt))
+
+;;; Buttercup-Rewrite
+
+(defun nt-test--setup (kind text &rest notes)
+  "Run BODY in context KIND in temp-buffer with (`s-trim'med) text.
+
+KIND is a symbol identifying how notes will contribute to masks:
+
+   'minimal: Notes do not have bounds.
+
+   'simple: Notes are always bounded by the next line.
+
+   'simple-2: Notes are always bounded by the next next line.
+
+   'lispy: Notes use lispy boundaries and inherit `lisp-mode-syntax-table'.
+
+   'no-setup: Notes do not have bounds AND do not run `nt-enable--agnostic'.
+
+   'any: Execute BODY once for each following value of KIND:
+           minimal, simple, lispy
+"
+  (declare (indent 2))
+
+  (insert (s-trim text))
+  (nt-test--kind->context kind)
+  (unless (eq 'no-setup kind)
+    (nt-enable--agnostic))
+  (when notes
+    (nt-test--mock-notes notes)))
+
+(defun nt-test--teardown ()
+  "Disable notate and clear the buffer."
+  (nt-disable)
+  (delete-region (point-min) (point-max)))
 
 ;;; Testing Macro
 ;;;; Exposes
@@ -130,3 +164,6 @@ KIND is a symbol identifying how notes will contribute to masks:
 (defmacro should-equal (f1 f2) `(should (equal ,f1 ,f2)))
 (defmacro should-s= (f1 f2) `(should (s-equals? ,f1 ,f2)))
 (defmacro should-size (coll size) `(should= (length ,coll) ,size))
+
+
+(provide 'test-helper)

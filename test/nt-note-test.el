@@ -16,6 +16,46 @@
 ;; Not Covered:
 ;; - Decomposition
 
+
+;;; Buttercup-Rewrite
+
+(progn (require 'f)
+       (add-to-list 'load-path (f-parent (f-parent (f-this-file))))
+       (require 'nt)
+       (add-to-list 'load-path (f-parent (f-this-file)))
+       (require 'test-helper))
+
+;; https://github.com/jorgenschaefer/emacs-buttercup/blob/master/docs/writing-tests.md
+
+(describe "Accessing notes fundamentals"
+  :var ((text "
+(note foo
+      bar)
+")
+        (note '("note" "n"))
+        (point-with-note 3)
+        (point-without-note 10)
+        (region-with-notes '(3 7))
+        (region-without-notes '(7 10))
+        (region-without-notes-edge '(1 2)))
+
+  (after-all (nt-test--teardown))
+  (before-all (nt-test--setup 'simple text note))
+
+  (describe "by position"
+    (it "found"
+      (expect (nt-note<-pos point-with-note)))
+    (it "not there"
+      (expect (not (nt-note<-pos point-without-note)))))
+
+  (describe "by region"
+    (it "found"
+      (expect (apply #'nt-notes<-region region-with-notes)))
+    (it "not there"
+      (expect (not (apply #'nt-notes<-region region-without-notes))))
+    (it "ending right before note"
+      (expect (not (apply #'nt-notes<-region region-without-notes-edge))))))
+
 ;;; Access
 ;;;; Fundamentals
 
@@ -24,7 +64,7 @@
       "
 (note foo
       bar)
-"
+    "
     (-let (((note)
             (nt-test--mock-notes '(("note" "n")))))
       (should* (nt-note<-pos 3)
