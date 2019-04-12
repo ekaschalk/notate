@@ -30,7 +30,7 @@
 
 (defun nt-note<-pos (pos)
   "Get note at POS."
-  (-some->> (overlays-at pos) (-filter #'nt-ov--note?) car))
+  (-some->> pos overlays-at (-filter #'nt-ov--note?) car))
 
 (defun nt-notes<-region (start end)
   "Get notes in START and END."

@@ -27,34 +27,65 @@
 
 ;; https://github.com/jorgenschaefer/emacs-buttercup/blob/master/docs/writing-tests.md
 
-(describe "Accessing notes fundamentals"
-  :var ((text "
-(note foo
-      bar)
-")
-        (note '("note" "n"))
-        (point-with-note 3)
-        (point-without-note 10)
-        (region-with-notes '(3 7))
-        (region-without-notes '(7 10))
-        (region-without-notes-edge '(1 2)))
+;;; Access
+;;;; Fundamentals
 
+(nt-describe "Accessing notes"
+  :var ((text "
+(note1 note2
+       note3)
+(foo bar)
+")
+        (notes '(("note1" "n") ("note2" "n") ("note3" "n")))
+        (note-start 3)
+        (point-without-note 18)
+        (region-with-no-notes `(,point-without-note
+                                ,(1+ point-without-note)))
+        (region-with-one-note `(,note-start
+                                ,(1+ note-start)))
+        (region-with-two-notes `(,note-start
+                                 ,(+ note-start 7)))
+        (region-before-notes `(,(- point-without-note 2)
+                               ,(- point-without-note 1))))
+
+  (before-all (nt-test--setup 'simple text notes))
   (after-all (nt-test--teardown))
-  (before-all (nt-test--setup 'simple text note))
 
   (describe "by position"
-    (it "found"
-      (expect (nt-note<-pos point-with-note)))
-    (it "not there"
-      (expect (not (nt-note<-pos point-without-note)))))
+    (describe "standard cases"
+      (it "there"
+        (expect (nt-note<-pos note-start)))
+      (it "not there"
+        (expect (nt-note<-pos point-without-note) :nil)))
+
+    (describe "edge cases"
+      (it "nil"
+        (expect (nt-note<-pos nil) :nil))
+      (it "outside buffer"
+        (expect (nt-note<-pos -1) :nil)
+        (expect (nt-note<-pos 1000) :nil))))
 
   (describe "by region"
-    (it "found"
-      (expect (apply #'nt-notes<-region region-with-notes)))
-    (it "not there"
-      (expect (not (apply #'nt-notes<-region region-without-notes))))
-    (it "ending right before note"
-      (expect (not (apply #'nt-notes<-region region-without-notes-edge))))))
+    (describe "standard cases"
+      (it "found none"
+        (expect (apply #'nt-notes<-region region-before-notes) :nil))
+      (it "found one"
+        (expect (apply #'nt-notes<-region region-with-one-note) :size 1))
+      (it "found many"
+        (expect (apply #'nt-notes<-region region-with-two-notes) :size 2)))
+
+    ;; (describe "edge cases"
+    ;;   )
+    )
+
+;; (describe "by region"
+;;   (it "was there"
+;;     (expect (apply #'nt-notes<-region region-with-notes)))
+;;   (it "not there"
+;;     (expect (not (apply #'nt-notes<-region region-without-notes))))
+;;   (it "ending right before note"
+;;     (expect (not (apply #'nt-notes<-region region-before-notes)))))
+)
 
 ;;; Access
 ;;;; Fundamentals

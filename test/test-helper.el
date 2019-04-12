@@ -7,9 +7,36 @@
 ;; (progn (add-to-list 'load-path (-> (f-this-file) (f-parent) (f-parent)))
 ;;        (require 'nt))
 
+;;; Buttercup Extensions
+;;;; Macros
+
+(defmacro nt-describe (description &rest body)
+  "Equivalent to buttercup's `describe' but uses `-let*' on `:var' bindings."
+  (declare (indent 1) (debug (&define sexp def-body)))
+  (let ((new-body (if (eq (elt body 0) :var)
+                      `((-let* ,(elt body 1)
+                          ,@(cddr body)))
+                    body)))
+    `(buttercup-describe ,description (lambda () ,@new-body))))
+
+;;;; Matchers
+
+(buttercup-define-matcher :size (obj size)
+  (let ((obj (funcall obj))
+        (size (funcall size)))
+    (if (= (length obj) size)
+        t
+      `(nil . ,(format "Expected %s of size %s to have size %s"
+                     obj (length obj) size)))))
+
+(buttercup-define-matcher-for-unary-function :nil null)
+
 ;;; Buttercup-Rewrite
 
-(defun nt-test--setup (kind text &rest notes)
+(defun nt-test--setup (kind text notes)
+  (apply (-partial #'nt-test--setup* kind text) notes))
+
+(defun nt-test--setup* (kind text &rest notes)
   "Run BODY in context KIND in temp-buffer with (`s-trim'med) text.
 
 KIND is a symbol identifying how notes will contribute to masks:
