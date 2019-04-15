@@ -30,7 +30,7 @@
 ;;;; Setup
 
 (defun nt-test--setup (context text &optional notes)
-  "Run BODY with buffer containing trimmed TEXT and CONTEXT.
+  "Setup current buffer with trimmed TEXT, notate CONTEXT, and mock NOTES defs.
 
 CONTEXT is a symbol identifying how notes will contribute to masks:
 
@@ -43,7 +43,10 @@ CONTEXT is a symbol identifying how notes will contribute to masks:
    'lispy: Notes use lispy boundaries and inherit `lisp-mode-syntax-table'.
 
    'no-setup: Notes do not have bounds AND do not run `nt-enable--agnostic'.
-"
+
+NOTES is an alist of string, replacement pairs. See also `nt-defs'.
+
+This function returns sorted mocked NOTES overlays."
   (declare (indent 2))
 
   (insert (s-trim text))
