@@ -100,69 +100,41 @@
 ;; accessors like `nt-mask<-line' as they require `nt-masks' to be fully
 ;; instantiated. Could be done manually via `nt-ov' methods, but not ideal.
 
-;;;; Single
-
-(ert-deftest masks:init:single ()
-  (nt-test--with-context 'no-setup
-      "
+(nt-describe "Mask initiation"
+  :var ((text "
 1 foo
 2 foo
 3 foo
 4 foo
-"
-    (should-not nt-masks)
+"))
+
+  (before-each (nt-test--setup-no-masks text))
+  (after-each (nt-test--teardown))
+
+  (it "makes a single mask"
+    (expect nt-masks :nil)
     (nt-mask--init 2)
-    (should-size nt-masks 1)))
+    (expect nt-masks :size 1))
 
-;;;; Multiple
-
-(ert-deftest masks:init:buffer ()
-  (nt-test--with-context 'no-setup
-      "
-1 foo
-2 foo
-3 foo
-4 foo
-"
-    (should-not nt-masks)
+  (it "makes masks for buffer"
+    (expect nt-masks :nil)
     (nt-masks--init)
-    (should-size nt-masks 4)))
+    (expect nt-masks :size 4))
 
-(ert-deftest masks:init:ranges:start-only ()
-  (nt-test--with-context 'no-setup
-      "
-1 foo
-2 foo
-3 foo
-4 foo
-"
-    (should-not nt-masks)
+  (it "makes masks past a given line"
+    (expect nt-masks :nil)
     (let ((start 2) end)
       (nt-masks--init start end))
-    (should-size nt-masks (- 4 1))))
+    (expect nt-masks :size (- 4 1)))
 
-(ert-deftest masks:init:ranges:end-only ()
-  (nt-test--with-context 'no-setup
-      "
-1 foo
-2 foo
-3 foo
-4 foo
-"
-    (should-not nt-masks)
+  (it "makes masks limited by a given line"
+    (expect nt-masks :nil)
     (let (start (end 4))
       (nt-masks--init start end))
-    (should-size nt-masks (- 4 1))))
+    (expect nt-masks :size (- 4 1)))
 
-(ert-deftest masks:init:ranges ()
-  (nt-test--with-context 'no-setup
-      "
-1 foo
-2 foo
-3 foo
-4 foo
-"
-    (should-not nt-masks)
+  (it "makes masks within a given line range"
+    (expect nt-masks :nil)
     (let ((start 2) (end 4))
       (nt-masks--init start end))
-    (should-size nt-masks (- 4 1 1))))
+    (expect nt-masks :size (- 4 1 1))))
