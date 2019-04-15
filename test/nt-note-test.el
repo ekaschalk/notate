@@ -26,7 +26,38 @@
        (add-to-list 'load-path (f-parent (f-this-file)))
        (require 'test-helper))
 
-;;; Accessing Notes
+;;; Template
+;;;; One Note
+
+(nt-describe "foo bar"
+  :var ((text "
+(note foo
+      bar)
+(foo bar)
+")
+        (notes '(("note" "n")))
+        mocked-note)
+  (before-all (setq mocked-note (nt-test--setup 'simple text notes)))
+  (after-all (nt-test--teardown))
+
+  )
+
+;;;; Many Notes
+
+(nt-describe "foo bar"
+  :var ((text "
+(note1 note2
+       note3)
+(foo bar)
+")
+        (notes '(("note1" "n") ("note2" "n") ("note3" "n")))
+        )
+  (before-all (nt-test--setup 'simple text notes))
+  (after-all (nt-test--teardown))
+
+  )
+
+;;; Access
 
 (nt-describe "Accessing notes"
   :var ((text "
@@ -100,60 +131,60 @@
               :size 2))))
 
 ;;; Transforms
-;;;; Misc
 
-(ert-deftest notes:transforms:misc:string ()
-  (nt-test--with-context 'any
-      "
+(nt-describe "Transforming notes"
+  :var ((text "
 (note foo
       bar)
-"
-    (-let (((note)
-            (nt-test--mock-notes '(("note" "n")))))
-      (should-s= (nt-ov->string note)
-                 "note"))))
+(foo bar)
+")
+        (notes '(("note" "n")))
+        ((true-width display-width) '(4 1))
+        mocked-note)
 
-(ert-deftest notes:transforms:misc:width ()
-  (nt-test--with-context 'any
-      "
-(note foo
-      bar)
-"
-    (-let ((notes
-            (nt-test--mock-notes '(("note" "n") ("foo" "fo")))))
-      (should= (nt-notes->width notes)
-               (+ (- 4 1)
-                  (- 3 2))))))
+  (before-all (setq mocked-note (car (nt-test--setup 'simple text notes))))
+  (after-all (nt-test--teardown))
 
-(ert-deftest notes:transforms:misc:indent ()
-  (nt-test--with-context 'any
-      "
-(note foo
-      6bar)
-"
-    (-let (((note)
-            (nt-test--mock-notes '(("bar" "b")))))
-      (should= (nt-note->indent note)
-               6))))
+  (it "back to its actual string"
+    (expect (nt-ov->string mocked-note)
+            :to-equal "note"))
 
-(ert-deftest notes:transforms:misc:idx ()
-  (nt-test--with-context 'any
-      "
-(note foo
-      bar)
-"
-    (-let (((note foo bar)
-            (nt-test--mock-notes '(("note" "n") ("foo" "f") ("bar" "b")))))
-      (should= (nt-note->idx note)
-               1)
-      (should= (nt-note->idx foo)
-               2)
-      (should= (nt-note->idx bar)
-               3)
-      (should= (-> (make-overlay (point-max) (point-max)) nt-note->idx)
-               3)
-      (should= (-> (make-overlay (point-min) (point-min)) nt-note->idx)
-               0))))
+  (it "calculates width as difference of true and displayed lengths"
+    (expect (nt-ov->width mocked-note)
+            :to-be (- true-width display-width))))
+
+;;; Sorting
+
+(nt-describe "Sorting notes by buffer position"
+  :var ((text "
+(note1 note2
+       note3)
+(foo bar)
+")
+        (notes '(("note1" "n") ("note2" "n") ("note3" "n")))
+        ov-at-buffer-start ov-at-buffer-end
+        mocked-notes)
+
+  (before-all (setq mocked-notes (nt-test--setup 'simple text notes))
+              (setq ov-at-buffer-start (make-overlay (point-min) (point-min)))
+              (setq ov-at-buffer-end (make-overlay (point-max) (point-max))))
+  (after-all (nt-test--teardown))
+
+  (describe "finds idx of insertion"
+    (it "of notes"
+      (-let (((note-1 note-2 note-3) mocked-notes))
+        (expect (nt-note->idx note-1)
+                :to-be 1)
+        (expect (nt-note->idx note-2)
+                :to-be 2)
+        (expect (nt-note->idx note-3)
+                :to-be 3)))
+    (it "at start"
+      (expect (nt-note->idx ov-at-buffer-start)
+              :to-be 0))
+    (it "at end"
+      (expect (nt-note->idx ov-at-buffer-end)
+              :to-be 3))))
 
 ;;; Relationships
 ;;;; Comparisons
