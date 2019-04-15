@@ -11,36 +11,52 @@
 ;; Not Covered:
 ;; - Alot (restricting to simple cases atm until change functions finished)
 
+;;; Load Test Helper
+
+;; There has to be a cleaner way to load everything
+
+(progn (require 'f)
+       (add-to-list 'load-path (f-parent (f-parent (f-this-file))))
+       (require 'nt)
+       (add-to-list 'load-path (f-parent (f-this-file)))
+       (require 'test-helper))
+
 ;;; General
 
-(ert-deftest bounds:general:comments ()
-  (nt-test--with-context 'lispy "
-(foo ; bar
+(nt-describe "Bounds generally applicable checks"
+  :var ((text "
+(foo ; skip-comment
+    \"skip-string\"
      baz)
-"
-    (-let (((foo bar)
-            (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
-      (should* (nt-bounds?--in-string-or-comment? bar)
-               (not (nt-bounds?--in-string-or-comment? foo))))))
+")
+        (notes '(("skip-comment" "n") ("skip-string" "n")))
+        mocked-notes)
 
-(ert-deftest bounds:general:strings ()
-  (nt-test--with-context 'lispy "
-(foo \"bar\"
-     baz)
-"
-    (-let (((foo bar)
-            (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
-      (should* (nt-bounds?--in-string-or-comment? bar)
-               (not (nt-bounds?--in-string-or-comment? foo))))))
+  (before-all (setq mocked-notes (nt-test--setup 'lispy text notes))
+              (setq skip-comment (car mocked-notes))
+              (setq skip-string (cadr mocked-notes)))
+  (after-all (nt-test--teardown))
+
+  (it "strings"
+    (expect (nt-bounds?--in-string-or-comment? skip-string)))
+  (it "comments"
+    (expect (nt-bounds?--in-string-or-comment? skip-comment))))
 
 ;;; Lisps
 
-(ert-deftest bounds:lisps?:form-openers ()
-  (nt-test--with-context 'lispy "
-(foo bar
-     baz)
-"
-    (-let (((foo bar)
-            (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
-      (should* (nt-bounds?--lisps-form-opener? foo)
-               (not (nt-bounds?--lisps-form-opener? bar))))))
+(nt-describe "Lispy bounds checks"
+  :var ((text "
+(note1 note2
+       baz)
+")
+        (notes '(("note1" "n") ("note2" "n")))
+        mocked-notes)
+
+  (before-all (setq mocked-notes (nt-test--setup 'lispy text notes))
+              (setq mocked-note-1 (car mocked-notes))
+              (setq mocked-note-2 (cadr mocked-notes)))
+  (after-all (nt-test--teardown))
+
+  (it "form openers"
+    (expect (nt-bounds?--lisps-form-opener? mocked-note-1))
+    (expect (nt-bounds?--lisps-form-opener? mocked-note-2) :nil)))
