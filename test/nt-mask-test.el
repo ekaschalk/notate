@@ -33,7 +33,7 @@
 678
 "))
 
-  (before-all (nt-test--setup-no-notes text))
+  (before-all (nt-test--setup 'minimal text))
   (after-all (nt-test--teardown))
 
   (describe "by line"
@@ -108,7 +108,7 @@
 4 foo
 "))
 
-  (before-each (nt-test--setup-no-masks text))
+  (before-each (nt-test--setup 'no-setup text))
   (after-each (nt-test--teardown))
 
   (it "makes a single mask"
