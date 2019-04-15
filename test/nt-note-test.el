@@ -37,7 +37,7 @@
 ")
         (notes '(("note" "n")))
         mocked-note)
-  (before-all (setq mocked-note (nt-test--setup 'simple text notes)))
+  (before-all (setq mocked-note (car (nt-test--setup 'simple text notes))))
   (after-all (nt-test--teardown))
 
   )
@@ -51,8 +51,9 @@
 (foo bar)
 ")
         (notes '(("note1" "n") ("note2" "n") ("note3" "n")))
-        )
-  (before-all (nt-test--setup 'simple text notes))
+        mocked-notes)
+
+  (before-all (setq mocked-notes (nt-test--setup 'simple text notes)))
   (after-all (nt-test--teardown))
 
   )
@@ -279,33 +280,34 @@
                           ,(cadr mocked-notes)
                           ,(cadddr mocked-notes))))))
 
-;;; Management
-;;;; Deletion
-;;;;; Internal
+;;; Deletion
 
-(ert-deftest notes:management:deletion:internal ()
-  (nt-test--with-context 'any
-      "
-(note foo
-      bar)
-"
-    (-let (((note foo)
-            (nt-test--mock-notes '(("note" "n") ("foo" "fo")))))
+(nt-describe "Deleting notes"
+  :var ((text "
+(note1 note2
+       note3)
+(foo bar)
+")
+        (notes '(("note1" "n") ("note2" "n") ("note3" "n")))
+        mocked-notes)
 
-      (should-equal nt-notes
-                    `(,note ,foo))
+  (before-all (setq mocked-notes (nt-test--setup 'simple text notes)))
+  (after-all (nt-test--teardown))
 
-      (nt-note--delete-internal foo)
-      (should-equal nt-notes
-                    `(,note))
+  (it "removes the note from nt-notes"
+    (expect nt-notes :size 3)
+    (nt-note--delete-internal (car mocked-notes))
+    (expect nt-notes :size 2))
 
-      (nt-note--delete-internal foo)  ; Check no error thrown
-      (should-equal nt-notes
-                    `(,note))
+  (it "does nothing if the note isn't present"
+    (expect nt-notes :size 2)
+    (expect (nt-note--delete-internal (car mocked-notes)) :not :to-throw)
+    (expect nt-notes :size 2))
 
-      (nt-note--delete-internal note)
-      (should-not nt-notes))))
-
-;;;;; Commands
-
-;; tbd
+  (it "deletes until empty"
+    (expect nt-notes :size 2)
+    (nt-note--delete-internal (cadr mocked-notes))
+    (expect nt-notes :size 1)
+    (nt-note--delete-internal (caddr mocked-notes))
+    (expect nt-notes :nil)
+    (expect (nt-note--delete-internal (car mocked-notes)) :not :to-throw)))
