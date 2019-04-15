@@ -26,38 +26,6 @@
        (add-to-list 'load-path (f-parent (f-this-file)))
        (require 'test-helper))
 
-;;; Template
-;;;; One Note
-
-(nt-describe "foo bar"
-  :var ((text "
-(note foo
-      bar)
-(foo bar)
-")
-        (notes '(("note" "n")))
-        mocked-note)
-  (before-all (setq mocked-note (car (nt-test--setup 'simple text notes))))
-  (after-all (nt-test--teardown))
-
-  )
-
-;;;; Many Notes
-
-(nt-describe "foo bar"
-  :var ((text "
-(note1 note2
-       note3)
-(foo bar)
-")
-        (notes '(("note1" "n") ("note2" "n") ("note3" "n")))
-        mocked-notes)
-
-  (before-all (setq mocked-notes (nt-test--setup 'simple text notes)))
-  (after-all (nt-test--teardown))
-
-  )
-
 ;;; Access
 
 (nt-describe "Accessing notes"

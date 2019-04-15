@@ -13,7 +13,7 @@
 
 (development
  (depends-on "buttercup")
+ (depends-on "f")
 
  ;; Below won't be needed once migration is complete
- (depends-on "ert-runner")
- (depends-on "f"))
+ (depends-on "ert-runner"))
