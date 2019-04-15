@@ -47,8 +47,9 @@
 
 (defun nt-lines<-region (start end)
   "Get start-line and end-line containing region in START and END."
-  (list (line-number-at-pos start)
-        (1+ (line-number-at-pos end))))
+  (unless (> start (point-max))
+    (list (line-number-at-pos start)
+          (1+ (line-number-at-pos end)))))
 
 ;;;;; Columns
 

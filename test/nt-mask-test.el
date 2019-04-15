@@ -14,43 +14,52 @@
 ;; Not Covered:
 ;; - Decomposition
 
+;;; Load Test Helper
+
+;; There has to be a cleaner way to do this
+
+(progn (require 'f)
+       (add-to-list 'load-path (f-parent (f-parent (f-this-file))))
+       (require 'nt)
+       (add-to-list 'load-path (f-parent (f-this-file)))
+       (require 'test-helper))
+
 ;;; Access
-;;;; Fundamentals
 
-(ert-deftest masks:access:fundamentals:line ()
-  (nt-test--with-context 'minimal "
-1 foo
-2 foo
-"
-    (should* (not (nt-mask<-line 0))
-             (nt-mask<-line 1)
-             (nt-mask<-line 2)
-             (not (nt-mask<-line 3)))))
-
-(ert-deftest masks:access:fundamentals:lines ()
-  (nt-test--with-context 'minimal "
-1 foo
-2 foo
-"
-    (should* (not (nt-masks<-lines 0 1))
-             (nt-masks<-lines 1 2)
-             (nt-masks<-lines 1 3)
-             (nt-masks<-lines 0 3)
-             (not (nt-masks<-lines 3 4)))))
-
-;;;; Extensions
-
-(ert-deftest masks:access:extensions:region ()
-  (nt-test--with-context 'minimal "
+(nt-describe "Accessing masks"
+  :var ((text "
 123
 678
-"
-    (should-size (nt-masks<-region 1 3)
-                 1)
-    (should-size (nt-masks<-region 1 6)
-                 2)
-    (should-size (nt-masks<-region 6 8)
-                 1)))
+"))  ; Numbers = positions
+
+  (before-each (nt-test--setup-no-notes text))
+  (after-each (nt-test--teardown))
+
+  (describe "by line"
+    (it "nothing if outside buffer"
+      (expect (nt-mask<-line 0) :nil)
+      (expect (nt-mask<-line 3) :nil))
+    (it "finds the mask"
+      (expect (nt-mask<-line 1) :to-be-truthy)
+      (expect (nt-mask<-line 2) :to-be-truthy)))
+
+  (describe "by lines"
+    (it "has RHS closed"
+      (expect (nt-masks<-lines 0 1) :nil)
+      (expect (nt-masks<-lines 2 2) :nil)
+      (expect (nt-masks<-lines 3 4) :nil)
+      (expect (nt-masks<-lines 0 2) :size 1)
+      (expect (nt-masks<-lines 1 2) :size 1)
+      (expect (nt-masks<-lines 1 3) :size 2)))
+
+  (describe "by region"
+    (it "finds one"
+      (expect (nt-masks<-region 1 3) :size 1)
+      (expect (nt-masks<-region 6 8) :size 1))
+    (it "finds many"
+      (expect (nt-masks<-region 1 6) :size 2))
+    (it "finds none"
+      (expect (nt-masks<-region 9 20) :nil))))
 
 ;;; Transforms
 ;;;; Misc

@@ -41,6 +41,9 @@
 (defun nt-test--setup (kind text notes)
   (apply (-partial #'nt-test--setup* kind text) notes))
 
+(defun nt-test--setup-no-notes (text)
+  (nt-test--setup* 'minimal text))
+
 (defun nt-test--setup* (kind text &rest notes)
   "Run BODY in context KIND in temp-buffer with (`s-trim'med) text.
 

@@ -47,7 +47,7 @@ Eventually rewrite with vector for constant-time idxing.")
 
 (defun nt-masks<-region (start end)
   "Get masks in lines containing START through END."
-  (apply #'nt-masks<-lines (nt-lines<-region start end)))
+  (-some->> (nt-lines<-region start end) (apply #'nt-masks<-lines)))
 
 ;;; Transforms
 ;;;; Overlay Wrappers
