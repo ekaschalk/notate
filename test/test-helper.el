@@ -13,6 +13,8 @@
 
 ;;;; Macros
 
+(defalias 'xnt-describe #'xdescribe)
+
 (defmacro nt-describe (description &rest body)
   "Equivalent to buttercup's `describe' but uses `-let*' on `:var' bindings."
   (declare (indent 1) (debug (&define sexp def-body)))

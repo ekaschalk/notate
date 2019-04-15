@@ -184,80 +184,76 @@
               :to-be 0))
     (it "at end"
       (expect (nt-note->idx ov-at-buffer-end)
-              :to-be 3))))
+              :to-be 3)))
 
-;;; Relationships
-;;;; Comparisons
+  ;; Mocking sorts for destructuring in tests, dont need to explicitly sort
+  (it "sorts"
+    (expect mocked-notes
+            :to-equal `(,@(nt-notes<-line 1) ,@(nt-notes<-line 2)))))
 
-(ert-deftest notes:relationships:comparisons:sorting ()
-  (nt-test--with-context 'any "
-1 (note1 foo
-2        bar)
-3
-4 (note2 foo
-5        bar)
-6
-7 (note1 note2
-8        foo
-9        bar)
-"
-    ;; The mock itself sorts for easier destructuring, so dont need to
-    ;; explicitly call `nt-notes--sort'
-    (-let ((notes
-            (nt-test--mock-notes '(("note1" "n") ("note2" "n")))))
-      (should-equal notes
-                    `(,@(nt-notes<-line 1)
-                      ,@(nt-notes<-line 4)
-                      ,@(nt-notes<-line 7))))))
+;;; Root-Finding
 
-;;;; Roots
+;; The CONTEXT matters now, choosing lispy for natural looking tests.
 
-;; Notice that the CONTEXT does matter for root tests.
-;; These cases can be made more granular down the road, but good enough atm.
-
-(ert-deftest notes:relationships:roots:no-children ()
-  (nt-test--with-context 'lispy "
+(describe "Finding roots of note collections"
+  (nt-describe "where all notes are roots"
+    :var ((text "
 (note foo
       bar)
 
 (note foo
       bar)
-"
-    (-let ((notes
-            (nt-test--mock-notes '(("note" "n")))))
-      (should-equal (nt-notes->roots notes)
-                    notes))))
+")
+          (notes '(("note" "n")))
+          mocked-notes)
 
-(ert-deftest notes:relationships:roots:one-root-with-children ()
-  (nt-test--with-context 'lispy "
+    (before-all (setq mocked-notes (nt-test--setup 'lispy text notes)))
+    (after-all (nt-test--teardown))
+
+    (it "found them"
+      (expect (nt-notes->roots mocked-notes)
+              :to-equal mocked-notes)))
+
+  (nt-describe "where only one note is a root"
+    :var ((text "
 (note foo
       (note foo
             bar)
       bar)
-"
-    (-let ((notes
-            (nt-test--mock-notes '(("note" "n")))))
-      (should-equal (nt-notes->roots notes)
-                    `(,(car notes))))))
+")
+          (notes '(("note" "n")))
+          mocked-notes)
 
-(ert-deftest notes:relationships:roots:no-duplicates ()
-  ;; Under specific circumstances duplicate roots were present in past
-  (nt-test--with-context 'lispy "
+    (before-all (setq mocked-notes (nt-test--setup 'lispy text notes)))
+    (after-all (nt-test--teardown))
+
+    (it "found them"
+      (expect (nt-notes->roots mocked-notes)
+              :to-equal `(,(car mocked-notes)))))
+
+  (nt-describe "doesn't duplicate roots on same lines"
+    :var ((text
+           "
 (note foo bar)
 
 (note (note foo bar) bar)
 
 (note foo bar)
-"
-    (-let ((notes
-            (nt-test--mock-notes '(("note" "n")))))
-      (should-equal (nt-notes->roots notes)
-                    `(,(car notes)
-                      ,(cadr notes)
-                      ,(cadddr notes))))))
+")
+          (notes '(("note" "n")))
+          mocked-notes)
 
-(ert-deftest notes:relationships:roots:full-complexity ()
-  (nt-test--with-context 'lispy "
+    (before-all (setq mocked-notes (nt-test--setup 'lispy text notes)))
+    (after-all (nt-test--teardown))
+
+    (it "found them"
+      (expect (nt-notes->roots mocked-notes)
+              :to-equal `(,(car mocked-notes)
+                          ,(cadr mocked-notes)
+                          ,(cadddr mocked-notes)))))
+
+  (nt-describe "handles a full complexity case"
+    :var ((text "
 (note foo
       bar)
 
@@ -270,13 +266,18 @@
                   foo bar)
             bar)
       (note foo bar))
-"
-    (-let ((notes
-            (nt-test--mock-notes '(("note" "n")))))
-      (should-equal (nt-notes->roots notes)
-                    `(,(car notes)
-                      ,(cadr notes)
-                      ,(cadddr notes))))))
+")
+          (notes '(("note" "n")))
+          mocked-notes)
+
+    (before-all (setq mocked-notes (nt-test--setup 'lispy text notes)))
+    (after-all (nt-test--teardown))
+
+    (it "found them"
+      (expect (nt-notes->roots mocked-notes)
+              :to-equal `(,(car mocked-notes)
+                          ,(cadr mocked-notes)
+                          ,(cadddr mocked-notes))))))
 
 ;;; Management
 ;;;; Deletion
