@@ -8,6 +8,9 @@
 ;;        (require 'nt))
 
 ;;; Buttercup Extensions
+
+;; https://github.com/jorgenschaefer/emacs-buttercup/blob/master/docs/writing-tests.md
+
 ;;;; Macros
 
 (defmacro nt-describe (description &rest body)
@@ -21,6 +24,8 @@
 
 ;;;; Matchers
 
+(buttercup-define-matcher-for-unary-function :nil null)
+
 (buttercup-define-matcher :size (obj size)
   (let ((obj (funcall obj))
         (size (funcall size)))
@@ -28,8 +33,6 @@
         t
       `(nil . ,(format "Expected %s of size %s to have size %s"
                      obj (length obj) size)))))
-
-(buttercup-define-matcher-for-unary-function :nil null)
 
 ;;; Buttercup-Rewrite
 

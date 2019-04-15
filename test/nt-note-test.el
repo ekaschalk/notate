@@ -16,8 +16,9 @@
 ;; Not Covered:
 ;; - Decomposition
 
+;;; Load Test Helper
 
-;;; Buttercup-Rewrite
+;; There has to be a cleaner way to do this
 
 (progn (require 'f)
        (add-to-list 'load-path (f-parent (f-parent (f-this-file))))
@@ -25,10 +26,7 @@
        (add-to-list 'load-path (f-parent (f-this-file)))
        (require 'test-helper))
 
-;; https://github.com/jorgenschaefer/emacs-buttercup/blob/master/docs/writing-tests.md
-
-;;; Access
-;;;; Fundamentals
+;;; Accessing Notes
 
 (nt-describe "Accessing notes"
   :var ((text "
@@ -38,13 +36,15 @@
 ")
         (notes '(("note1" "n") ("note2" "n") ("note3" "n")))
         (note-start 3)
+        (note-width 5)
         (point-without-note 18)
+        ((line-with-no-notes line-with-one-note line-with-two-notes) '(3 2 1))
         (region-with-no-notes `(,point-without-note
                                 ,(1+ point-without-note)))
         (region-with-one-note `(,note-start
                                 ,(1+ note-start)))
         (region-with-two-notes `(,note-start
-                                 ,(+ note-start 7)))
+                                 ,(+ note-start note-width note-width)))
         (region-before-notes `(,(- point-without-note 2)
                                ,(- point-without-note 1))))
 
@@ -56,91 +56,48 @@
       (it "there"
         (expect (nt-note<-pos note-start)))
       (it "not there"
-        (expect (nt-note<-pos point-without-note) :nil)))
+        (expect (nt-note<-pos point-without-note)
+                :nil)))
 
     (describe "edge cases"
       (it "nil"
-        (expect (nt-note<-pos nil) :nil))
+        (expect (nt-note<-pos nil)
+                :nil))
       (it "outside buffer"
-        (expect (nt-note<-pos -1) :nil)
-        (expect (nt-note<-pos 1000) :nil))))
+        (expect (nt-note<-pos -1)
+                :nil)
+        (expect (nt-note<-pos 1000)
+                :nil))))
+
+  (describe "by line"
+    (it "found none"
+      (expect (nt-notes<-line line-with-no-notes)
+              :nil))
+    (it "found one"
+      (expect (nt-notes<-line line-with-one-note)
+              :size 1))
+    (it "found many"
+      (expect (nt-notes<-line line-with-two-notes)
+              :size 2)))
+
+  (describe "by lines"
+    (it "returns nil if start and end lines are equal"
+      (expect (nt-notes<-lines line-with-one-note line-with-one-note)
+              :nil))
+    (it "found one"
+      (expect (nt-notes<-lines line-with-one-note (1+ line-with-one-note))
+              :size 1)))
 
   (describe "by region"
-    (describe "standard cases"
-      (it "found none"
-        (expect (apply #'nt-notes<-region region-before-notes) :nil))
-      (it "found one"
-        (expect (apply #'nt-notes<-region region-with-one-note) :size 1))
-      (it "found many"
-        (expect (apply #'nt-notes<-region region-with-two-notes) :size 2)))
-
-    ;; (describe "edge cases"
-    ;;   )
-    )
-
-;; (describe "by region"
-;;   (it "was there"
-;;     (expect (apply #'nt-notes<-region region-with-notes)))
-;;   (it "not there"
-;;     (expect (not (apply #'nt-notes<-region region-without-notes))))
-;;   (it "ending right before note"
-;;     (expect (not (apply #'nt-notes<-region region-before-notes)))))
-)
-
-;;; Access
-;;;; Fundamentals
-
-(ert-deftest notes:access:fundamentals:pos ()
-  (nt-test--with-context 'any
-      "
-(note foo
-      bar)
-    "
-    (-let (((note)
-            (nt-test--mock-notes '(("note" "n")))))
-      (should* (nt-note<-pos 3)
-               (not (nt-note<-pos 10))))))
-
-(ert-deftest notes:access:fundamentals:region ()
-  (nt-test--with-context 'any
-      "
-(note foo
-      bar)
-"
-    (-let (((note)
-            (nt-test--mock-notes '(("note" "n")))))
-      (should* (nt-notes<-region 3 10)
-               (not (nt-notes<-region 8 10))
-               (not (nt-notes<-region 0 1))))))
-
-(ert-deftest notes:access:fundamentals:line ()
-  (nt-test--with-context 'any
-      "
-(note foo
-      bar)
-"
-    (-let ((notes
-            (nt-test--mock-notes '(("note" "n") ("foo" "n")))))
-      (should-equal (nt-notes<-line 1)
-                    notes)
-      (should-not (nt-notes<-line 2)))))
-
-;;;; Extensions
-
-(ert-deftest notes:access:extensions:lines ()
-  (nt-test--with-context 'any
-      "
-(note foo
-      bar)
-"
-    (-let (((note bar)
-            (nt-test--mock-notes '(("note" "n") ("bar" "n")))))
-      (should-equal (nt-notes<-lines 1 2)
-                    `(,note))
-      (should-equal (nt-notes<-lines 1 3)
-                    `(,note ,bar))
-      (should-equal (nt-notes<-lines 2 3)
-                    `(,bar)))))
+    (it "found none"
+      (expect (apply #'nt-notes<-region region-before-notes)
+              :nil))
+    (it "found one"
+      (expect (apply #'nt-notes<-region region-with-one-note)
+              :size 1))
+    (it "found many"
+      (expect (apply #'nt-notes<-region region-with-two-notes)
+              :size 2))))
 
 ;;; Transforms
 ;;;; Misc
