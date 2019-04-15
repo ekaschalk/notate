@@ -33,8 +33,8 @@
 678
 "))
 
-  (before-each (nt-test--setup-no-notes text))
-  (after-each (nt-test--teardown))
+  (before-all (nt-test--setup-no-notes text))
+  (after-all (nt-test--teardown))
 
   (describe "by line"
     (it "nothing if outside buffer"
@@ -77,8 +77,8 @@
         (note-2-width (- 5 3)))
 
   ;; Pay attention to the CONTEXT
-  (before-each (nt-test--setup 'simple-2 text notes))
-  (after-each (nt-test--teardown))
+  (before-all (nt-test--setup 'simple-2 text notes))
+  (after-all (nt-test--teardown))
 
   (it "no contribution to same line as note"
     (expect (-> 1 nt-mask<-line nt-mask--empty?)))
@@ -93,58 +93,72 @@
             :to-be note-1-width)
     (expect (-> 5 nt-mask<-line nt-mask--empty?))))
 
-;;; Refreshing
+;;; Refresh
 
-(ert-deftest masks:refreshing:internal:notes ()
-  (nt-test--with-context 'simple-2 "
-1 (foo bar
-2      bar
+(nt-describe "Refreshing masks after deleting notes"
+
+  ;; Three useful observations...
+  ;; - I set this up so that only 1 root is present, this is important.
+  ;; - `nt-note--delete' implicitly calls `nt-mask--refresh-notes'
+  ;; - Test is a bit verbose, but very straightforward as a result.
+
+  :var ((text "
+1 (note1 note2
+2        note3
 3
-4      baz)
-"
-    ;; - Test is a bit verbose, but very straightforward as a result.
-    ;; - `nt-note--delete' implicitly calls `nt-mask--refresh-notes'
-    ;; - Beware I intentionally chose context s.t. only 1 root is present.
+4        foo)
+")
+        (notes '(("note1" "n") ("note2" "n") ("note3" "n")))
+        mocked-notes
+        mocked-note-1 mocked-note-2 mocked-note-3)
 
-    (-let (((foo bar1 bar2)
-            (nt-test--mock-notes '(("foo" "f") ("bar" "b")))))
-      (should-size (-> 1 nt-mask<-line nt-mask->notes)
-                   0)
-      (should-size (-> 2 nt-mask<-line nt-mask->notes)
-                   2)
-      (should-size (-> 3 nt-mask<-line nt-mask->notes)
-                   3)
-      (should-size (-> 4 nt-mask<-line nt-mask->notes)
-                   1)
+  (before-all (setq mocked-notes (nt-test--setup 'simple-2 text notes))
+              (setq mocked-note-1 (car mocked-notes))
+              (setq mocked-note-2 (cadr mocked-notes))
+              (setq mocked-note-3 (caddr mocked-notes)))
+  (after-all (nt-test--teardown))
 
-      (nt-note--delete bar1)
+  (it "sets up masks correctly to start"
+    (expect (-> 1 nt-mask<-line nt-mask->notes)
+            :nil)
+    (expect (-> 2 nt-mask<-line nt-mask->notes)
+            :size 2)
+    (expect (-> 3 nt-mask<-line nt-mask->notes)
+            :size 3)
+    (expect (-> 4 nt-mask<-line nt-mask->notes)
+            :size 1))
 
-      (should-size (-> 1 nt-mask<-line nt-mask->notes)
-                   0)
-      (should-size (-> 2 nt-mask<-line nt-mask->notes)
-                   1)
-      (should-size (-> 3 nt-mask<-line nt-mask->notes)
-                   2)
-      (should-size (-> 4 nt-mask<-line nt-mask->notes)
-                   1)
+  (it "refreshes masks on first deletion"
+    (nt-note--delete mocked-note-1)
 
-      (nt-note--delete foo)
+    (expect (-> 1 nt-mask<-line nt-mask->notes)
+            :nil)
+    (expect (-> 2 nt-mask<-line nt-mask->notes)
+            :size 1)
+    (expect (-> 3 nt-mask<-line nt-mask->notes)
+            :size 2)
+    (expect (-> 4 nt-mask<-line nt-mask->notes)
+            :size 1))
 
-      (should-size (-> 1 nt-mask<-line nt-mask->notes)
-                   0)
-      (should-size (-> 2 nt-mask<-line nt-mask->notes)
-                   0)
-      (should-size (-> 3 nt-mask<-line nt-mask->notes)
-                   1)
-      (should-size (-> 4 nt-mask<-line nt-mask->notes)
-                   1)
+  (it "refreshes masks on second deletion"
+    (nt-note--delete mocked-note-2)
 
-      (nt-note--delete bar2)
+    (expect (-> 1 nt-mask<-line nt-mask->notes)
+            :nil)
+    (expect (-> 2 nt-mask<-line nt-mask->notes)
+            :nil)
+    (expect (-> 3 nt-mask<-line nt-mask->notes)
+            :size 1)
+    (expect (-> 4 nt-mask<-line nt-mask->notes)
+            :size 1))
 
-      (should* (null (-> 1 nt-mask<-line nt-mask->notes))
-               (null (-> 2 nt-mask<-line nt-mask->notes))
-               (null (-> 3 nt-mask<-line nt-mask->notes))
-               (null (-> 4 nt-mask<-line nt-mask->notes))))))
+  (it "has masks empty upon final deletion"
+    (nt-note--delete mocked-note-3)
+
+    (expect (-> 1 nt-mask<-line nt-mask->notes) :nil)
+    (expect (-> 2 nt-mask<-line nt-mask->notes) :nil)
+    (expect (-> 3 nt-mask<-line nt-mask->notes) :nil)
+    (expect (-> 4 nt-mask<-line nt-mask->notes) :nil)))
 
 ;;; Init
 
