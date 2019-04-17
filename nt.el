@@ -132,6 +132,8 @@ To allow identifying what Notate is doing at a glance.")
 
 (defun nt-enable--in-progress ()
   "TEMP Enable Notate components that are in active development"
+  (setq nt-bound?-fn #'nt-bounds?--general)
+  (setq nt-bound-fn #'nt-bounds--general)
   )
 
 (defun nt-disable--in-progress ()

@@ -64,7 +64,7 @@
 
 (defun nt-line->indent-col (&optional n)
   "Get indentation col of line forward N-1 times, if N is given."
-  (save-excursion (end-of-line n) (back-to-indentation) (current-column)))
+  (save-excursion (end-of-line n) (current-indentation)))
 
 ;;;;; Misc
 

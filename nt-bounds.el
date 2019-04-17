@@ -39,9 +39,7 @@
 
 (defun nt-bounds?--ignore? (note)
   "Should NOTE never contribute to indentation?"
-  (require 'nt-note)
-  (-any (-partial #'s-equals? (nt-ov->string note))
-        nt-ignore-notes))
+  (-contains? nt-ignore-notes (nt-ov->string note)))
 
 ;; TODO If the replacement covers a form-opener only partially, should return t
 (defun nt-bounds?--lisps-form-opener? (note)
@@ -60,7 +58,7 @@ Simplest case that has NOTE contributing to indentation masks."
   "Does NOTE have another form opener on the same line?
 
 (foo note (foo foo
-              foo))
+               foo))
 
 Has NOTE contributing to indentation masks even though it is not a form opener."
   nil)
@@ -113,6 +111,29 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
             (goto-char start)
             (sp-end-of-sexp)
             (1+ (line-number-at-pos))))))
+
+;;; New Implementation
+
+(defun nt-bounds?--general (note)
+  "Trying out a visual line based bounds? check."
+  (save-excursion
+    (nt-ov--goto note)
+
+    (unless (-contains? nt-ignore-notes (nt-ov->string note))
+      (line-move-visual 1 'noerror)
+      (< (current-column) (current-indentation)))))
+
+(defun nt-bounds--general (note)
+  "Trying out a visual line based bounds check."
+  (save-excursion
+    (nt-ov--goto note)
+
+    (while (and (line-move-visual 1 'noerror)
+                (< (current-column) (current-indentation)))
+      t)
+
+    `(,(1+ (nt-ov->line note))
+      ,(1+ (line-number-at-pos (point))))))
 
 ;;; Provide
 

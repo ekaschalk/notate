@@ -81,10 +81,6 @@
   "Sum NOTES' widths."
   (->> notes (-map #'nt-note->width) -sum))
 
-;; (defun nt-note->indent (note)
-;;   "Get indent of NOTE's line."
-;;   (-some-> note nt-ov->line nt-line->indent))
-
 (defun nt-note->idx (note)
   "Get index of insertion of new NOTE into `nt-notes'."
   (or (-find-index (-partial #'nt-notes--lt note) nt-notes)
