@@ -123,6 +123,11 @@ This section is subject to change while under development.
 (define-key evil-visual-state-map "k" 'evil-previous-visual-line)
 #+END_SRC
 
+- Developing it :: Run ~cask install .~ then execute tests with ~cask exec
+                   buttercup -L .~. Additional developer utilities can be found
+                   in ~nt-dev~.
+
+
 ** Status
 *** What Works
 
