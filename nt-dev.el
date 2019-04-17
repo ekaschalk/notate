@@ -21,7 +21,7 @@
     ;; Components
     "nt-base.el" "nt-bounds.el" "nt-kwds.el" "nt-ov.el"
     "nt-mask.el" "nt-note.el"
-    "nt-change.el" "nt-vis.el")
+    "nt-change.el")
   ;; Yes I'll make this automatic later
   "A list of nt's elisp file names, for reloading dev utility.")
 

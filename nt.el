@@ -26,7 +26,6 @@
 (require 'nt-mask)
 (require 'nt-note)
 (require 'nt-ov)
-(require 'nt-vis)
 
 ;;; Configuration
 ;;;; Core
@@ -133,12 +132,10 @@ To allow identifying what Notate is doing at a glance.")
 
 (defun nt-enable--in-progress ()
   "TEMP Enable Notate components that are in active development"
-  ;; (nt-vis--advice-add-line-movement)
   )
 
 (defun nt-disable--in-progress ()
   "TEMP Disable Notate components that are in active development."
-  (nt-vis--advice-remove-line-movement)
   )
 
 ;;; Interactive
