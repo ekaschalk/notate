@@ -60,7 +60,7 @@
 
 (defconst nt-dev--screenshot-defs
   `(
-    ;; ("and" "∧")
+    ("and" "∧")
     ;; ("or" "∨")
     ;; ("or" "||")
     ;; ("int" "ℤ")
@@ -78,17 +78,25 @@
   "Notes for screenshots.")
 
 (defconst nt-dev--screenshot-text
-  ";; Notate - Indentation-Aware Visual Replacements
-
-(loop symbols in (and math our-dreams)
-      (compose be possible in
-
-               programming)
-
-      without annoying
-      (everyone right?
-                great))
+  "
+(and foo
+     (and foo
+          (and foo
+               bar)
+          bar)
+     bar)
 "
+  ;;   ";; Notate - Indentation-Aware Visual Replacements
+
+  ;; (loop symbols in (and math our-dreams)
+  ;;       (compose be possible in
+
+  ;;                programming)
+
+  ;;       without annoying
+  ;;       (everyone right?
+  ;;                 great))
+  ;; "
   "Text for screenshots.")
 
 ;;; Printing

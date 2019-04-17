@@ -100,6 +100,29 @@ I want:
 - More imaginative notation, supported languages, and awareness of the
   possibilities Emacs offers and encourages.
 
+** Usage
+
+This section is subject to change while under development.
+
+- Trying it :: Load `nt-dev` and use `nt-dev--switch-to-test-buffer` and
+               `nt-dev--switch-to-screenshot-buffer` to test out Notate. Support
+               for line insertion/deletion is being developed so the buffer must
+               be set up beforehand.
+
+- Visual Line Movement :: Evil users set `evil-respect-visual-line-mode` non-nil
+     or line movement behavior will be strange. It is nil by default. For
+     non-evil users, `line-move-visual` should be non-nil, which it is by
+     default.
+
+     Spacemacs users should add in their `dotspacemacs/user-config`:
+
+#+BEGIN_SRC lisp
+(define-key evil-motion-state-map "j" 'evil-next-visual-line)
+(define-key evil-motion-state-map "k" 'evil-previous-visual-line)
+(define-key evil-visual-state-map "j" 'evil-next-visual-line)
+(define-key evil-visual-state-map "k" 'evil-previous-visual-line)
+#+END_SRC
+
 ** Status
 *** What Works
 
@@ -110,7 +133,7 @@ I want:
 
 *** Whats Being Worked On
 
-- Visual-column line movement
+- Covering current code base with further tests. Close to finished.
 
 *** What Doesn't Work Yet
 
