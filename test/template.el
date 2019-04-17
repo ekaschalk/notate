@@ -16,9 +16,8 @@
 ;; File provides some simple templates for bootstrapping some test setup
 ;; useful generally.
 
-;;; Load Test Helper
-
-;; There has to be a cleaner way to load everything
+;;; Load Files
+be a cleaner way to load everything
 
 (progn (require 'f)
        (add-to-list 'load-path (f-parent (f-parent (f-this-file))))

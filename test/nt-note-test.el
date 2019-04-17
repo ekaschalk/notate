@@ -16,15 +16,11 @@
 ;; Not Covered:
 ;; - Decomposition
 
-;;; Load Test Helper
-
-;; There has to be a cleaner way to do this
+;;; Load Files
 
 (progn (require 'f)
        (add-to-list 'load-path (f-parent (f-parent (f-this-file))))
-       (require 'nt)
-       (add-to-list 'load-path (f-parent (f-this-file)))
-       (require 'test-helper))
+       (require 'nt-test))
 
 ;;; Access
 

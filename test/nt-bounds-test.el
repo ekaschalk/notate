@@ -11,15 +11,11 @@
 ;; Not Covered:
 ;; - Alot (restricting to simple cases atm until change functions finished)
 
-;;; Load Test Helper
-
-;; There has to be a cleaner way to load everything
+;;; Load Files
 
 (progn (require 'f)
        (add-to-list 'load-path (f-parent (f-parent (f-this-file))))
-       (require 'nt)
-       (add-to-list 'load-path (f-parent (f-this-file)))
-       (require 'test-helper))
+       (require 'nt-test))
 
 ;;; General
 

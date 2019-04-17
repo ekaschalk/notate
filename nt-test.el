@@ -1,4 +1,17 @@
-;;; test-helper.el --- Testing Macros -*- lexical-binding: t -*-
+;;; nt-test.el --- Testing Macros -*- lexical-binding: t -*-
+
+;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
+
+;;; Commentary:
+
+;; Notate testing contexts and extensions for buttercup-based tests.
+;; See the test/ folder for all test files.
+
+;;; Code:
+;;;; Requires
+
+(require 'buttercup)
+(require 'nt)  ; Need everything for testing context setup
 
 ;;; Buttercup Extensions
 ;;;; Macros
@@ -130,4 +143,4 @@ This function returns sorted mocked NOTES overlays."
 
 ;;; Provide
 
-(provide 'test-helper)
+(provide 'nt-test)
