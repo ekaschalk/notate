@@ -116,24 +116,49 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 
 (defun nt-bounds?--general (note)
   "Trying out a visual line based bounds? check."
+  ;; TODO Not in use at the moment
   (save-excursion
     (nt-ov--goto note)
 
     (unless (-contains? nt-ignore-notes (nt-ov->string note))
       (line-move-visual 1 'noerror)
-      (< (current-column) (current-indentation)))))
+      (or (= 0 (current-indentation))
+          (< (current-column)
+             (current-indentation))))))
 
 (defun nt-bounds--general (note)
   "Trying out a visual line based bounds check."
   (save-excursion
     (nt-ov--goto note)
 
-    (while (and (line-move-visual 1 'noerror)
-                (< (current-column) (current-indentation)))
-      t)
+    ;; check if in nt-ignore-notes
+    ;; check if creating special indent rules
+
+    (line-move-visual 1 'noerror)
+
+    ;; `temporary-goal-column' will be overwritten so must save and reuse it
+    (let ((goal-hpos temporary-goal-column))
+      (while (or (and (apply #'= (nt-line->region (line-number-at-pos (point))))
+                      (not (eobp)))
+                 (< (current-column)
+                    (current-indentation)))
+        (setq temporary-goal-column goal-hpos)
+
+        ;; `next-line' is interactive use-only but `line-move-visual'
+        ;; checks last command for `next-line', not `line-move-visual'
+        (setq last-command #'next-line)
+        (line-move-visual 1 'noerror)))
+
+    (setq temporary-goal-column nil)  ; Otherwise it will carry over to next notes
 
     `(,(1+ (nt-ov->line note))
-      ,(1+ (line-number-at-pos (point))))))
+      ,(line-number-at-pos (point)))))
+
+;;; Notes
+
+;; Backward line from first point s.t. 0-indent line is non-empty to get
+;; the true bound, though this may not matter (when it becomes non-zero
+;; the boundary might be recalculated anyway)
 
 ;;; Provide
 

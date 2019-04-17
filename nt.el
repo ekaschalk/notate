@@ -41,11 +41,15 @@ to matching the specified string.")
 ;; symbol match if it sees like :symbol or something.
 
 
-(defvar-local nt-bound-fn #'nt-bounds--lisps
+(defvar-local nt-bound-fn
+  ;; #'nt-bounds--lisps
+  #'nt-bounds--general
   "A function that should return line boundaries [a b) given a NOTE.")
 
 
-(defvar-local nt-bound?-fn #'nt-bounds?--lisps
+(defvar-local nt-bound?-fn
+  #'nt-bounds?--lisps
+  ;; #'nt-bounds?--general
   "A function that should return whether a given NOTE modifies indentation.")
 
 
@@ -132,8 +136,6 @@ To allow identifying what Notate is doing at a glance.")
 
 (defun nt-enable--in-progress ()
   "TEMP Enable Notate components that are in active development"
-  (setq nt-bound?-fn #'nt-bounds?--general)
-  (setq nt-bound-fn #'nt-bounds--general)
   )
 
 (defun nt-disable--in-progress ()

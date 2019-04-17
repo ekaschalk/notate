@@ -138,7 +138,7 @@ This section is subject to change while under development.
 
 *** Whats Being Worked On
 
-- Covering current code base with further tests. Close to finished.
+- Major-mode agnostic method of determining range of indentation to mask.
 
 *** What Doesn't Work Yet
 
