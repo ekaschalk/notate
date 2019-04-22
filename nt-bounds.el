@@ -14,6 +14,11 @@
 
 (require 'nt-ov)
 
+;;; Exposes
+
+(defun nt-bound (note) (funcall (symbol-value #'nt-bound-fn) note))
+(defun nt-bound? (note) (funcall (symbol-value #'nt-bound?-fn) note))
+
 ;;; General
 ;;;; Bound-Based
 

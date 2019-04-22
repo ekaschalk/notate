@@ -71,7 +71,7 @@
   "Calculate all masks NOTE contributes to."
   (-some->>
    note
-   (funcall (symbol-value #'nt-bound?-fn))
+   nt-bound?
    nt-note->bound
    (apply #'nt-masks<-lines)))
 
@@ -206,7 +206,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-note--init-bound (note)
   "Init NOTE's 'nt-bound text property."
-  (let ((bound (funcall (symbol-value #'nt-bound-fn) note)))
+  (let ((bound (nt-bound note)))
     (overlay-put note 'nt-bound bound)))
 
 (defun nt-note--init-ov (string replacement start end)

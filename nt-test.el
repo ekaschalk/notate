@@ -101,6 +101,9 @@ This function returns sorted mocked NOTES overlays."
              nt-bound-fn #'nt-bounds--lisps)
        (set-syntax-table lisp-mode-syntax-table)))
 
+    (general
+     )
+
     (otherwise
      (error "Supplied testing CONTEXT '%s' not implemented" context)))
 
