@@ -121,15 +121,18 @@ Returns `temporary-goal-column', not necessarily the same as
        ,@body
        (forward-line))))
 
+(defvar nt--move-up? nil "When true `nt-line-move-visual-while' will move up.")
 (defmacro nt-line-move-visual-while (pred &rest body)
-  "Perform `line-move-visual' maintaining goal column while PRED evals true."
+  "Perform `line-move-visual' maintaining goal column while PRED evals true.
+
+If `nt--move-up?' is non-nil, move upwards in buffer instead."
   (declare (indent 1))
   `(let ((orig-goal-col temporary-goal-column)
          (goal-col (nt-line-move-visual)))
-     (while (and (not (eobp))
+     (while (and (not (if nt--move-up? (bobp) (eobp)))
                  ,pred)
        ,@body
-       (nt-line-move-visual 1 goal-col))
+       (nt-line-move-visual (if nt--move-up? -1 1) goal-col))
 
      (setq temporary-goal-column orig-goal-col)))
 
