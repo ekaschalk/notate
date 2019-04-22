@@ -145,9 +145,10 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
       (nt-line-move-visual-while (or (nt-line--empty? (line-number-at-pos))
                                      (nt--before-indent?)))
 
-      (let ((nt--move-up? t))
-        (nt-line-move-visual-while (and (nt-line--empty? (line-number-at-pos))
-                                        (> (line-number-at-pos) start-line))))
+      (forward-line -1)
+      (while (and (nt-line--empty? (line-number-at-pos))
+                  (> (line-number-at-pos) start-line))
+        (forward-line -1))
 
       (1+ (line-number-at-pos)))))
 
