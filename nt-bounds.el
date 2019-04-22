@@ -16,8 +16,13 @@
 
 ;;; Exposes
 
-(defun nt-bound (note) (funcall (symbol-value #'nt-bound-fn) note))
-(defun nt-bound? (note) (funcall (symbol-value #'nt-bound?-fn) note))
+(defun nt-bound (note)
+  "Call `nt-bound-fn' on NOTE."
+  (funcall (symbol-value #'nt-bound-fn) note))
+
+(defun nt-bound? (note)
+  "Call `nt-bound?-fn' on NOTE."
+  (funcall (symbol-value #'nt-bound?-fn) note))
 
 ;;; General
 ;;;; Bound-Based
@@ -106,30 +111,24 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 
 (defun nt-bounds--lisps (note)
   "Calculate line boundary [a b) for NOTE's masks."
-  ;; It is potentially more involved than this, but this /should/ work unless
-  ;; you are going out of your way to format in a breaking manner
-  (let* ((start (overlay-start note))
-         (line (1+ (line-number-at-pos start)))
-         (max-line (line-number-at-pos (point-max))))
-    (list (min line max-line)
-          (save-excursion
-            (goto-char start)
-            (sp-end-of-sexp)
-            (1+ (line-number-at-pos))))))
+  (save-excursion
+    (nt-ov--goto note)
+    (sp-end-of-sexp)
+    (1+ (line-number-at-pos))))
 
 ;;; New Implementation
 
-(defun nt-bounds?--general (note)
-  "Trying out a visual line based bounds? check."
-  ;; TODO Not in use at the moment
-  (save-excursion
-    (nt-ov--goto note)
+;; (defun nt-bounds?--general (note)
+;;   "Trying out a visual line based bounds? check."
+;;   ;; TODO Not in use at the moment
+;;   (save-excursion
+;;     (nt-ov--goto note)
 
-    (unless (-contains? nt-ignore-notes (nt-ov->string note))
-      (line-move-visual 1 'noerror)
-      (or (= 0 (current-indentation))
-          (< (current-column)
-             (current-indentation))))))
+;;     (unless (-contains? nt-ignore-notes (nt-ov->string note))
+;;       (line-move-visual 1 'noerror)
+;;       (or (= 0 (current-indentation))
+;;           (< (current-column)
+;;              (current-indentation))))))
 
 (defun nt-bounds--general (note)
   "Trying out a visual line based bounds check."
@@ -156,8 +155,7 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 
     (setq temporary-goal-column nil)  ; Otherwise it will carry over to next notes
 
-    `(,(1+ (nt-ov->line note))
-      ,(line-number-at-pos (point)))))
+    (line-number-at-pos (point))))
 
 ;;; Notes
 

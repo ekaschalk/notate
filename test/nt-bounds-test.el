@@ -72,9 +72,7 @@
       bar)
 ")
           (notes '(("note" "n") ("note2" "n") ("note3" "n")))
-          (bound-1 '(2 6))
-          (bound-2 '(2 6))
-          (bound-3 '(3 6))
+          (bound 6)
           mocked-note-1 mocked-note-2 mocked-note-3)
 
     (before-all (setq mocked-notes (nt-test--setup 'lispy text notes))
@@ -84,19 +82,17 @@
     (after-all (nt-test--teardown))
 
     (nt-describe text
-      (it "first note bounds form"
-        (expect (nt-bound mocked-note-1) :to-equal bound-1))
-      (it "second note bounds form"
-        (expect (nt-bound mocked-note-2) :to-equal bound-2))
+      (it "start bounds form"
+        (expect (nt-bound mocked-note-1) :to-equal bound))
+      (it "not at start bounds form"
+        (expect (nt-bound mocked-note-2) :to-equal bound))
+      (it "not on same line bounds form"
+        (expect (nt-bound mocked-note-3) :to-equal bound))
 
-      (xit "third note bounds form"
-        (expect (nt-bound mocked-note-3) :nil))
-
-      (it "first note bound in effect"
+      (it "opener effects indent"
         (expect (nt-bound? mocked-note-1)))
-      (it "second note bound NOT in effect"
+      (it "non-openeing sexp first line doesnt modify indent"
         (expect (nt-bound? mocked-note-2) :nil))
-      (it "third note bound NOT in effect"
-        (expect (nt-bound? mocked-note-3) :nil))
-      ))
+      (it "other line sexps dont modify indent"
+        (expect (nt-bound? mocked-note-3) :nil))))
   )

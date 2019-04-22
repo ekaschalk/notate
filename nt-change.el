@@ -98,7 +98,7 @@
 ;;; Scratch - Stream of Thought
 
 ;; (let ((line (line-number-at-pos start))
-;;       (bounds (nt-notes->maximal-bounds nt-notes)))
+;;       (bounds (nt-notes->maximal-intervals nt-notes)))
 ;;   (-when-let ((start-line end-line)
 ;;               (nt-bounds--contains? line bounds))
 ;;     (let ((notes (nt-notes<-lines start-line end-line)))

@@ -67,12 +67,17 @@
 
 ;;;; Masks
 
+(defun nt-note->interval (note)
+  "Get line interval [note-start-line bound) of NOTE."
+  (list (1+ (nt-ov->line note))
+        (nt-note->bound note)))
+
 (defun nt-note->masks (note)
   "Calculate all masks NOTE contributes to."
   (-some->>
    note
    nt-bound?
-   nt-note->bound
+   nt-note->interval
    (apply #'nt-masks<-lines)))
 
 ;;;; Misc
@@ -103,11 +108,10 @@
   "Internal, mutually-recursive component of `nt-notes->roots'."
   (-let* (((root)
            roots)
-          ((_ root-end)
+          (root-bound
            (nt-note->bound root))
           (next
-           (-drop-while (-compose (-partial #'>= root-end)
-                                  #'car
+           (-drop-while (-compose (-partial #'>= root-bound)
                                   #'nt-note->bound)
                         notes)))
     (nt-notes->roots next roots)))
@@ -121,9 +125,9 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
           (root (nt-notes->roots   rest (cons root roots)))
           ((reverse roots)))))
 
-(defun nt-notes->maximal-bounds (notes)
+(defun nt-notes->maximal-intervals (notes)
   "Return maximal disjoint intervals of NOTES."
-  (->> notes nt-notes->roots (-map #'nt-note->bound)))
+  (->> notes nt-notes->roots (-map #'nt-note->interval)))
 
 ;;; Management
 ;;;; Insertion
@@ -154,9 +158,9 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-notes--delete (notes)
   "Delete NOTES, updating masks."
-  (let ((bounds (nt-notes->maximal-bounds notes)))
+  (let ((intervals (nt-notes->maximal-intervals notes)))
     (-each notes #'nt-note--delete-internal)
-    (-each bounds (-applify #'nt-masks--refresh-lines))))
+    (-each intervals (-applify #'nt-masks--refresh-lines))))
 
 (defun nt-note--delete (note)
   "Delete a single NOTE, updating masks."
@@ -197,10 +201,10 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-notes--update-bounded (notes)
   "Add NOTES to masks within their bounds, with optimized batch refreshing."
-  (let ((bounds (nt-notes->maximal-bounds notes)))
+  (let ((intervals (nt-notes->maximal-intervals notes)))
     (let ((nt-mask--wait-for-refresh? t))
       (-each notes #'nt-note--update-bounded))
-    (-each bounds (-applify #'nt-masks--refresh-lines))))
+    (-each intervals (-applify #'nt-masks--refresh-lines))))
 
 ;;; Init
 

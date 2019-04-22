@@ -42,12 +42,12 @@
 ;;; Notate Testing Contexts
 ;;;; Setup
 
-(defun nt-test--setup (context text &optional notes)
-  "Setup current buffer with trimmed TEXT, notate CONTEXT, and mock NOTES defs.
+(defun nt-test--setup (context text &optional defs)
+  "Setup current buffer with trimmed TEXT, notate CONTEXT, and mocked note DEFS.
 
 CONTEXT is a symbol identifying how notes will contribute to masks:
 
-   'minimal: Notes do not have bounds.
+  ~ CONFIGURING BOUNDARIES ~
 
    'simple: Notes are always bounded by the next line.
 
@@ -55,11 +55,17 @@ CONTEXT is a symbol identifying how notes will contribute to masks:
 
    'lispy: Notes use lispy boundaries and inherit `lisp-mode-syntax-table'.
 
+   'generalized: Notes use generalized boundary functions.
+
+  ~ CONFIGURING SETUP ~
+
+   'minimal: Notes do not have bounds.
+
    'no-setup: Notes do not have bounds AND do not run `nt-enable--agnostic'.
 
-NOTES is an alist of string, replacement pairs. See also `nt-defs'.
+DEFS is an alist of string, replacement pairs. See also `nt-defs'.
 
-This function returns sorted mocked NOTES overlays."
+This function returns sorted mocked notes."
   (declare (indent 2))
 
   (insert (s-trim text))
@@ -70,30 +76,21 @@ This function returns sorted mocked NOTES overlays."
            ;; TODO the new 'nt-bound prop is still reached even
            ;; with the (-const nil) above. So need better way
            ;; to nil this out.
-           nt-bound-fn (-juxt (-compose #'1+
-                                        #'line-number-at-pos
-                                        #'overlay-start)
-                              (-compose #'1+
-                                        #'line-number-at-pos
-                                        #'overlay-start))))
+           nt-bound-fn (-compose #'1+
+                                 #'line-number-at-pos
+                                 #'overlay-start)))
 
     (simple
      (setq nt-bound?-fn #'identity
-           nt-bound-fn (-juxt (-compose #'1+
-                                        #'line-number-at-pos
-                                        #'overlay-start)
-                              (-compose #'1+ #'1+
-                                        #'line-number-at-pos
-                                        #'overlay-start))))
+           nt-bound-fn (-compose #'1+ #'1+
+                                 #'line-number-at-pos
+                                 #'overlay-start)))
 
     (simple-2
      (setq nt-bound?-fn #'identity
-           nt-bound-fn (-juxt (-compose #'1+
-                                        #'line-number-at-pos
-                                        #'overlay-start)
-                              (-compose #'1+ #'1+ #'1+
-                                        #'line-number-at-pos
-                                        #'overlay-start))))
+           nt-bound-fn (-compose #'1+ #'1+ #'1+
+                                 #'line-number-at-pos
+                                 #'overlay-start)))
 
     (lispy
      (progn
@@ -101,8 +98,10 @@ This function returns sorted mocked NOTES overlays."
              nt-bound-fn #'nt-bounds--lisps)
        (set-syntax-table lisp-mode-syntax-table)))
 
-    (general
-     )
+    (generalized
+     ;; Not sure if predicate version is possible to do generalized
+     (setq nt-bound?-fn #'nt-bounds?--lisps
+           nt-bound-fn #'nt-bounds--general))
 
     (otherwise
      (error "Supplied testing CONTEXT '%s' not implemented" context)))
@@ -111,8 +110,7 @@ This function returns sorted mocked NOTES overlays."
   (unless (eq 'no-setup context)
     (nt-enable--agnostic))
 
-  (when notes
-    (nt-test--mock-notes notes)))
+  (nt-test--mock-notes defs))
 
 ;;;; Teardown
 
@@ -132,8 +130,8 @@ This function returns sorted mocked NOTES overlays."
   (save-excursion
     (goto-char (point-min))
 
-    (let (notes
-          (rx (nt-kwd--string->rx string)))
+    (let ((rx (nt-kwd--string->rx string))
+          notes)
       (while (re-search-forward rx nil 'noerror)
         (-let* (((start end) (match-data 1))
                 (note (nt-note--init string replacement start end)))
