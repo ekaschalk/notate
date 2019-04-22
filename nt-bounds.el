@@ -140,23 +140,17 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
   "Generalized visual-line based bounds finding for NOTE."
   (save-excursion
     (nt-ov--goto note)
-    (line-move-visual 1 'noerror)
 
-    ;; `temporary-goal-column' will be overwritten so must save and reuse it
-    (let ((goal-hpos temporary-goal-column))
-      (while (or (and (nt-line--empty? (line-number-at-pos (point)))
+    (let ((orig-goal-col temporary-goal-column)
+          (goal-col (nt-line--move-visual)))
+      (while (or (and (nt-line--empty? (line-number-at-pos))
                       (not (eobp)))
                  (nt--before-indent?))
-        (setq temporary-goal-column goal-hpos)
+        (nt-line--move-visual 1 goal-col))
 
-        ;; `next-line' is interactive use-only but `line-move-visual'
-        ;; checks last command for `next-line', not `line-move-visual'
-        (setq last-command #'next-line)
-        (line-move-visual 1 'noerror)))
+      (setq temporary-goal-column orig-goal-col))
 
-    (setq temporary-goal-column nil)  ; Otherwise it will carry over to next notes
-
-    (line-number-at-pos (point))))
+    (line-number-at-pos)))
 
 ;;; Notes
 

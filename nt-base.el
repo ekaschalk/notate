@@ -86,6 +86,23 @@
   ;; TODO Add a check that line isn't too far outside buffer
   (forward-line (- line (line-number-at-pos))))
 
+(defun nt-line--move-visual (&optional count goal-col)
+  "Perform `line-move-visual' optionally forcing GOAL-COL.
+
+Returns `temporary-goal-column', not necessarily the same as
+`current-column', after moving COUNT lines."
+
+  ;; `line-move-visual' isn't meant to be called consecutively at lisp level.
+  ;; But we have to - so we save and restore the `temporary-goal-column' when
+  ;; needed, and the bookkeeping supporting that, namely `last-command'.
+
+  (when goal-col
+    (setq temporary-goal-column goal-col)
+    (setq last-command #'next-line))
+
+  (line-move-visual (or count 1) 'noerror)
+  temporary-goal-column)
+
 ;;;; Macros
 
 (defmacro nt-lines--foreach (start-line end-line &rest body)
