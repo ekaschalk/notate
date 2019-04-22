@@ -57,8 +57,7 @@
     (expect (nt-bounds?--lisps-form-opener? mocked-note-1))
     (expect (nt-bounds?--lisps-form-opener? mocked-note-2) :nil)))
 
-;;; Integration Tests
-;;;; Lisps
+;;; Lisp Integration Tests
 
 (nt-describe "Lispy bounds - integration tests"
   :var ((mocked-notes))
@@ -76,6 +75,44 @@
           mocked-note-1 mocked-note-2 mocked-note-3)
 
     (before-all (setq mocked-notes (nt-test--setup 'lispy text notes))
+                (setq mocked-note-1 (car mocked-notes))
+                (setq mocked-note-2 (cadr mocked-notes))
+                (setq mocked-note-3 (caddr mocked-notes)))
+    (after-all (nt-test--teardown))
+
+    (nt-describe text
+      (it "start bounds form"
+        (expect (nt-bound mocked-note-1) :to-equal bound))
+      (it "not at start bounds form"
+        (expect (nt-bound mocked-note-2) :to-equal bound))
+      (it "not on same line bounds form"
+        (expect (nt-bound mocked-note-3) :to-equal bound))
+
+      (it "opener effects indent"
+        (expect (nt-bound? mocked-note-1)))
+      (it "non-openeing sexp first line doesnt modify indent"
+        (expect (nt-bound? mocked-note-2) :nil))
+      (it "other line sexps dont modify indent"
+        (expect (nt-bound? mocked-note-3) :nil)))))
+
+;;; Generalized Integration Tests
+
+(xnt-describe "Generalized bounds - integration tests"
+  :var ((mocked-notes))
+
+  (nt-describe "single form"
+    :var ((text "
+(note note2
+      note3
+      foo
+
+      bar)
+")
+          (notes '(("note" "n") ("note2" "n") ("note3" "n")))
+          (bound 6)
+          mocked-note-1 mocked-note-2 mocked-note-3)
+
+    (before-all (setq mocked-notes (nt-test--setup 'generalized text notes))
                 (setq mocked-note-1 (car mocked-notes))
                 (setq mocked-note-2 (cadr mocked-notes))
                 (setq mocked-note-3 (caddr mocked-notes)))

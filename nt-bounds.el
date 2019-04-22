@@ -116,7 +116,7 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
     (sp-end-of-sexp)
     (1+ (line-number-at-pos))))
 
-;;; New Implementation
+;;; Scratch
 
 ;; (defun nt-bounds?--general (note)
 ;;   "Trying out a visual line based bounds? check."
@@ -130,22 +130,23 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 ;;           (< (current-column)
 ;;              (current-indentation))))))
 
+;;; Generalized
+
+;; Special indent rules, indent blocks, etc. will be handled by
+;; major-mode-dependent predicate. I don't think the predicate can be made
+;; major-mode-agnostic...
+
 (defun nt-bounds--general (note)
-  "Trying out a visual line based bounds check."
+  "Generalized visual-line based bounds finding for NOTE."
   (save-excursion
     (nt-ov--goto note)
-
-    ;; check if in nt-ignore-notes
-    ;; check if creating special indent rules
-
     (line-move-visual 1 'noerror)
 
     ;; `temporary-goal-column' will be overwritten so must save and reuse it
     (let ((goal-hpos temporary-goal-column))
-      (while (or (and (apply #'= (nt-line->region (line-number-at-pos (point))))
+      (while (or (and (nt-line--empty? (line-number-at-pos (point)))
                       (not (eobp)))
-                 (< (current-column)
-                    (current-indentation)))
+                 (nt--before-indent?))
         (setq temporary-goal-column goal-hpos)
 
         ;; `next-line' is interactive use-only but `line-move-visual'

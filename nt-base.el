@@ -73,6 +73,12 @@
   (and line (> line 0)
        (1- line)))
 
+;;;; Predicates
+
+(defun nt-line--empty? (line)
+  "Is LINE empty?"
+  (apply #'= (nt-line->region line)))
+
 ;;;; Methods
 
 (defun nt-line--goto (line)
@@ -98,6 +104,10 @@
 (defun nt-pos->col (pos)
   "Get column of POS."
   (save-excursion (goto-char pos) (current-column)))
+
+(defun nt--before-indent? ()
+  "Is point before `current-indentation'?"
+  (< (current-column) (current-indentation)))
 
 ;;; Provide
 
