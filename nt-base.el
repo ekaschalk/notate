@@ -89,25 +89,6 @@
   ;; TODO Add a check that line isn't too far outside buffer
   (forward-line (- line (line-number-at-pos))))
 
-(defun nt-line-move-visual (&optional count goal-col)
-  "Perform `line-move-visual' optionally forcing GOAL-COL.
-
-Returns `temporary-goal-column', not necessarily the same as
-`current-column', after moving 1 or COUNT lines."
-
-  ;; `line-move-visual' isn't meant to be called consecutively at lisp level.
-  ;; But we have to - so we save and restore the `temporary-goal-column' when
-  ;; needed, and the bookkeeping supporting that, namely `last-command'.
-
-  (setq count (or count 1))
-
-  (when goal-col
-    (setq temporary-goal-column goal-col)
-    (setq last-command (if (> count 1) #'next-line #'previous-line)))
-
-  (line-move-visual count 'noerror)
-  temporary-goal-column)
-
 ;;;; Macros
 
 (defmacro nt-lines--foreach (start-line end-line &rest body)
@@ -121,20 +102,20 @@ Returns `temporary-goal-column', not necessarily the same as
        ,@body
        (forward-line))))
 
+;; Is there a better way to condition the macro than a defvar?
 (defvar nt--move-up? nil "When true `nt-line-move-visual-while' will move up.")
 (defmacro nt-line-move-visual-while (pred &rest body)
-  "Perform `line-move-visual' maintaining goal column while PRED evals true.
+  "Perform `line-move-visual' maintaining `goal-column' while PRED is non-nil.
 
 If `nt--move-up?' is non-nil, move upwards in buffer instead."
   (declare (indent 1))
-  `(let ((orig-goal-col temporary-goal-column)
-         (goal-col (nt-line-move-visual)))
+  `(-let* ((count (if nt--move-up? -1 1))
+           ((goal-column)  ; See `goal-column' documentation
+            (progn (line-move-visual count 'noerror) temporary-goal-column)))
      (while (and (not (if nt--move-up? (bobp) (eobp)))
                  ,pred)
        ,@body
-       (nt-line-move-visual (if nt--move-up? -1 1) goal-col))
-
-     (setq temporary-goal-column orig-goal-col)))
+       (line-move-visual count 'noerror))))
 
 ;;; Points
 
