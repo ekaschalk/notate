@@ -120,13 +120,36 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 ;; major-mode-dependent predicate. I don't think the predicate can be made
 ;; major-mode-agnostic...
 
+;; Version 1
+;; Doesn't trim off extraneous lines at end from bound
+
+;; (defun nt-bounds--general (note)
+;;   "Generalized visual-line based bounds finding for NOTE."
+;;   (save-excursion
+;;     (nt-ov--goto note)
+;;     (nt-line-move-visual-while (or (nt-line--empty? (line-number-at-pos))
+;;                                    (nt--before-indent?)))
+;;     (line-number-at-pos)))
+
+
+;; Version 2
+;; In testing buffer bound will exit when should, instead of continuing
+;; to first non-empty line afterwards (eg. the ;; comment at end)
+
 (defun nt-bounds--general (note)
   "Generalized visual-line based bounds finding for NOTE."
   (save-excursion
     (nt-ov--goto note)
-    (nt-line-move-visual-while (or (nt-line--empty? (line-number-at-pos))
-                                   (nt--before-indent?)))
-    (line-number-at-pos)))
+
+    (let ((start-line (line-number-at-pos)))
+      (nt-line-move-visual-while (or (nt-line--empty? (line-number-at-pos))
+                                     (nt--before-indent?)))
+
+      (let ((nt--move-up? t))
+        (nt-line-move-visual-while (and (nt-line--empty? (line-number-at-pos))
+                                        (> (line-number-at-pos) start-line))))
+
+      (1+ (line-number-at-pos)))))
 
 ;;; Notes
 

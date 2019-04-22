@@ -90,7 +90,7 @@
 
       (it "opener effects indent"
         (expect (nt-bound? mocked-note-1)))
-      (it "non-openeing sexp first line doesnt modify indent"
+      (it "non-opening sexp first line doesnt modify indent"
         (expect (nt-bound? mocked-note-2) :nil))
       (it "other line sexps dont modify indent"
         (expect (nt-bound? mocked-note-3) :nil)))))
