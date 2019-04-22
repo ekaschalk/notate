@@ -41,15 +41,12 @@ to matching the specified string.")
 ;; symbol match if it sees like :symbol or something.
 
 
-(defvar-local nt-bound-fn
-  ;; #'nt-bounds--lisps
-  #'nt-bounds--general
+(defvar-local nt-bound-fn #'nt-bounds--general
   "A function that should return line boundaries [a b) given a NOTE.")
 
 
-(defvar-local nt-bound?-fn
-  #'nt-bounds?--lisps
-  ;; #'nt-bounds?--general
+(defvar-local nt-bound?-fn #'nt-bounds?--lisps
+  ;; Predicate version can't be generalized without performance costs I think
   "A function that should return whether a given NOTE modifies indentation.")
 
 

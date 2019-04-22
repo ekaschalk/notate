@@ -9,6 +9,9 @@
 ;; Members of this file are not required to be prefixed with `nt-base--' as other
 ;; files are (by convention).
 
+;; Right now provides methods, macros, and others operating on LINES, REGIONS,
+;; and POSITIONS.
+
 ;;; Code:
 ;;;; Requires
 
@@ -86,7 +89,7 @@
   ;; TODO Add a check that line isn't too far outside buffer
   (forward-line (- line (line-number-at-pos))))
 
-(defun nt-line--move-visual (&optional count goal-col)
+(defun nt-line-move-visual (&optional count goal-col)
   "Perform `line-move-visual' optionally forcing GOAL-COL.
 
 Returns `temporary-goal-column', not necessarily the same as
@@ -118,15 +121,15 @@ Returns `temporary-goal-column', not necessarily the same as
        ,@body
        (forward-line))))
 
-(defmacro nt-line--move-visual-while (pred &rest body)
+(defmacro nt-line-move-visual-while (pred &rest body)
   "Perform `line-move-visual' maintaining goal column while PRED evals true."
   (declare (indent 1))
   `(let ((orig-goal-col temporary-goal-column)
-         (goal-col (nt-line--move-visual)))
+         (goal-col (nt-line-move-visual)))
      (while (and (not (eobp))
                  ,pred)
        ,@body
-       (nt-line--move-visual 1 goal-col))
+       (nt-line-move-visual 1 goal-col))
 
      (setq temporary-goal-column orig-goal-col)))
 

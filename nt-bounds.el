@@ -35,8 +35,6 @@
 
 ;;;; Overlay-Based
 
-;; sp-region-ok-p is a possibly very useful function
-
 (defun nt-bounds?--in-string-or-comment? (note)
   "Is NOTE contained within a string or comment?"
   (let ((state (save-excursion
@@ -116,20 +114,6 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
     (sp-end-of-sexp)
     (1+ (line-number-at-pos))))
 
-;;; Scratch
-
-;; (defun nt-bounds?--general (note)
-;;   "Trying out a visual line based bounds? check."
-;;   ;; TODO Not in use at the moment
-;;   (save-excursion
-;;     (nt-ov--goto note)
-
-;;     (unless (-contains? nt-ignore-notes (nt-ov->string note))
-;;       (line-move-visual 1 'noerror)
-;;       (or (= 0 (current-indentation))
-;;           (< (current-column)
-;;              (current-indentation))))))
-
 ;;; Generalized
 
 ;; Special indent rules, indent blocks, etc. will be handled by
@@ -140,11 +124,8 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
   "Generalized visual-line based bounds finding for NOTE."
   (save-excursion
     (nt-ov--goto note)
-
-    (nt-line--move-visual-while
-        (or (nt-line--empty? (line-number-at-pos))
-            (nt--before-indent?)))
-
+    (nt-line-move-visual-while (or (nt-line--empty? (line-number-at-pos))
+                                   (nt--before-indent?)))
     (line-number-at-pos)))
 
 ;;; Notes
