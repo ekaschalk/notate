@@ -90,17 +90,19 @@
   "Perform `line-move-visual' optionally forcing GOAL-COL.
 
 Returns `temporary-goal-column', not necessarily the same as
-`current-column', after moving COUNT lines."
+`current-column', after moving 1 or COUNT lines."
 
   ;; `line-move-visual' isn't meant to be called consecutively at lisp level.
   ;; But we have to - so we save and restore the `temporary-goal-column' when
   ;; needed, and the bookkeeping supporting that, namely `last-command'.
 
+  (setq count (or count 1))
+
   (when goal-col
     (setq temporary-goal-column goal-col)
-    (setq last-command #'next-line))
+    (setq last-command (if (> count 1) #'next-line #'previous-line)))
 
-  (line-move-visual (or count 1) 'noerror)
+  (line-move-visual count 'noerror)
   temporary-goal-column)
 
 ;;;; Macros
@@ -115,6 +117,18 @@ Returns `temporary-goal-column', not necessarily the same as
                  (if ,end-line (< (line-number-at-pos) ,end-line) t))
        ,@body
        (forward-line))))
+
+(defmacro nt-line--move-visual-while (pred &rest body)
+  "Perform `line-move-visual' maintaining goal column while PRED evals true."
+  (declare (indent 1))
+  `(let ((orig-goal-col temporary-goal-column)
+         (goal-col (nt-line--move-visual)))
+     (while (and (not (eobp))
+                 ,pred)
+       ,@body
+       (nt-line--move-visual 1 goal-col))
+
+     (setq temporary-goal-column orig-goal-col)))
 
 ;;; Points
 

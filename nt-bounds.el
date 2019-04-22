@@ -141,14 +141,9 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
   (save-excursion
     (nt-ov--goto note)
 
-    (let ((orig-goal-col temporary-goal-column)
-          (goal-col (nt-line--move-visual)))
-      (while (or (and (nt-line--empty? (line-number-at-pos))
-                      (not (eobp)))
-                 (nt--before-indent?))
-        (nt-line--move-visual 1 goal-col))
-
-      (setq temporary-goal-column orig-goal-col))
+    (nt-line--move-visual-while
+        (or (nt-line--empty? (line-number-at-pos))
+            (nt--before-indent?)))
 
     (line-number-at-pos)))
 
