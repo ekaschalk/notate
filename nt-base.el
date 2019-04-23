@@ -82,6 +82,10 @@
   "Is LINE empty?"
   (apply #'= (nt-line->region line)))
 
+(defun nt-line--nonempty? (line)
+  "Is LINE nonempty?"
+  (not (nt-line--empty? line)))
+
 ;;;; Methods
 
 (defun nt-line--goto (line)
@@ -107,15 +111,19 @@
 (defmacro nt-line-move-visual-while (pred &rest body)
   "Perform `line-move-visual' maintaining `goal-column' while PRED is non-nil.
 
-If `nt--move-up?' is non-nil, move upwards in buffer instead."
+If `nt--move-up?' is non-nil, move upwards in buffer instead.
+
+`line' is bound to the current line, available to the predicate and body."
   (declare (indent 1))
   `(-let* ((count (if nt--move-up? -1 1))
-           ((goal-column)  ; See `goal-column' documentation
-            (progn (line-move-visual count 'noerror) temporary-goal-column)))
+           ((goal-column)  ; See `goal-column', only need car of the temp col
+            (progn (line-move-visual count 'noerror) temporary-goal-column))
+           (line (line-number-at-pos)))
      (while (and (not (if nt--move-up? (bobp) (eobp)))
                  ,pred)
        ,@body
-       (line-move-visual count 'noerror))))
+       (line-move-visual count 'noerror)
+       (if nt--move-up? (cl-decf line) (cl-incf line)))))
 
 ;;; Points
 
