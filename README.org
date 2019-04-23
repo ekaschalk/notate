@@ -47,9 +47,9 @@ simple as a toggle.
 
 ** FAQ
 
-- Why? :: [[http://modernemacs.com][I've found a hobby]] in confusing over-the-shoulder onlookers. I believe
-          in the value of notation, as a graduate in math (go gators). The
-          aesthetic of my programs are important to me.
+- Why? :: [[http://modernemacs.com][I've found a hobby]] in confusing over-the-shoulder onlookers. I got a
+          math degree purely so I could draw pretty symbols all day. I want
+          programmers to enjoy the same productivity.
 
 - Does Notate support all programming languages? :: Yes-ish.
   - /Details/: notate is major-mode agnostic except for a fn to calculate the
