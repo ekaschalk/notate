@@ -65,6 +65,10 @@
   "Access NOTE's display."
   (-some-> note (overlay-get 'display)))
 
+(defun nt-note--in-effect? (note)
+  "Access NOTE's status of indentation contribution."
+  (-some-> note (overlay-get 'nt-in-effect?)))
+
 ;;;; Masks
 
 (defun nt-note->interval (note)
@@ -73,12 +77,9 @@
         (nt-note->last-bound note)))
 
 (defun nt-note->masks (note)
-  "Calculate all masks NOTE contributes to."
-  (-some->>
-   note
-   nt-bound?  ; TODO use nt-note--in-effect?
-   nt-note->interval
-   (apply #'nt-masks<-lines)))
+  "Gets all masks NOTE contributes to."
+  (when (nt-note--in-effect? note)
+    (apply #'nt-masks<-lines (nt-note->interval note))))
 
 ;;;; Misc
 
@@ -183,6 +184,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
     (nt-note--decompose note)))
 
 ;;; Update Masks
+;;;; Adding Notes
 
 (defun nt-note--update-mask (note mask)
   "Add NOTE to a MASK, possibly refresh mask, and return back mask."
@@ -206,12 +208,48 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
       (-each notes #'nt-note--update-bounded))
     (-each intervals (-applify #'nt-masks--refresh-lines))))
 
+;;;; Removing Notes
+
+(defun nt-note--remove-from-mask (note mask)
+  "Remove NOTE from a MASK, possibly refresh, and return back mask."
+  (setf (overlay-get mask 'nt-notes)  ; do this better
+        (delq note (overlay-get mask 'nt-notes)))
+  (nt-mask--refresh mask))
+
+(defun nt-note--remove-from-masks (note masks)
+  "Remove NOTE from MASKS, possibly refresh, and return back masks."
+  (-map (-partial #'nt-note--remove-from-mask note) masks))
+
+(defun nt-note--remove-bounded (note)
+  "Remove NOTE from masks within its bound, maybe refresh, and give back masks."
+  (nt-note--remove-from-masks note (nt-note->masks note)))
+
+;;;; Notes Boundary Modified
+
+(defun nt-note--update-bound ()
+  "Recalculate bound-based properties and update masks based on the difference."
+  (let ((last-bound (nt-note->last-bound note))
+        (was-in-effect? (nt-note--in-effect? note))
+        (bound (nt-bound note))
+        (in-effect? (nt-bound? note)))
+
+    (when was-in-effect?
+      (nt-note--removed-bounded note))
+
+    (-doto note
+      (overlay-put 'nt-last-bound bound)
+      (overlay-put 'nt-in-effect? in-effect?))
+
+    (when in-effect?
+      (nt-note--update-bounded note))))
+
 ;;; Init
 
 (defun nt-note--init-bound (note)
-  "Init NOTE's 'nt-bound text property."
-  (let ((bound (nt-bound note)))
-    (overlay-put note 'nt-last-bound bound)))
+  "Init NOTE's 'nt-bound and 'nt-in-effect? text properties."
+  (-doto note
+    (overlay-put 'nt-last-bound (nt-bound note))
+    (overlay-put 'nt-in-effect? (nt-bound? note))))
 
 (defun nt-note--init-ov (string replacement start end)
   "Instantiate note overlay and its properties for `nt-note--init'.
@@ -221,6 +259,7 @@ Notate Text Properties
   'nt-note?:      A note overlay.
   'nt-width:      Difference of true and rendered string sizes.
   'nt-last-bound: The last calculated value of bound for the note.
+  'nt-in-effect?: The last calculated value of bound? for the note.
 "
   (-doto (make-overlay start end)
     (overlay-put 'nt?      t)

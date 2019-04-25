@@ -134,46 +134,27 @@ balanced working first.")
        (-take-while (lambda (note)
                       (<= (nt-ov->line note) max-bound))))))
 
-(defun nt-change--update-bounded (note)
-  ;; TODO Must manage new text prop `nt-in-effect?'
-  ;; Could check next lines mask if it contains a note, but that is bad i think
-
-  (let ((last-bound (nt-note->last-bound note))
-        (was-in-effect? (nt-note--in-effect? note))
-        (bound (nt-bound note))
-        (in-effect? (nt-bound? note)))
-
-    (cond
-     ((and was-in-effect? in-effect?)
-      ;; delete note in masks [bound last-bound)
-      ;; add note to masks [last-bound bound)
-      )
-     (was-in-effect?
-      ;; delete note from all its masks, ie. [note-line+1 bound)
-      )
-     (in-effect?
-      ;; add note to all its masks, ie. [note-line+1 bound)
-      ))
-
-    (-doto note
-      (overlay-put 'nt-last-bound bound)
-      (overlay-put 'nt-in-effect? in-effect?))))
-
 ;;;;; Implementation
 
 ;; ASSUMING BALANCED DELETION CURRENTLY
 ;; If I do end up needing a tree
 ;;  can recursively call the `nt-notes->roots' on each `-drop-while' section
+;; A better version would trim-out every note in separate subtrees
+;; but taking everything contained in the root is still far better than nothing
+;; and likely to be close to optimized anyway in most situations
 
 (defun nt-change--deletion (pos chars-deleted)
-  "Change function specialized for deletion, number CHARS-DELETED at POS."
+  "Change function specialized for deletion, number CHARS-DELETED at POS.
+
+Note that the 'modification-hook text property handles deletion of notes
+and masks themselves."
   (when (nt-change--lines-deleted?)
     (let* ((roots (nt-notes->roots nt-notes))
            (line (line-number-at-pos pos))  ; works only if balanced i think
            (root (nt-change--root-containing line roots)))
       (when root
         (let ((children (nt-notes--children-of root)))
-          (-each children #'nt-change--update-bounded))))))
+          (-each children #'nt-note--update-bound))))))
 
 ;;; Provide
 
