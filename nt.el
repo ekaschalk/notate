@@ -45,8 +45,8 @@ to matching the specified string.")
   "A function that should return line boundaries [a b) given a NOTE.")
 
 
+;; Predicate version can't be generalized without performance costs I think
 (defvar-local nt-bound?-fn #'nt-bounds?--lisps
-  ;; Predicate version can't be generalized without performance costs I think
   "A function that should return whether a given NOTE modifies indentation.")
 
 
@@ -115,13 +115,11 @@ To allow identifying what Notate is doing at a glance.")
 (defun nt-enable--temp ()
   "TEMP Setup components that will need to be redone more generally."
   (add-hook 'lisp-mode-hook #'nt-kwds--add)
-  (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
   (lisp-mode))
 
 (defun nt-disable--temp ()
   "TEMP Disable components that will need to be redone more generally."
-  (remove-hook 'lisp-mode-hook #'nt-kwds--add)
-  (remove-hook 'after-change-functions #'nt-after-change-function 'local))
+  (remove-hook 'lisp-mode-hook #'nt-kwds--add))
 
 (defun nt-disable--just-in-case ()
   "TEMP Reset vars that _should_ never need to be reset."
@@ -133,10 +131,12 @@ To allow identifying what Notate is doing at a glance.")
 
 (defun nt-enable--in-progress ()
   "TEMP Enable Notate components that are in active development"
+  (add-hook 'after-change-functions #'nt-change--after-change-function nil 'local)
   )
 
 (defun nt-disable--in-progress ()
   "TEMP Disable Notate components that are in active development."
+  (remove-hook 'after-change-functions #'nt-after-change-function 'local)
   )
 
 ;;; Interactive
@@ -157,7 +157,7 @@ To allow identifying what Notate is doing at a glance.")
 
   (nt-disable)
 
-  (nt-enable--temp)  ; This should happen first atm
+  (nt-enable--temp)  ; This should happen before agnostic atm
   (nt-enable--agnostic)
   (nt-enable--in-progress))
 

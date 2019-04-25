@@ -57,8 +57,8 @@
   "Access NOTE's width."
   (-some-> note (overlay-get 'nt-width)))
 
-(defun nt-note->bound (note)
-  "Access NOTE's bound."
+(defun nt-note->last-bound (note)
+  "Access NOTE's last calculated bound."
   (-some-> note (overlay-get 'nt-last-bound)))
 
 (defun nt-note->replacement (note)
@@ -70,7 +70,7 @@
 (defun nt-note->interval (note)
   "Get line interval [note-start-line bound) of NOTE."
   (list (1+ (nt-ov->line note))
-        (nt-note->bound note)))
+        (nt-note->last-bound note)))
 
 (defun nt-note->masks (note)
   "Calculate all masks NOTE contributes to."
@@ -109,10 +109,10 @@
   (-let* (((root)
            roots)
           (root-bound
-           (nt-note->bound root))
+           (nt-note->last-bound root))
           (next
            (-drop-while (-compose (-partial #'>= root-bound)
-                                  #'nt-note->bound)
+                                  #'nt-note->last-bound)
                         notes)))
     (nt-notes->roots next roots)))
 
