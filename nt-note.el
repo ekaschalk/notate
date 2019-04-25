@@ -186,6 +186,8 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 ;;; Update Masks
 ;;;; Adding Notes
 
+;; TODO Rename to add-to-mask
+
 (defun nt-note--update-mask (note mask)
   "Add NOTE to a MASK, possibly refresh mask, and return back mask."
   (push note (overlay-get mask 'nt-notes))
@@ -212,7 +214,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-note--remove-from-mask (note mask)
   "Remove NOTE from a MASK, possibly refresh, and return back mask."
-  (setf (overlay-get mask 'nt-notes)  ; do this better
+  (setf (overlay-get mask 'nt-notes)  ; TODO do this better
         (delq note (overlay-get mask 'nt-notes)))
   (nt-mask--refresh mask))
 
@@ -226,7 +228,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 ;;;; Notes Boundary Modified
 
-(defun nt-note--update-bound ()
+(defun nt-note--update-bound (note)
   "Recalculate bound-based properties and update masks based on the difference."
   (let ((last-bound (nt-note->last-bound note))
         (was-in-effect? (nt-note--in-effect? note))
@@ -242,6 +244,13 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
     (when in-effect?
       (nt-note--update-bounded note))))
+
+(defun nt-notes--update-bound (notes)
+  "Map `nt-note--update-bound' on NOTES."
+  (let ((intervals (nt-notes->maximal-intervals notes)))
+    (let ((nt-mask--wait-for-refresh? t))
+      (-each notes #'nt-note--update-bound))
+    (-each intervals (-applify #'nt-masks--refresh-lines))))
 
 ;;; Init
 
