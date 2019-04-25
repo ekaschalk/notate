@@ -73,6 +73,9 @@
 ;; Same as before but we are checking the first-note-after-the-root==next-root
 ;; In that case - we eat the next root... and possibly more roots afterwards...
 
+
+;; How do we even realize we are unbalancing the sexp?
+
 ;;;;; not that hungry
 
 ;; CASE:

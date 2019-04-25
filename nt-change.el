@@ -13,6 +13,14 @@
 
 (require 'nt-base)
 
+;;; Hook
+
+(defun nt-change--after-change-function (start end chars-deleted)
+  "See `after-change-functions', dispatches on insertion or deletion."
+  (if (= 0 chars-deleted)
+      (nt-change--insertion start end)
+    (nt-change--deletion start chars-deleted)))
+
 ;;; OLD
 ;;;; Utilities
 
@@ -85,24 +93,17 @@
 ;;       (nt-change--insertion-lines start end new-lines)
 ;;     (nt-change--insertion-line-restricted (line-number-at-pos start))))
 
-;;;; Deletion
-
-;; (defun nt-change--deletion (pos chars-deleted)
-;;   "Change function specialized for deletion, number CHARS-DELETED at POS."
-;;   ;; (message "Deleting at pos %s, %s characters" pos chars-deleted)
-;;   )
-
 ;;; NEW IMPLEMENTATIONS
-;;;; Hook
+;;;; Unbalanced
 
-(defun nt-change--after-change-function (start end chars-deleted)
-  "See `after-change-functions', dispatches on insertion or deletion."
-  (if (= 0 chars-deleted)
-      (nt-change--insertion start end)
-    (nt-change--deletion start chars-deleted)))
+(defun nt-change--unbalanced (pos chars-deleted)
+  "PANIC - Unbalanced is hard and being worked through still.
+
+Requires some more advanced ideas to implement in a user-transparent way.
+Think it is possible and I have an idea on how to accomplish it. Getting
+balanced working first.")
 
 ;;;; Insertion
-
 
 (defun nt-change--insertion-same-line (start end)
   "Change func specialized for insertion not crossing lines in START and END."
@@ -111,6 +112,15 @@
 (defun nt-change--insertion (start end)
   "Change func specialized for insertion, in START and END."
   )
+
+;;;; Deletion
+
+(defun nt-change--deletion-balanced (pos chars-deleted)
+  )
+
+(defun nt-change--deletion (pos chars-deleted)
+  "Change function specialized for deletion, number CHARS-DELETED at POS."
+  (nt-change--deletion-balanced pos chars-deleted))
 
 ;;; Provide
 
