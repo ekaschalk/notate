@@ -48,7 +48,7 @@ simple as a toggle.
 ** FAQ
 
 - Why? :: [[http://modernemacs.com][I've found a hobby]] in confusing over-the-shoulder onlookers. I got a
-          math degree pure-ly so I could draw pretty symbols all day. I want
+          math degree purely so I could draw pretty symbols all day. I want
           programmers to enjoy the same productivity.
 
 - Does Notate support all programming languages? :: Mostly.
@@ -134,28 +134,25 @@ This section is subject to change while under development.
 ** Status
 *** What Works
 
-- The core idea!
-  - Toggling on/off works as expected.
-  - Deleting any part of a note updates indentation on-the-fly.
-  - Deleting near the beginning of masked lines behaves as if not masked.
+- The core idea! Toggling on/off works as expected.
+- Unrendering a note updates indentation on-the-fly.
+- Deleting near the beginning of masked lines behaves as if not masked.
+- Determining range of indentation to mask independent of the major-mode.
 
 *** Whats Being Worked On
 
-- Major-mode agnostic method of determining range of indentation to mask.
+- Buffer modification that adds or removes lines.
 
 *** What Doesn't Work Yet
 
-- Buffer modification that adds or removes lines.
-- Boundary functions need fleshing out.
-  - Only concerned with lisp-like boundaries atm.
-  - Special indent rules not handled yet.
-  - Expectation is for contributors with deeper knowledge of various languages
-    to contribute here.
+- Determining whether a given rendering should modify indent.
+  - Lisps more-or-less handled.
+  - Will also write support for Python.
+  - Contributors with deeper knowledge of various languages would help greatly
+    in expanding support.
 
 *** What Might Require Emacs C Source Modifications
 
-- Either height or width is normalized, not both.
+- Visual replacements not necessarily monospaced depending on the fonts.
   - Compare the two progress-2 images in [[./img]]. See the ~nt-normalize-height?~
     variable for commentary.
-  - Possibly something just have to deal with. Solving at lisp-level will make
-    things quite a bit more complicated and obfuscated.
