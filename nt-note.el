@@ -76,7 +76,7 @@
   "Calculate all masks NOTE contributes to."
   (-some->>
    note
-   nt-bound?
+   nt-bound?  ; TODO use nt-note--in-effect?
    nt-note->interval
    (apply #'nt-masks<-lines)))
 

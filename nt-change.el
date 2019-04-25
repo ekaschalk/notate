@@ -36,11 +36,6 @@
 ;;   (let ((line-diff (nt-change--line-diff)))
 ;;     (and (> line-diff 0) line-diff)))
 
-;; (defun nt-change--removed-lines? ()
-;;   "Get count of removed lines since last `nt-masks', if lines were removed."
-;;   (let ((line-diff (nt-change--line-diff)))
-;;     (and (< line-diff 0) line-diff)))
-
 ;;;; Insertion
 
 ;; (-if-let (new-lines (nt-change--new-lines?))
@@ -115,12 +110,68 @@ balanced working first.")
 
 ;;;; Deletion
 
-(defun nt-change--deletion-balanced (pos chars-deleted)
-  )
+(defun nt-change--root-containing (line roots)
+  "Get first root in ROOTS whose interval contains LINE."
+  (when roots
+    (-let* (((root . rest) roots)
+            ((start end) root))
+      (if (<= start line (1+ end))
+          root
+        (nt-change--root-containing line rest)))))
+
+(defun nt-change--lines-deleted? ()
+  "Have lines been deleted?"
+  (let ((count (- (length nt-masks) (line-number-at-pos (point-max)))))
+    (and (< 0 count) count)))
+
+(defun nt-change--update-bounded (note)
+  ;; TODO Must manage new text prop `nt-in-effect?'
+  ;; Could check next lines mask if it contains a note, but that is bad i think
+
+  (let ((last-bound (nt-note->last-bound note))
+        (was-in-effect? (nt-note--in-effect? note))
+        (bound (nt-bound note))
+        (in-effect? (nt-bound? note)))
+
+    (cond
+     ((and was-in-effect? in-effect?)
+      ;; delete note in masks [bound last-bound)
+      ;; add note to masks [last-bound bound)
+      )
+     (was-in-effect?
+      ;; delete note from all its masks, ie. [note-line+1 bound)
+      )
+     (in-effect?
+      ;; add note to all its masks, ie. [note-line+1 bound)
+      ))
+
+    (-doto note
+      (overlay-put 'nt-last-bound bound)
+      (overlay-put 'nt-in-effect? in-effect?))))
 
 (defun nt-change--deletion (pos chars-deleted)
   "Change function specialized for deletion, number CHARS-DELETED at POS."
-  (nt-change--deletion-balanced pos chars-deleted))
+  ;; ASSUMING BALANCED DELETION CURRENTLY
+  ;; If I do end up needing a tree
+  ;;  can recursively call the `nt-notes->roots' on each `-drop-while' section
+
+  (when (nt-change--lines-deleted?)
+    (let* ((roots
+            (nt-notes->roots nt-notes))
+           (line
+            (line-number-at-pos pos))  ; works only if balanced i think
+           (root
+            (nt-change--root-containing line roots))
+           ((_ root-end-line)
+            (nt-note->interval root))
+           (children
+            (->> nt-notes
+               (-drop-while (lambda (note)
+                              (not (equal it root))))
+               (-take-while (lambda (note)
+                              (<= (nt-ov->line note) root-end-line))))))
+
+      (-each children #'nt-change--update-bounded))))
 
 ;;; Provide
 

@@ -25,14 +25,6 @@
   (funcall (symbol-value #'nt-bound?-fn) note))
 
 ;;; General
-;;;; Bound-Based
-
-(defun nt-bounds--contains? (line bounds)
-  "Get bound in BOUNDS containing LINE."
-  (-when-let (bound (--first (<= (car it) line) bounds))
-    (and (< line (cadr bound))
-         bound)))
-
 ;;;; Overlay-Based
 
 (defun nt-bounds?--in-string-or-comment? (note)
