@@ -122,6 +122,8 @@ Eventually rewrite with vector for constant-time idxing.")
   (= (nt-mask->true-end mask)
      (nt-mask->opaque-end mask)))
 
+;; TODO Potentially throw a current-indentation < mask-size check here
+
 (defun nt-mask--render? (mask)
   "Should MASK be rendered?"
   (and nt-render-masks?

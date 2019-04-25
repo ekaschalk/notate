@@ -73,7 +73,7 @@
 ;; Same as before but we are checking the first-note-after-the-root==next-root
 ;; In that case - we eat the next root... and possibly more roots afterwards...
 
-;;;;; Petite
+;;;;; not that hungry
 
 ;; CASE:
 
@@ -90,6 +90,9 @@
 ;; RESULT:
 ;; We only eat the first root this time.
 
+
+;; Deleting the second "(" also causes root eating
+
 ;;; GENERAL NOTES
 
 ;; In
@@ -101,3 +104,13 @@
 
 ;; When we delete ")", the boundary checking will fail because we haven't
 ;; indented that line yet!
+
+;; maybe it has to be tied to indent here...
+;; maybe I mark the line(s) visually that it will be rendered when it can...
+;;   though this requires calling indent-line...
+;;   or does it? if I eat the root, I might already know the lines to mark...
+
+;; What does marking mean?
+;; Maybe - the first space we insert will actually insert mask-size spaces!
+;; now the line wont "collapse" when it has enough space to render
+;; when spaces are being added...
