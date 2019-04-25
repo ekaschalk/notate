@@ -109,6 +109,12 @@ balanced working first.")
   )
 
 ;;;; Deletion
+;;;;; Utilities
+
+(defun nt-change--lines-deleted? ()
+  "Have lines been deleted?"
+  (let ((count (- (length nt-masks) (line-number-at-pos (point-max)))))
+    (and (< 0 count) count)))
 
 (defun nt-change--root-containing (line roots)
   "Get first root in ROOTS whose interval contains LINE."
@@ -119,10 +125,14 @@ balanced working first.")
           root
         (nt-change--root-containing line rest)))))
 
-(defun nt-change--lines-deleted? ()
-  "Have lines been deleted?"
-  (let ((count (- (length nt-masks) (line-number-at-pos (point-max)))))
-    (and (< 0 count) count)))
+(defun nt-notes--children-of (root)
+  (-let (((_ max-bound)
+          (nt-note->interval root)))
+    (->> nt-notes
+       (-drop-while (lambda (note)
+                      (not (equal it root))))
+       (-take-while (lambda (note)
+                      (<= (nt-ov->line note) max-bound))))))
 
 (defun nt-change--update-bounded (note)
   ;; TODO Must manage new text prop `nt-in-effect?'
@@ -149,29 +159,21 @@ balanced working first.")
       (overlay-put 'nt-last-bound bound)
       (overlay-put 'nt-in-effect? in-effect?))))
 
+;;;;; Implementation
+
+;; ASSUMING BALANCED DELETION CURRENTLY
+;; If I do end up needing a tree
+;;  can recursively call the `nt-notes->roots' on each `-drop-while' section
+
 (defun nt-change--deletion (pos chars-deleted)
   "Change function specialized for deletion, number CHARS-DELETED at POS."
-  ;; ASSUMING BALANCED DELETION CURRENTLY
-  ;; If I do end up needing a tree
-  ;;  can recursively call the `nt-notes->roots' on each `-drop-while' section
-
   (when (nt-change--lines-deleted?)
-    (let* ((roots
-            (nt-notes->roots nt-notes))
-           (line
-            (line-number-at-pos pos))  ; works only if balanced i think
-           (root
-            (nt-change--root-containing line roots))
-           ((_ root-end-line)
-            (nt-note->interval root))
-           (children
-            (->> nt-notes
-               (-drop-while (lambda (note)
-                              (not (equal it root))))
-               (-take-while (lambda (note)
-                              (<= (nt-ov->line note) root-end-line))))))
-
-      (-each children #'nt-change--update-bounded))))
+    (let* ((roots (nt-notes->roots nt-notes))
+           (line (line-number-at-pos pos))  ; works only if balanced i think
+           (root (nt-change--root-containing line roots)))
+      (when root
+        (let ((children (nt-notes--children-of root)))
+          (-each children #'nt-change--update-bounded))))))
 
 ;;; Provide
 

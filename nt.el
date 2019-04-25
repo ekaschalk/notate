@@ -136,7 +136,7 @@ To allow identifying what Notate is doing at a glance.")
 
 (defun nt-disable--in-progress ()
   "TEMP Disable Notate components that are in active development."
-  (remove-hook 'after-change-functions #'nt-after-change-function 'local)
+  (remove-hook 'after-change-functions #'nt-change--after-change-function 'local)
   )
 
 ;;; Interactive
