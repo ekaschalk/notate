@@ -35,6 +35,10 @@
 
 ;;;; Insertion
 
+;; (-if-let (new-lines (nt-change--new-lines?))
+;;     (nt-change--insertion-lines start end new-lines)
+;;   (nt-change--insertion-line-restricted (line-number-at-pos start)))
+
 ;; (defun nt-change--insertion-lines (start end count)
 ;;   "Change function specialized for insertions changing line-count."
 ;;   ;; This is a hard function, much harder than I originally expected.
@@ -92,18 +96,21 @@
 ;;;; Hook
 
 (defun nt-change--after-change-function (start end chars-deleted)
-  "See `after-change-functions', dispatches the correct change function."
+  "See `after-change-functions', dispatches on insertion or deletion."
   (if (= 0 chars-deleted)
       (nt-change--insertion start end)
     (nt-change--deletion start chars-deleted)))
 
 ;;;; Insertion
 
+
+(defun nt-change--insertion-same-line (start end)
+  "Change func specialized for insertion not crossing lines in START and END."
+  )
+
 (defun nt-change--insertion (start end)
-  "Change function specialized for insertion, in START and END."
-  (-if-let (new-lines (nt-change--new-lines?))
-      (nt-change--insertion-lines start end new-lines)
-    (nt-change--insertion-line-restricted (line-number-at-pos start))))
+  "Change func specialized for insertion, in START and END."
+  )
 
 ;;; Provide
 
