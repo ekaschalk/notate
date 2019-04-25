@@ -107,6 +107,7 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 
 ;;;; Range
 
+;; DEPRECATED in favor of generalized implementation
 (defun nt-bounds--lisps (note)
   "Calculate line boundary [a b) for NOTE's masks."
   (save-excursion
@@ -115,10 +116,18 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
     (1+ (line-number-at-pos))))
 
 ;;; Generalized
+;;;; COMMENTARY
 
 ;; Special indent rules, indent blocks, etc. will be handled by
 ;; major-mode-dependent predicate. I don't think the predicate can be made
 ;; major-mode-agnostic...
+
+;; Still thinking about the bound is nil case
+;;   ie. all lines are empty/before indent and so are bound
+;; An option is to signal that the bound is being completed still.
+;; Depending on how change functions are implemented, I may use this idea
+
+;;;; Implementation
 
 (defun nt-bounds--general (note)
   "Generalized visual-line based bounds finding for NOTE."
@@ -126,17 +135,11 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
     (nt-ov--goto note)
 
     (let ((start-line (line-number-at-pos))
-          bound)
+          (bound (line-number-at-pos (point-max))))
       (nt-line-move-visual-while (or (nt-line--empty? line)
                                      (nt--before-indent?))
         (when (nt-line--nonempty? line)
           (setq bound line)))
-
-      ;; TODO Think about the nil case - all are empty/before indent so bound
-      ;; What should bound return?
-      ;; Two choices:
-      ;; 1. Return last line of buffer
-      ;; 2. Return sentinel so that we know the bound is still being completed
 
       (1+ bound))))
 
