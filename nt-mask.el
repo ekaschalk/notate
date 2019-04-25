@@ -262,7 +262,14 @@ Eventually rewrite with vector for constant-time idxing.")
 ;;; Init
 
 (defun nt-mask--init-ov (start end)
-  "Instantiate mask overlay and its properties for `nt-mask--init'."
+  "Instantiate mask overlay and its properties for `nt-mask--init'.
+
+Notate Text Properties
+  'nt?:           A notate overlay.
+  'nt-mask?:      A mask overlay.
+  'nt-notes:      List of notes currently contributing to the mask.
+  'nt-opaque-end: End takes value nt-opaque-end only when we won't cross lines.
+"
   (-doto (make-overlay start end)
     (overlay-put 'nt?      t)
     (overlay-put 'nt-mask? t)

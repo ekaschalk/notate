@@ -59,7 +59,7 @@
 
 (defun nt-note->bound (note)
   "Access NOTE's bound."
-  (-some-> note (overlay-get 'nt-bound)))
+  (-some-> note (overlay-get 'nt-last-bound)))
 
 (defun nt-note->replacement (note)
   "Access NOTE's display."
@@ -211,10 +211,17 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 (defun nt-note--init-bound (note)
   "Init NOTE's 'nt-bound text property."
   (let ((bound (nt-bound note)))
-    (overlay-put note 'nt-bound bound)))
+    (overlay-put note 'nt-last-bound bound)))
 
 (defun nt-note--init-ov (string replacement start end)
-  "Instantiate note overlay and its properties for `nt-note--init'."
+  "Instantiate note overlay and its properties for `nt-note--init'.
+
+Notate Text Properties
+  'nt?:           A notate overlay.
+  'nt-note?:      A note overlay.
+  'nt-width:      Difference of true and rendered string sizes.
+  'nt-last-bound: The last calculated value of bound for the note.
+"
   (-doto (make-overlay start end)
     (overlay-put 'nt?      t)
     (overlay-put 'nt-note? t)
