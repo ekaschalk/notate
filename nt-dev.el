@@ -122,7 +122,9 @@
          (string (buffer-substring-no-properties start end))
          (replacement (overlay-get note 'display))
          (width (- (length string) (length replacement)))
-         (masks (nt-note->masks note)))
+         (last-bound (nt-note->last-bound note))
+         (cur-bound (nt-bound note))
+         (in-effect? (nt-note--in-effect? note)))
     (format "Note overlay:
 start: %s
 end: %s
@@ -130,9 +132,11 @@ line: %s
 width: %s
 string: %s
 replacement: %s
-masks: %s
+
+last-bound: %s
+cur-bound: %s
 "
-            start end line width string replacement masks)))
+            start end line width string replacement last-bound cur-bound)))
 
 (defun nt-mask--format (mask)
   "Format MASK for pprinting."

@@ -41,7 +41,9 @@ to matching the specified string.")
 ;; symbol match if it sees like :symbol or something.
 
 
-(defvar-local nt-bound-fn #'nt-bounds--general
+(defvar-local nt-bound-fn
+  ;; #'nt-bounds--general
+  #'nt-bounds--lisps
   "A function that should return line boundaries [a b) given a NOTE.")
 
 

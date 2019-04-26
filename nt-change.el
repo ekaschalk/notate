@@ -61,6 +61,18 @@
 ;; Further I can just store the roots and point to their children which
 ;; should be fine in most cases
 
+;;; Utilities
+
+(defun nt-change--lines-deleted? ()
+  "Have lines been deleted?"
+  (let ((count (- (length nt-masks) (line-number-at-pos (point-max)))))
+    (and (< 0 count) count)))
+
+(defun nt-change--lines-added? ()
+  "Have lines been deleted?"
+  (let ((count (- (line-number-at-pos (point-max)) (length nt-masks))))
+    (and (< 0 count) count)))
+
 ;;; Insertion
 
 (defun nt-change--insertion (start end)
@@ -87,19 +99,6 @@
       (nt-notes--update-bounded notes))))
 
 ;;; Deletion
-;;;; Utilities
-
-(defun nt-change--lines-deleted? ()
-  "Have lines been deleted?"
-  (let ((count (- (length nt-masks) (line-number-at-pos (point-max)))))
-    (and (< 0 count) count)))
-
-(defun nt-change--lines-added? ()
-  "Have lines been deleted?"
-  (let ((count (- (line-number-at-pos (point-max)) (length nt-masks))))
-    (and (< 0 count) count)))
-
-;;;; Implementation
 
 (defun nt-change--deletion (pos chars-deleted)
   "Change function specialized for deletion, number CHARS-DELETED at POS.

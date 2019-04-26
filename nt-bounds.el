@@ -99,7 +99,6 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 
 ;;;; Range
 
-;; DEPRECATED in favor of generalized implementation
 (defun nt-bounds--lisps (note)
   "Calculate line boundary [a b) for NOTE's masks."
   (save-excursion
