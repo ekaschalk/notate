@@ -184,11 +184,14 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
     (nt-note--decompose note)))
 
 ;;; Update Masks
+;;;; Common
 
-;; Adding, removing, and combined add+remove follow similar API.
-
-;; Note that adding+removing, ie. modifying bounds of a note already existing in
-;; the, buffer has a bit more requirements than simply calling add+remove.
+(defun nt-notes--doto-bound (notes doto-bound-fn)
+  "Execute DOTO-BOUND-FN on NOTES, with batch mask refreshing optimized."
+  (let ((intervals (nt-notes->maximal-intervals notes)))
+    (let ((nt-mask--wait-for-refresh? t))
+      (-each notes (symbol-value doto-bound-fn)))
+    (-each intervals (-applify #'nt-masks--refresh-lines))))
 
 ;;;; Adding Notes
 
@@ -209,17 +212,14 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-notes--add-bounded (notes)
   "Add NOTES to masks within their bounds, with optimized batch refreshing."
-  (let ((intervals (nt-notes->maximal-intervals notes)))
-    (let ((nt-mask--wait-for-refresh? t))
-      (-each notes #'nt-note--add-bounded))
-    (-each intervals (-applify #'nt-masks--refresh-lines))))
+  (nt-notes--doto-bound notes #'nt-note--add-bounded))
 
 ;;;; Removing Notes
 
 (defun nt-note--remove-from-mask (note mask)
   "Remove NOTE from a MASK, possibly refresh, and return back mask."
-  (setf (overlay-get mask 'nt-notes)  ; TODO do this better
-        (delq note (overlay-get mask 'nt-notes)))
+  (setf (overlay-get mask 'nt-notes)
+        (delete note (overlay-get mask 'nt-notes)))
   (nt-mask--refresh mask))
 
 (defun nt-note--remove-from-masks (note masks)
@@ -230,9 +230,13 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
   "Remove NOTE from masks within its bound, maybe refresh, and give back masks."
   (nt-note--remove-from-masks note (nt-note->masks note)))
 
+(defun nt-note--remove-bounded (notes)
+  "Remove NOTES from masks within their bounds, maybe refresh, and give masks."
+  (nt-notes--doto-bound notes #'nt-note--remove-bounded))
+
 ;;;; Boundary Updates
 
-(defun nt-note--update-bound (note)
+(defun nt-note--update-bounded (note)
   "Recalculate bound-based properties and update masks based on the difference."
   (let ((last-bound (nt-note->last-bound note))
         (was-in-effect? (nt-note--in-effect? note))
@@ -249,12 +253,9 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
     (when in-effect?
       (nt-note--add-bounded note))))
 
-(defun nt-notes--update-bound (notes)
-  "Map `nt-note--update-bound' on NOTES."
-  (let ((intervals (nt-notes->maximal-intervals notes)))
-    (let ((nt-mask--wait-for-refresh? t))
-      (-each notes #'nt-note--update-bound))
-    (-each intervals (-applify #'nt-masks--refresh-lines))))
+(defun nt-notes--update-bounded (notes)
+  "Recalculate bound-based props/update masks of NOTES."
+  (nt-notes--doto-bound notes #'nt-note--update-bounded))
 
 ;;; Init
 

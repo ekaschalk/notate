@@ -28,7 +28,7 @@
 ;;        (root (nt-change--root-containing line roots)))
 ;;   (when root
 ;;     (let ((children (nt-notes--children-of root)))
-;;       (nt-notes--update-bound children))))
+;;       (nt-notes--update-bounded children))))
 
 ;; (defun nt-change--root-containing (line roots)
 ;;   "Get first root in ROOTS whose interval contains LINE."
@@ -93,7 +93,7 @@ and masks themselves."
            (start (point-min))
            (end (point-max))
            (notes (nt-notes<-region start end)))
-      (nt-notes--update-bound notes))))
+      (nt-notes--update-bounded notes))))
 
 ;;; Provide
 
