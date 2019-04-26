@@ -89,8 +89,7 @@
 Note that the 'modification-hook text property handles deletion of notes
 and masks themselves."
   (when (nt-change--lines-deleted?)
-    (let* (;; TODO I'm cheating! setting these to start/end of buffer atm
-           ;; to get this off the ground
+    (let* (;; TODO setting these to start/end of buffer atm to get off ground
            (start (point-min))
            (end (point-max))
            (notes (nt-notes<-region start end)))
