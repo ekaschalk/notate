@@ -142,6 +142,7 @@ This section is subject to change while under development.
 *** Whats Being Worked On
 
 - Buffer modification that adds or removes lines.
+  - Basic support achieved but bugs and had cases remain to iron out.
 
 *** What Doesn't Work Yet
 
