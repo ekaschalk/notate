@@ -37,6 +37,13 @@ Eventually rewrite with vector for constant-time idxing.")
   "Get mask at LINE."
   (-some-> line nt-line->idx (nth nt-masks)))
 
+(defun nt-mask<-line-raw (line)
+  "Get mask at LINE via overlay methods."
+  (-> line
+     nt-line->start
+     nt-ov<-pos
+     nt-ov--mask?))
+
 (defun nt-masks<-lines (start-line end-line)
   "Get masks in [START-LINE END-LINE)."
   (let ((start (nt-line->idx start-line))

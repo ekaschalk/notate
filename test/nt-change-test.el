@@ -117,3 +117,45 @@
 ;; Maybe - the first space we insert will actually insert mask-size spaces!
 ;; now the line wont "collapse" when it has enough space to render
 ;; when spaces are being added...
+
+;;; Case Exploration
+
+;; (note foo (note foo
+;;                 bar))
+
+;; (n foo (n foo
+;;           bar))
+
+;; (note foo (note foo (note foo
+;;                           bar)))
+;; (noteeeeeeee foo (note foo
+;;                        bar))
+
+;; (n foo (note foo
+;;           bar))
+
+;; (n foo (note foo
+;;              (note foo
+;;                    bar)))
+
+;; (note (note foo
+;;             (note foo
+;;                   bar)
+;;             bar
+;;             (note foo
+;;                   bar))
+;;       (note foo
+;;             bar))
+
+;; (n (note foo
+;;             (note foo
+;;                   bar)
+;;             bar
+;;             (note foo
+;;                   bar))
+;;       (note foo
+;;             bar))
+
+;; Maybe we are ok but the bounds checks have to happen ordered by buffer position
+;; or maybe sexp depth? or col number?
+;;   sexp depth == bound depth

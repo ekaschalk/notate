@@ -190,7 +190,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
   "Execute DOTO-BOUND-FN on NOTES, with batch mask refreshing optimized."
   (let ((intervals (nt-notes->maximal-intervals notes)))
     (let ((nt-mask--wait-for-refresh? t))
-      (-each notes (symbol-value doto-bound-fn)))
+      (-each notes doto-bound-fn))
     (-each intervals (-applify #'nt-masks--refresh-lines))))
 
 ;;;; Adding Notes
@@ -230,7 +230,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
   "Remove NOTE from masks within its bound, maybe refresh, and give back masks."
   (nt-note--remove-from-masks note (nt-note->masks note)))
 
-(defun nt-note--remove-bounded (notes)
+(defun nt-notes--remove-bounded (notes)
   "Remove NOTES from masks within their bounds, maybe refresh, and give masks."
   (nt-notes--doto-bound notes #'nt-note--remove-bounded))
 
@@ -244,7 +244,7 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
         (in-effect? (nt-bound? note)))
 
     (when was-in-effect?
-      (nt-note--removed-bounded note))
+      (nt-note--remove-bounded note))
 
     (-doto note
       (overlay-put 'nt-last-bound bound)
@@ -255,7 +255,9 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-notes--update-bounded (notes)
   "Recalculate bound-based props/update masks of NOTES."
-  (nt-notes--doto-bound notes #'nt-note--update-bounded))
+  (-> notes
+     nt-notes--sort  ; just-in-case, I /think/ it must be sorted
+     (nt-notes--doto-bound #'nt-note--update-bounded)))
 
 ;;; Init
 

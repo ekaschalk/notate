@@ -77,7 +77,7 @@
   (-any #'nt-ov? (overlays-at pos)))
 
 (defun nt-ov--at-point ()
-  "Execute `nt-ov--at' point."
+  "Execute `nt-ov<-pos' point."
   (nt-ov<-pos (point)))
 
 (defun nt-ovs<-region (start end)
