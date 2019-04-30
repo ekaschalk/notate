@@ -30,9 +30,7 @@
 
 (defun nt-bounds?--in-string-or-comment? (note)
   "Is NOTE contained within a string or comment?"
-  (let ((state (save-excursion
-                 (syntax-ppss (overlay-start note)))))
-    (or (nth 3 state) (nth 4 state))))
+  (-> note nt-ov->syntax nt-syntax->string-or-comment))
 
 (defun nt-bounds?--ignore? (note)
   "Should NOTE, identified by `nt-ignore-notes', never modify the indent?
@@ -64,11 +62,7 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 
     (let ((line-start (line-number-at-pos)))
       (ignore-errors (forward-sexp))
-
-      (if (s-blank-str? (buffer-substring-no-properties (point)
-                                                        (line-end-position)))
-          t
-        (nth 8 (parse-partial-sexp (point) (line-end-position)))))))
+      (nt-syntax--line-empty-after-point))))
 
 (defun nt-bounds?--lisps-another-form-opener-on-line? (note)
   "Does NOTE have another form opener on the same line?
@@ -81,10 +75,10 @@ Has NOTE contributing to indentation masks even though it is not a form opener."
     (nt-ov--goto note)
 
     (let ((line-start (line-number-at-pos))
-          (depth (nt--depth-at-point)))
+          (depth (nt-syntax--depth-at-point)))
       (sp-down-sexp)
 
-      (and (> (nt--depth-at-point) depth)
+      (and (> (nt-syntax--depth-at-point) depth)
            (= (line-number-at-pos) line-start)))))
 
 (defun nt-bounds?--lisps-form-opener? (note)
@@ -116,6 +110,7 @@ Simplest case that has NOTE contributing to indentation masks."
 
          (none-failed? (not (funcall any-fail? note)))
          (some-passed? (funcall any-pass? note)))
+
     (when (and none-failed? some-passed?)
       note)))
 
@@ -142,7 +137,7 @@ Simplest case that has NOTE contributing to indentation masks."
 
 ;;;; Implementation
 
-;; TODO Not compatabile yet with `after-change-functions'
+;; TODO Not compatabile yet with `after-change-functions' yet
 ;; however, it works without them enabled.
 (defun nt-bounds--general (note)
   "Generalized visual-line based bounds finding for NOTE."

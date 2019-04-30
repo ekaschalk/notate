@@ -10,7 +10,7 @@
 ;; files are (by convention).
 
 ;; Right now provides methods, macros, and others operating on LINES, REGIONS,
-;; and POSITIONS.
+;; POSITIONS, and SYNTAX.
 
 ;;; Code:
 ;;;; Requires
@@ -135,9 +135,25 @@ If `nt--move-up?' is non-nil, move upwards in buffer instead.
   "Is point before `current-indentation'?"
   (< (current-column) (current-indentation)))
 
-(defun nt--depth-at-point ()
-  "Get parenthetical (syntax-table-based) depth at point."
+;;; Syntax
+
+(defun nt-syntax--depth-at-point ()
+  "Get parenthetical depth at point."
   (car (syntax-ppss)))
+
+(defun nt-syntax->string-or-comment (state)
+  "Is syntax STATE identifiy a string or comment?"
+  (or (nth 3 state) (nth 4 state)))
+
+(defun nt-syntax--line-empty-after-point ()
+  "Is current line composed of only non-semantic characters past point?"
+  (let ((line-end (line-end-position)))
+    (cond
+     ;; Only whitespace remaining
+     ((s-blank-str? (buffer-substring-no-properties (point) line-end)))
+
+     ;; Only whitespace and comments remaining
+     ((nth 4 (parse-partial-sexp (point) line-end))))))
 
 ;;; Provide
 

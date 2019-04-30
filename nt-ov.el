@@ -56,6 +56,10 @@
   (-let (((start end) (nt-ov->region ov)))
     (- end start)))
 
+(defun nt-ov->syntax (ov)
+  "Return `syntax-ppss' on start of OV."
+  (save-excursion (syntax-ppss (overlay-start ov))))
+
 (defun nt-ov->string (ov)
   "Return string covered by OV."
   (-some->> ov nt-ov->region (apply #'buffer-substring-no-properties)))
