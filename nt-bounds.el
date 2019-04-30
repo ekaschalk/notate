@@ -7,6 +7,8 @@
 ;; Calculate boundaries of notes effects on indentation masks. Major-mode
 ;; dependent functions are implemented here.
 
+;; Other modules should only be interested in `nt-bound' and `nt-bound?'
+
 ;;; Code:
 ;;;; Requires
 
@@ -24,8 +26,7 @@
   "Call `nt-bound?-fn' on NOTE."
   (funcall (symbol-value #'nt-bound?-fn) note))
 
-;;; General
-;;;; Overlay-Based
+;;; Language Agnostic
 
 (defun nt-bounds?--in-string-or-comment? (note)
   "Is NOTE contained within a string or comment?"
@@ -33,9 +34,15 @@
                  (syntax-ppss (overlay-start note)))))
     (or (nth 3 state) (nth 4 state))))
 
-;;; Lisps
+;;; Lisps - Emacs Lisp Only
+
+(defun nt-bounds?--elisp-indent-declared? (note)
+  "Returns non-nil if indendation declarations are attached to NOTE."
+  (-some-> note nt-ov->symbol (function-get 'lisp-indent-function)))
+
+;;; Lisps - General
 ;;;; Predicates
-;;;;; Complete
+;;;;; Components
 
 (defun nt-bounds?--ignore? (note)
   "Should NOTE never contribute to indentation?"
@@ -74,13 +81,6 @@ Has NOTE contributing to indentation masks even though it is not a form opener.
             (same-line? (= line-start (line-number-at-pos))))
         (and descended? same-line?)))))
 
-(defun nt-bounds?--elisp-indent-declared? (note)
-  "Returns non-nil if indendation declarations are attached to NOTE."
-  (-> note nt-ov->symbol (function-get 'lisp-indent-function)))
-
-;;;;; In-progress
-
-;; TODO If the replacement covers a form-opener only partially, should return t
 (defun nt-bounds?--lisps-form-opener? (note)
   "Does NOTE open a form?
 
@@ -92,7 +92,7 @@ Simplest case that has NOTE contributing to indentation masks."
     (nt-ov--goto note)
     (null (ignore-errors (backward-sexp) t))))
 
-;;;;; Composition
+;;;;; Composed
 
 (defun nt-bounds?--lisps (note)
   "Render NOTE's indentation boundary? If so give NOTE."
@@ -109,7 +109,7 @@ Simplest case that has NOTE contributing to indentation masks."
                (funcall any-pass? note))
       note)))
 
-;;;; Range
+;;;; Boundary
 
 (defun nt-bounds--lisps (note)
   "Calculate line boundary [a b) for NOTE's masks."
@@ -119,7 +119,7 @@ Simplest case that has NOTE contributing to indentation masks."
     (1+ (line-number-at-pos))))
 
 ;;; Generalized
-;;;; COMMENTARY
+;;;; Commentary
 
 ;; Special indent rules, indent blocks, etc. will be handled by
 ;; major-mode-dependent predicate. I don't think the predicate can be made
@@ -132,6 +132,8 @@ Simplest case that has NOTE contributing to indentation masks."
 
 ;;;; Implementation
 
+;; TODO Not compatabile yet with `after-change-functions'
+;; however, it works without them enabled.
 (defun nt-bounds--general (note)
   "Generalized visual-line based bounds finding for NOTE."
   (save-excursion
