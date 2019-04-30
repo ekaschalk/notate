@@ -137,9 +137,7 @@ This section is subject to change while under development.
 - The core idea! Toggling on/off works as expected.
 - Unrendering a note updates indentation on-the-fly.
 - Deleting near the beginning of masked lines behaves as if not masked.
-- Lisps Only
-  - Determining range of indentation to mask independent of the major-mode.
-  - Determining whether a given rendering should modify indent.
+- Indentation masking range calculations for lisps complete I think.
 
 *** Whats Being Worked On
 
@@ -150,10 +148,12 @@ This section is subject to change while under development.
 
 *** What Doesn't Work Yet
 
-- Generalized range of indent calculation.
-  - Will write support myself for Python.
+- Generalized range of indent calculations working except when buffer
+  modification support is enabled.
+- Whether to mask indent calculations always depend on major mode.
+  - Will write support for Python myself.
   - Contributors with deeper knowledge of various languages would help greatly
-    in expanding support. Otherwise will need time to study their rules.
+    in expanding language support (when the project is sufficiently mature).
 
 *** What We Might Have to Deal With
 
