@@ -53,12 +53,11 @@ to matching the specified string.")
 
 
 (defvar nt-ignore-notes nil
-  "List of strings identifying notes never contributing to indentation.
+  "List of strings identifying notes you never want to modify indentation.
 
-Atm, provides way to handle specially-indented symbols without delving into
-special indentation rules and introspection.
-
-There are better (ie. automated) ways to implement this, tbd.")
+Note that emacs-lisp indent declarations /are/ supported. For
+example, notating defun or let as script f and l, won't mask
+indentation, as the indent rules decide the indent.")
 
 
 (defvar nt-normalize-height? nil
