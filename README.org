@@ -137,23 +137,27 @@ This section is subject to change while under development.
 - The core idea! Toggling on/off works as expected.
 - Unrendering a note updates indentation on-the-fly.
 - Deleting near the beginning of masked lines behaves as if not masked.
-- Determining range of indentation to mask independent of the major-mode.
+- Lisps Only
+  - Determining range of indentation to mask independent of the major-mode.
+  - Determining whether a given rendering should modify indent.
 
 *** Whats Being Worked On
 
 - Buffer modification that adds or removes lines.
-  - Basic support achieved but bugs and had cases remain to iron out.
+  - Basic support has been achieved for balanced insertion and deletion.
+    - Unbalanced (inserting a parenthesis) buffer modification being explored
+      and thought through still.
 
 *** What Doesn't Work Yet
 
-- Determining whether a given rendering should modify indent.
-  - Lisps more-or-less handled.
-  - Will also write support for Python.
+- Generalized range of indent calculation.
+  - Will write support myself for Python.
   - Contributors with deeper knowledge of various languages would help greatly
-    in expanding support.
+    in expanding support. Otherwise will need time to study their rules.
 
-*** What Might Require Emacs C Source Modifications
+*** What We Might Have to Deal With
 
-- Visual replacements not necessarily monospaced depending on the fonts.
+- Visual replacements xor masked indent not necessarily monospaced depending on
+  fonts for replacements.
   - Compare the two progress-2 images in [[./img]]. See the ~nt-normalize-height?~
     variable for commentary.

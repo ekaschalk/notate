@@ -20,11 +20,11 @@
 
 (defun nt-bound (note)
   "Call `nt-bound-fn' on NOTE."
-  (funcall (symbol-value #'nt-bound-fn) note))
+  (funcall nt-bound-fn note))
 
 (defun nt-bound? (note)
   "Call `nt-bound?-fn' on NOTE."
-  (funcall (symbol-value #'nt-bound?-fn) note))
+  (funcall nt-bound?-fn note))
 
 ;;; Language Agnostic
 
@@ -33,6 +33,14 @@
   (let ((state (save-excursion
                  (syntax-ppss (overlay-start note)))))
     (or (nth 3 state) (nth 4 state))))
+
+(defun nt-bounds?--ignore? (note)
+  "Should NOTE, identified by `nt-ignore-notes', never modify the indent?
+
+Provides an entry point for users to modify indentation masking behavior
+of particular notes. I do not believe there is a reason for the converse
+to be implemented."
+  (-contains? nt-ignore-notes (nt-ov->string note)))
 
 ;;; Lisps - Emacs Lisp Only
 
@@ -44,24 +52,23 @@
 ;;;; Predicates
 ;;;;; Components
 
-(defun nt-bounds?--ignore? (note)
-  "Should NOTE never contribute to indentation?"
-  (-contains? nt-ignore-notes (nt-ov->string note)))
-
 (defun nt-bounds?--lisps-terminal-sexp? (note)
   "Is NOTE the terminal sexp on its line?
 
   (note
    foo)
 
-Does not have NOTE contributing to indentation masks though it is a form opener.
-"
+Does not have NOTE contributing to indentation masks though it is a form opener."
   (save-excursion
     (nt-ov--goto note)
 
     (let ((line-start (line-number-at-pos)))
-      (ignore-errors (forward-sexp) (forward-sexp))
-      (< line-start (line-number-at-pos)))))
+      (ignore-errors (forward-sexp))
+
+      (if (s-blank-str? (buffer-substring-no-properties (point)
+                                                        (line-end-position)))
+          t
+        (nth 8 (parse-partial-sexp (point) (line-end-position)))))))
 
 (defun nt-bounds?--lisps-another-form-opener-on-line? (note)
   "Does NOTE have another form opener on the same line?
@@ -69,17 +76,16 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
   (foo note (foo foo
                  foo))
 
-Has NOTE contributing to indentation masks even though it is not a form opener.
-"
+Has NOTE contributing to indentation masks even though it is not a form opener."
   (save-excursion
+    (nt-ov--goto note)
+
     (let ((line-start (line-number-at-pos))
           (depth (nt--depth-at-point)))
-
       (sp-down-sexp)
 
-      (let ((descended? (> (nt--depth-at-point) depth))
-            (same-line? (= line-start (line-number-at-pos))))
-        (and descended? same-line?)))))
+      (and (> (nt--depth-at-point) depth)
+           (= (line-number-at-pos) line-start)))))
 
 (defun nt-bounds?--lisps-form-opener? (note)
   "Does NOTE open a form?
@@ -88,6 +94,7 @@ Has NOTE contributing to indentation masks even though it is not a form opener.
         bar)
 
 Simplest case that has NOTE contributing to indentation masks."
+  ;; Should I use my `hy--at-a-form-opener' `parse-partial-sexp' implementation?
   (save-excursion
     (nt-ov--goto note)
     (null (ignore-errors (backward-sexp) t))))
@@ -96,17 +103,20 @@ Simplest case that has NOTE contributing to indentation masks."
 
 (defun nt-bounds?--lisps (note)
   "Render NOTE's indentation boundary? If so give NOTE."
-  ;; Not optimized obviously, focusing on easy testing of components
+  ;; About as un-optimized as you can get... But clean and easy to test!
   (let* ((fail-predicates '(nt-bounds?--ignore?
                             nt-bounds?--in-string-or-comment?
                             nt-bounds?--elisp-indent-declared?
                             nt-bounds?--lisps-terminal-sexp?))
          (pass-predicates '(nt-bounds?--lisps-another-form-opener-on-line?
                             nt-bounds?--lisps-form-opener?))
+
          (any-fail? (apply #'-orfn fail-predicates))
-         (any-pass? (apply #'-orfn pass-predicates)))
-    (when (and (not (funcall any-fail? note))
-               (funcall any-pass? note))
+         (any-pass? (apply #'-orfn pass-predicates))
+
+         (none-failed? (not (funcall any-fail? note)))
+         (some-passed? (funcall any-pass? note)))
+    (when (and none-failed? some-passed?)
       note)))
 
 ;;;; Boundary

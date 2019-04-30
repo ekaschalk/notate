@@ -290,6 +290,7 @@ Notate Text Properties
     (overlay-put 'nt-opaque-end end)
     ;; TODO Save 'nt-rendered? property as an optimization
 
+    ;; TODO Investigate effects of 'intangible (emacs docs says be careful)
     (overlay-put 'modification-hooks '(nt-mask--decompose-hook))))
 
 (defun nt-mask--init (&optional line)

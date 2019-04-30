@@ -282,6 +282,7 @@ Notate Text Properties
     (overlay-put 'nt-note? t)
     (overlay-put 'nt-width (- (length string) (length replacement)))
 
+    ;; TODO Investigate effects of 'intangible (emacs docs says be careful)
     (overlay-put 'display replacement)
     (overlay-put 'modification-hooks '(nt-note--decompose-hook))
 

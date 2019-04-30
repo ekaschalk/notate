@@ -90,7 +90,7 @@
                 (setq mocked-note-2 (cadr mocked-notes))
                 (setq mocked-note-3 (caddr mocked-notes))
                 (setq mocked-note-4 (cadddr mocked-notes))
-                (setq mocked-note-5 (cadddr (cdr mocked-notes))))
+                (setq mocked-note-5 (-last-item mocked-notes)))
     (after-all (nt-test--teardown))
 
     (describe text
