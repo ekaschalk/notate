@@ -35,11 +35,50 @@
 
 ;;; Lisps
 ;;;; Predicates
-;;;;; Conditions
+;;;;; Complete
 
 (defun nt-bounds?--ignore? (note)
   "Should NOTE never contribute to indentation?"
   (-contains? nt-ignore-notes (nt-ov->string note)))
+
+(defun nt-bounds?--lisps-terminal-sexp? (note)
+  "Is NOTE the terminal sexp on its line?
+
+(note
+ foo)
+
+Does not have NOTE contributing to indentation masks though it is a form opener.
+"
+  (save-excursion
+    (nt-ov--goto note)
+
+    (let ((line-start (line-number-at-pos)))
+      (ignore-errors (forward-sexp) (forward-sexp))
+      (< line-start (line-number-at-pos)))))
+
+(defun nt-bounds?--lisps-another-form-opener-on-line? (note)
+  "Does NOTE have another form opener on the same line?
+
+(foo note (foo foo
+               foo))
+
+Has NOTE contributing to indentation masks even though it is not a form opener.
+"
+  (save-excursion
+    (let ((line-start (line-number-at-pos))
+          (depth (nt--depth-at-point)))
+
+      (sp-down-sexp)
+
+      (let ((descended? (> (nt--depth-at-point) depth))
+            (same-line? (= line-start (line-number-at-pos))))
+        (and descended? same-line?)))))
+
+(defun nt-bounds?--elisp-indent-declared? (note)
+  "Returns non-nil if indendation declarations are attached to NOTE."
+  (-> note nt-ov->symbol (function-get 'lisp-indent-function)))
+
+;;;;; In-progress
 
 ;; TODO If the replacement covers a form-opener only partially, should return t
 (defun nt-bounds?--lisps-form-opener? (note)
@@ -53,49 +92,22 @@ Simplest case that has NOTE contributing to indentation masks."
     (nt-ov--goto note)
     (null (ignore-errors (backward-sexp) t))))
 
-;; TODO Straightforward (descend and check line)
-(defun nt-bounds?--lisps-another-form-opener-same-line? (note)
-  "Does NOTE have another form opener on the same line?
-
-(foo note (foo foo
-               foo))
-
-Has NOTE contributing to indentation masks even though it is not a form opener."
-  nil)
-
-(defun nt-bounds?--lisps-terminal-sexp? (note)
-  "Is NOTE the terminal sexp on its line?
-
-(note
- foo)
-
-Does not have NOTE contributing to indentation masks though it is a form opener."
-  (save-excursion
-    (nt-ov--goto note)
-
-    (let ((line-start (line-number-at-pos)))
-      (ignore-errors (forward-sexp) (forward-sexp))
-      (< line-start (line-number-at-pos)))))
-
-;; TODO Not sure where to start on this one Might have to learn how to inspect
-;; function properties and how (declare indent) works in-depth
-(defun nt-bounds?--lisps-specially-indented? (note)
-  "Do we have to account for indentation declarations?"
-  nil)
-
 ;;;;; Composition
 
 (defun nt-bounds?--lisps (note)
   "Render NOTE's indentation boundary? If so give NOTE."
-  ;; Not optimized obviously but clear.
-  (when (funcall (-andfn (-not #'nt-bounds?--ignore?)
-                         (-not #'nt-bounds?--in-string-or-comment?)
-                         (-not #'nt-bounds?--lisps-specially-indented?)
-                         (-not #'nt-bounds?--lisps-terminal-sexp?)
-                         (-orfn #'nt-bounds?--lisps-another-form-opener-same-line?
-                                #'nt-bounds?--lisps-form-opener?))
-                 note)
-    note))
+  ;; Not optimized obviously, focusing on easy testing of components
+  (let* ((fail-predicates '(nt-bounds?--ignore?
+                            nt-bounds?--in-string-or-comment?
+                            nt-bounds?--elisp-indent-declared?
+                            nt-bounds?--lisps-terminal-sexp?))
+         (pass-predicates '(nt-bounds?--lisps-another-form-opener-on-line?
+                            nt-bounds?--lisps-form-opener?))
+         (any-fail? (apply #'-orfn fail-predicates))
+         (any-pass? (apply #'-orfn pass-predicates)))
+    (when (and (not (funcall any-fail? note))
+               (funcall any-pass? note))
+      note)))
 
 ;;;; Range
 

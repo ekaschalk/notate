@@ -135,6 +135,10 @@ If `nt--move-up?' is non-nil, move upwards in buffer instead.
   "Is point before `current-indentation'?"
   (< (current-column) (current-indentation)))
 
+(defun nt--depth-at-point ()
+  "Get parenthetical (syntax-table-based) depth at point."
+  (car (syntax-ppss)))
+
 ;;; Provide
 
 (provide 'nt-base)

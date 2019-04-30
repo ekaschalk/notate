@@ -73,16 +73,22 @@
 (note4  ; foo
  foo
  bar)
+
+(foo note5 (foo foo
+                bar))
 ")
-          (notes '(("note" "n") ("note2" "n") ("note3" "n") ("note4" "n")))
+          (notes '(("note" "n") ("note2" "n") ("note3" "n") ("note4" "n")
+                   ("note5" "n")))
           (bound 6)
-          mocked-note-1 mocked-note-2 mocked-note-3 mocked-note-4)
+          mocked-note-1 mocked-note-2 mocked-note-3 mocked-note-4
+          mocked-note-5)
 
     (before-all (setq mocked-notes (nt-test--setup 'lispy text notes))
                 (setq mocked-note-1 (car mocked-notes))
                 (setq mocked-note-2 (cadr mocked-notes))
                 (setq mocked-note-3 (caddr mocked-notes))
-                (setq mocked-note-4 (cadddr mocked-notes)))
+                (setq mocked-note-4 (cadddr mocked-notes))
+                (setq mocked-note-5 (cadddr (cdr mocked-notes))))
     (after-all (nt-test--teardown))
 
     (describe text
@@ -111,7 +117,11 @@
 
         (it "opener that is a terminal sexp does not effect indent"
           (expect (nt-bounds?--lisps-terminal-sexp? mocked-note-4))
-          (expect (nt-bound? mocked-note-4) :nil))))))
+          (expect (nt-bound? mocked-note-4) :nil))
+
+        (it "another form opens on same line so note always contributes"
+          (expect (nt-bounds?--lisps-another-form-opener-on-line? mocked-note-5))
+          (expect (nt-bound? mocked-note-5)))))))
 
 ;;; Generalized Integration Tests
 

@@ -60,6 +60,10 @@
   "Return string covered by OV."
   (-some->> ov nt-ov->region (apply #'buffer-substring-no-properties)))
 
+(defun nt-ov->symbol (ov)
+  "Return symbol covered by OV."
+  (-some-> ov nt-ov->string intern))
+
 (defun nt-ov->width (ov)
   "Return difference of OV's length and its 'display properties length."
   (- (nt-ov->length ov)
