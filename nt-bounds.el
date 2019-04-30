@@ -46,7 +46,7 @@
   "Does NOTE open a form?
 
 (note foo
-     bar)
+      bar)
 
 Simplest case that has NOTE contributing to indentation masks."
   (save-excursion
@@ -63,7 +63,6 @@ Simplest case that has NOTE contributing to indentation masks."
 Has NOTE contributing to indentation masks even though it is not a form opener."
   nil)
 
-;; TODO Straightforward (next and check line)
 (defun nt-bounds?--lisps-terminal-sexp? (note)
   "Is NOTE the terminal sexp on its line?
 
@@ -71,7 +70,12 @@ Has NOTE contributing to indentation masks even though it is not a form opener."
  foo)
 
 Does not have NOTE contributing to indentation masks though it is a form opener."
-  nil)
+  (save-excursion
+    (nt-ov--goto note)
+
+    (let ((line-start (line-number-at-pos)))
+      (ignore-errors (forward-sexp) (forward-sexp))
+      (< line-start (line-number-at-pos)))))
 
 ;; TODO Not sure where to start on this one Might have to learn how to inspect
 ;; function properties and how (declare indent) works in-depth
@@ -83,19 +87,15 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 
 (defun nt-bounds?--lisps (note)
   "Render NOTE's indentation boundary? If so give NOTE."
-  ;; This may or may not be exhaustive. Exhausting cases is lower priority than
-  ;; getting this subset working. Same for performance optimizations.
-  (and
-   (funcall
-    (-andfn
-     (-not #'nt-bounds?--ignore?)
-     (-not #'nt-bounds?--in-string-or-comment?)
-     (-not #'nt-bounds?--lisps-specially-indented?)
-     (-not #'nt-bounds?--lisps-terminal-sexp?)
-     (-orfn #'nt-bounds?--lisps-another-form-opener-same-line?
-            #'nt-bounds?--lisps-form-opener?))
-    note)
-   note))
+  ;; Not optimized obviously but clear.
+  (when (funcall (-andfn (-not #'nt-bounds?--ignore?)
+                         (-not #'nt-bounds?--in-string-or-comment?)
+                         (-not #'nt-bounds?--lisps-specially-indented?)
+                         (-not #'nt-bounds?--lisps-terminal-sexp?)
+                         (-orfn #'nt-bounds?--lisps-another-form-opener-same-line?
+                                #'nt-bounds?--lisps-form-opener?))
+                 note)
+    note))
 
 ;;;; Range
 

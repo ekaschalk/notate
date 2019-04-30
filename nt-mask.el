@@ -120,16 +120,19 @@ Eventually rewrite with vector for constant-time idxing.")
 ;;;; Rendering
 
 (defun nt-mask--enough-space? (mask)
-  "Does MASK's line contain enough space for rendering?"
+  "Does MASK's line contain enough width for rendering?"
   (= (nt-mask->line mask)
      (nt-mask->opaque-line mask)))
+
+;; Potentially this just replaces `nt-mask--enough-space?' entirely
+(defun nt-mask--enough-whitespace? (mask)
+  "Does MASK's line contain enough whitespace for rendering?"
+  (<= (nt-mask->width mask) (nt-mask->indent mask)))
 
 (defun nt-mask--ends-agree? (mask)
   "Does MASK's opaque-end and actual end agree?"
   (= (nt-mask->true-end mask)
      (nt-mask->opaque-end mask)))
-
-;; TODO Potentially throw a current-indentation < mask-size check here
 
 (defun nt-mask--render? (mask)
   "Should MASK be rendered?"
@@ -217,7 +220,8 @@ Eventually rewrite with vector for constant-time idxing.")
 (defun nt-mask--refresh-ends (mask)
   "Reset MASK's 'opaque-end, and possibly true-end if there is space to do so."
   (nt-mask--refresh-opaque-end-internal mask)
-  (when (nt-mask--enough-space? mask)
+  (when (and (nt-mask--enough-space? mask)
+             (nt-mask--enough-whitespace? mask))
     (nt-mask--refresh-end-internal mask)))
 
 ;;;;; Prefixes
