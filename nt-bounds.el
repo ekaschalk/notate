@@ -51,8 +51,8 @@
 (defun nt-bounds?--lisps-terminal-sexp? (note)
   "Is NOTE the terminal sexp on its line?
 
-(note
- foo)
+  (note
+   foo)
 
 Does not have NOTE contributing to indentation masks though it is a form opener.
 "
@@ -66,8 +66,8 @@ Does not have NOTE contributing to indentation masks though it is a form opener.
 (defun nt-bounds?--lisps-another-form-opener-on-line? (note)
   "Does NOTE have another form opener on the same line?
 
-(foo note (foo foo
-               foo))
+  (foo note (foo foo
+                 foo))
 
 Has NOTE contributing to indentation masks even though it is not a form opener.
 "
@@ -84,8 +84,8 @@ Has NOTE contributing to indentation masks even though it is not a form opener.
 (defun nt-bounds?--lisps-form-opener? (note)
   "Does NOTE open a form?
 
-(note foo
-      bar)
+  (note foo
+        bar)
 
 Simplest case that has NOTE contributing to indentation masks."
   (save-excursion
