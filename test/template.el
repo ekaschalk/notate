@@ -17,13 +17,10 @@
 ;; useful generally.
 
 ;;; Load Files
-be a cleaner way to load everything
 
 (progn (require 'f)
        (add-to-list 'load-path (f-parent (f-parent (f-this-file))))
-       (require 'nt)
-       (add-to-list 'load-path (f-parent (f-this-file)))
-       (require 'test-helper))
+       (require 'nt-test))
 
 ;;; Tests on 1 Note
 
