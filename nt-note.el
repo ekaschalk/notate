@@ -259,6 +259,18 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
      nt-notes--sort  ; just-in-case, I /think/ it must be sorted
      (nt-notes--doto-bound #'nt-note--update-bounded)))
 
+(defun nt-notes--update-bounded-region (start end)
+  "Recalculate bound-based props/update masks of notes within START and END."
+  (nt-notes--update-bounded (nt-notes<-region start end)))
+
+(defun nt-notes--update-bounded-buffer ()
+  "Recalculate bound-based props/update masks of all notes in the buffer."
+  ;; (let* ((start (point-min))
+  ;;        (end (point-max))
+  ;;        (notes (nt-notes<-region start end)))
+  ;;   (nt-notes--update-bounded notes))
+  (nt-notes--update-bounded-region (point-min) (point-max)))
+
 ;;; Init
 
 (defun nt-note--init-bound (note)

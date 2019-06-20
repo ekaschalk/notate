@@ -48,26 +48,35 @@
 
 ;;; Insertion
 
-;; Maybe I do above on start to fix the start pos/line
-;; and the 2nd on end but don't backward-sexp to get the end pos/line
-
 (defun nt-change--pos->outer-region (pos)
   "Get region of the outermost form's start/end containing POS."
   (save-excursion
-    (goto-char start)
+    (goto-char pos)
 
-    (let ((jumped?))
-      (while (setq jumped? (or jumped? (sp-up-sexp))))
+    (let ((jumped?)
+          (jumped-last?))
+      (while (prog1 (setq jumped-last? (sp-up-sexp))
+               (setq jumped? (or jumped? jumped-last?))))
 
       (when jumped?
-        (list (point)
-              (progn (backward-sexp) (point)))))))
+        (let ((end (point)))
+          (backward-sexp)
+          (list (point) end))))))
 
 (defun nt-change--region->outer-region (start end)
   "Get region of outermost forms containing START to containing END."
-  (-let (((outer-start) (nt-change--pos->outer-region))
-         ((_ outer-end) (nt-change--pos->outer-region)))
-    (list outer-start outer-end)))
+  (-let (((outer-start) (nt-change--pos->outer-region start))
+         ((_ outer-end) (nt-change--pos->outer-region end)))
+    (list (or outer-start start)
+          (or outer-end end))))
+
+;; XXX If this function is making things harder to reason about it can safely
+;; be replaced (but will be potentially much slower) with:
+;;   (nt-notes--update-bounded-buffer)
+(defun nt-change--update-bounded-outer-region (start end)
+  "Perform `nt-notes--update-bounded-region' on the maximal outer-region."
+  (let ((outer-region (nt-change--region->outer-region start end)))
+    (apply #'nt-notes--update-bounded-region outer-region)))
 
 (defun nt-change--insertion (start end)
   "Change func specialized for insertion, in START and END."
@@ -85,11 +94,8 @@
 
         (-each (number-sequence start-line end-line) #'nt-mask--init)))
 
-    ;; TODO setting these to start/end of buffer atm to get off ground
-    (let* ((start (point-min))
-           (end (point-max))
-           (notes (nt-notes<-region start end)))
-      (nt-notes--update-bounded notes))))
+    ;; Update all masks, possibly but not just including the above masks
+    (nt-change--update-bounded-outer-region start end)))
 
 ;;; Deletion
 
@@ -99,12 +105,7 @@
 Note that the 'modification-hook text property handles deletion of notes
 and masks themselves."
   (when (nt-change--lines-deleted?)
-
-    ;; TODO setting these to start/end of buffer atm to get off ground
-    (let* ((start (point-min))
-           (end (point-max))
-           (notes (nt-notes<-region start end)))
-      (nt-notes--update-bounded notes))))
+    (nt-change--update-bounded-outer-region start end)))
 
 ;;; Provide
 
