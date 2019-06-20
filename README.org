@@ -1,4 +1,4 @@
-* Notate - Program with Personalized Notation
+* Notate - Program with Personal Notation
 
 (In-progress, current screenshot, *see bottom for current project status*)
 
@@ -11,7 +11,7 @@ Ligature's generalization, known to Emacs as ~prettified-symbols~, causes
 alignment and indentation issues, preventing one from rendering ~for~ as ~∀~ and
 ~int~ as ~ℤ~ in their code.
 
-With notate, selectively APL-ize your code.
+Selectively APL-ize your code with notate.
 
 ** Introduction
 
@@ -48,8 +48,8 @@ simple as a toggle.
 ** FAQ
 
 - Why? :: [[http://modernemacs.com][I've found a hobby]] in confusing over-the-shoulder onlookers. I got a
-          math degree purely so I could draw pretty symbols all day. I want
-          programmers to enjoy the same productivity.
+          math degree purely to draw pretty symbols all day. I want to continue
+          the same productivity.
 
 - Does Notate support all programming languages? :: Mostly.
   - /Details/: I do not see a reasonably performant, major-mode-agnostic way to
