@@ -117,6 +117,11 @@ Simplest case that has NOTE contributing to indentation masks."
 
 (defun nt-bounds--lisps (note)
   "Calculate line boundary [a b) for NOTE's masks."
+
+  ;; FIXME
+  ;; In the case we have ~(note (foo bar)~ where the form isn't closed for note
+  ;; the boundary will be returned as notes start/end line
+
   (save-excursion
     (nt-ov--goto note)
     (sp-end-of-sexp)

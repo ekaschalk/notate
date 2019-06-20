@@ -104,8 +104,11 @@
 
 Note that the 'modification-hook text property handles deletion of notes
 and masks themselves."
-  (when (nt-change--lines-deleted?)
-    (nt-change--update-bounded-outer-region start end)))
+  (apply #'nt-notes--update-bounded-region
+         (nt-change--pos->outer-region pos))
+  ;; (when (nt-change--lines-deleted?)
+  ;;   (nt-change--update-bounded-outer-region start end))
+  )
 
 ;;; Provide
 

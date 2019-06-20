@@ -188,9 +188,12 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-notes--doto-bound (notes doto-bound-fn)
   "Execute DOTO-BOUND-FN on NOTES, with batch mask refreshing optimized."
+  ;; FIXME Why is the batch version not refreshing like expected?
+  ;; (let ((nt-mask--wait-for-refresh? t))
+  ;;   (-each notes doto-bound-fn))
+
   (let ((intervals (nt-notes->maximal-intervals notes)))
-    (let ((nt-mask--wait-for-refresh? t))
-      (-each notes doto-bound-fn))
+    (-each notes doto-bound-fn)
     (-each intervals (-applify #'nt-masks--refresh-lines))))
 
 ;;;; Adding Notes
@@ -265,10 +268,6 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
 
 (defun nt-notes--update-bounded-buffer ()
   "Recalculate bound-based props/update masks of all notes in the buffer."
-  ;; (let* ((start (point-min))
-  ;;        (end (point-max))
-  ;;        (notes (nt-notes<-region start end)))
-  ;;   (nt-notes--update-bounded notes))
   (nt-notes--update-bounded-region (point-min) (point-max)))
 
 ;;; Init
