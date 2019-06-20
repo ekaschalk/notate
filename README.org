@@ -130,7 +130,6 @@ This section is subject to change while under development.
                    buttercup -L .~. Additional developer utilities can be found
                    in ~nt-dev~.
 
-
 ** Status
 *** What Works
 
@@ -142,9 +141,8 @@ This section is subject to change while under development.
 *** Whats Being Worked On
 
 - Buffer modification that adds or removes lines.
-  - Balanced insertion/deletion appear to be good.
-  - Unbalanced insertion/deletion also /appears/ to be good but will be likely
-    hard to think through all the cases to confirm this and to optimize it.
+  - Working in tons of cases but still possible to get notes where they
+    shouldn't be with enough messing around in the buffer.
 
 *** What Doesn't Work Yet
 
@@ -152,8 +150,8 @@ This section is subject to change while under development.
   - Will write support for Python myself.
   - Contributors with deeper knowledge of various languages would help greatly
     in expanding language support (when the project is sufficiently mature).
-- The how long a masked indent goes is only major-mode agnostic when support for
-  buffer-modification is not enabled.
+- How far a masked indent spans for arbitrary, non lisps, modes only working
+  without buffer-modification currently.
 
 *** What We Might Have to Deal With
 
