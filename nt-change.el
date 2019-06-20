@@ -21,33 +21,6 @@
       (nt-change--insertion start end)
     (nt-change--deletion start chars-deleted)))
 
-;;; Scratch
-
-;; (let* ((roots (nt-notes->roots nt-notes))
-;;        (line (line-number-at-pos pos))  ; works only if balanced i think
-;;        (root (nt-change--root-containing line roots)))
-;;   (when root
-;;     (let ((children (nt-notes--children-of root)))
-;;       (nt-notes--update-bounded children))))
-
-;; (defun nt-change--root-containing (line roots)
-;;   "Get first root in ROOTS whose interval contains LINE."
-;;   (when roots
-;;     (-let* (((root . rest) roots)
-;;             ((start end) root))
-;;       (if (<= start line (1+ end))
-;;           root
-;;         (nt-change--root-containing line rest)))))
-
-;; (defun nt-notes--children-of (root)
-;;   (-let (((_ max-bound)
-;;           (nt-note->interval root)))
-;;     (->> nt-notes
-;;        (-drop-while (lambda (note)
-;;                       (not (equal it root))))
-;;        (-take-while (lambda (note)
-;;                       (<= (nt-ov->line note) max-bound))))))
-
 ;;; Notes
 
 ;; ASSUMING BALANCED DELETION CURRENTLY
@@ -92,8 +65,8 @@
         (unless (< end-line start-line)
           (-each (number-sequence start-line end-line) #'nt-mask--init))))
 
-    (let* (;; TODO setting these to start/end of buffer atm to get off ground
-           (start (point-min))
+    ;; TODO setting these to start/end of buffer atm to get off ground
+    (let* ((start (point-min))
            (end (point-max))
            (notes (nt-notes<-region start end)))
       (nt-notes--update-bounded notes))))
@@ -106,8 +79,9 @@
 Note that the 'modification-hook text property handles deletion of notes
 and masks themselves."
   (when (nt-change--lines-deleted?)
-    (let* (;; TODO setting these to start/end of buffer atm to get off ground
-           (start (point-min))
+
+    ;; TODO setting these to start/end of buffer atm to get off ground
+    (let* ((start (point-min))
            (end (point-max))
            (notes (nt-notes<-region start end)))
       (nt-notes--update-bounded notes))))

@@ -1,4 +1,4 @@
-;;; nt.el --- Program with Personalized Notation -*- lexical-binding: t; -*-
+;;; nt.el --- Program with Personal Notation -*- lexical-binding: t; -*-
 
 ;; Copyright © 2019 Eric Kaschalk <ekaschalk@gmail.com>
 ;;
@@ -10,7 +10,7 @@
 
 ;;; Commentary:
 
-;; Notate - Program with Personalized Notation
+;; Notate - Program with Personal Notation
 
 ;; `nt.el' exposes user API and configurations
 ;; Developers, see `nt-dev' which adds additional debugging and developing cmds.

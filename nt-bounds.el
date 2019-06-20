@@ -88,7 +88,6 @@ Has NOTE contributing to indentation masks even though it is not a form opener."
         bar)
 
 Simplest case that has NOTE contributing to indentation masks."
-  ;; Should I use my `hy--at-a-form-opener' `parse-partial-sexp' implementation?
   (save-excursion
     (nt-ov--goto note)
     (null (ignore-errors (backward-sexp) t))))
