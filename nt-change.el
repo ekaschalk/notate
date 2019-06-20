@@ -48,20 +48,23 @@
 
 ;;; Insertion
 
+;; This function I would like to make clearer
+;; The two separate syntax-ppss checks to get the start of the region
+;; is two handle difference in behavior in balanced vs. unbalanced regions
+
 (defun nt-change--pos->outer-region (pos)
   "Get region of the outermost form's start/end containing POS."
   (save-excursion
     (goto-char pos)
 
-    (let ((jumped?)
-          (jumped-last?))
-      (while (prog1 (setq jumped-last? (sp-up-sexp))
-               (setq jumped? (or jumped? jumped-last?))))
+    (while (null (sp-end-of-next-sexp)))
 
-      (when jumped?
-        (let ((end (point)))
-          (backward-sexp)
-          (list (point) end))))))
+    (let ((end (point))
+          (start (nt-syntax--goto-inner-sexp (syntax-ppss))))
+
+      (if (nt-syntax--goto-inner-sexp (syntax-ppss (1+ end)))
+          (list (-min `(,start ,(point))) end)
+        (list start end)))))
 
 (defun nt-change--region->outer-region (start end)
   "Get region of outermost forms containing START to containing END."
@@ -75,6 +78,7 @@
 ;;   (nt-notes--update-bounded-buffer)
 (defun nt-change--update-bounded-outer-region (start end)
   "Perform `nt-notes--update-bounded-region' on the maximal outer-region."
+  ;; (nt-notes--update-bounded-buffer)
   (let ((outer-region (nt-change--region->outer-region start end)))
     (apply #'nt-notes--update-bounded-region outer-region)))
 

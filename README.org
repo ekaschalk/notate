@@ -137,23 +137,23 @@ This section is subject to change while under development.
 - The core idea! Toggling on/off works as expected.
 - Unrendering a note updates indentation on-the-fly.
 - Deleting near the beginning of masked lines behaves as if not masked.
-- Indentation masking range calculations for lisps complete I think.
+- Lisps is appearing to look functional but needs confirming.
 
 *** Whats Being Worked On
 
 - Buffer modification that adds or removes lines.
-  - Basic support has been achieved for balanced insertion and deletion.
-    - Unbalanced (inserting a parenthesis) buffer modification being explored
-      and thought through still.
+  - Balanced insertion/deletion appear to be good.
+  - Unbalanced insertion/deletion also /appears/ to be good but will be likely
+    hard to think through all the cases to confirm this and to optimize it.
 
 *** What Doesn't Work Yet
 
-- Generalized range of indent calculations working except when buffer
-  modification support is enabled.
-- Whether to mask indent calculations always depend on major mode.
+- The whether to mask indent calculations is not major-mode agnostic.
   - Will write support for Python myself.
   - Contributors with deeper knowledge of various languages would help greatly
     in expanding language support (when the project is sufficiently mature).
+- The how long a masked indent goes is only major-mode agnostic when support for
+  buffer-modification is not enabled.
 
 *** What We Might Have to Deal With
 

@@ -155,6 +155,14 @@ If `nt--move-up?' is non-nil, move upwards in buffer instead.
      ;; Only whitespace and comments remaining
      ((nth 4 (parse-partial-sexp (point) line-end))))))
 
+(defun nt-syntax->inner-char (syntax)
+  "Get innermost char of SYNTAX."
+  (nth 1 syntax))
+
+(defun nt-syntax--goto-inner-sexp (syntax)
+  "Goto innermost sexp of SYNTAX."
+  (-some-> syntax nt-syntax->inner-char 1+ goto-char))
+
 ;;; Provide
 
 (provide 'nt-base)
