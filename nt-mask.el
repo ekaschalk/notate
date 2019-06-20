@@ -38,7 +38,7 @@ Eventually rewrite with vector for constant-time idxing.")
   (-some-> line nt-line->idx (nth nt-masks)))
 
 (defun nt-mask<-line-raw (line)
-  "Get mask at LINE via overlay methods."
+  "Get mask at LINE, via overlay methods for when `nt-masks' unreliable."
   (-> line
      nt-line->start
      nt-ov<-pos

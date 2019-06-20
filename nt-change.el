@@ -48,11 +48,32 @@
 
 ;;; Insertion
 
+;; Maybe I do above on start to fix the start pos/line
+;; and the 2nd on end but don't backward-sexp to get the end pos/line
+
+(defun nt-change--pos->outer-region (pos)
+  "Get region of the outermost form's start/end containing POS."
+  (save-excursion
+    (goto-char start)
+
+    (let ((jumped?))
+      (while (setq jumped? (or jumped? (sp-up-sexp))))
+
+      (when jumped?
+        (list (point)
+              (progn (backward-sexp) (point)))))))
+
+(defun nt-change--region->outer-region (start end)
+  "Get region of outermost forms containing START to containing END."
+  (-let (((outer-start) (nt-change--pos->outer-region))
+         ((_ outer-end) (nt-change--pos->outer-region)))
+    (list outer-start outer-end)))
+
 (defun nt-change--insertion (start end)
   "Change func specialized for insertion, in START and END."
   (let ((inhibit-modification-hooks t))
 
-    ;; Build new masks if needed
+    ;; Build masks for the newlines if needed
     (-when-let (new-lines (nt-change--lines-added?))
       (let ((start-line (line-number-at-pos start))
             (end-line (line-number-at-pos end)))
@@ -62,8 +83,7 @@
         (when (nt-mask<-line-raw end-line)
           (cl-decf end-line))
 
-        (unless (< end-line start-line)
-          (-each (number-sequence start-line end-line) #'nt-mask--init))))
+        (-each (number-sequence start-line end-line) #'nt-mask--init)))
 
     ;; TODO setting these to start/end of buffer atm to get off ground
     (let* ((start (point-min))
