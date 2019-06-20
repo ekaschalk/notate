@@ -123,8 +123,7 @@ Simplest case that has NOTE contributing to indentation masks."
     ;; Handles the case ~(note (foo bar)~ where note opens form that isnt closed
     (if (eq t (sp-end-of-sexp))
         (1+ (line-number-at-pos (point-max)))
-      (1+ (line-number-at-pos)))
-    ))
+      (1+ (line-number-at-pos)))))
 
 ;;; Generalized
 ;;;; Commentary

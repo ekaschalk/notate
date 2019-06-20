@@ -35,6 +35,7 @@
 ;; should be fine in most cases
 
 ;;; Utilities
+;;;; Lines
 
 (defun nt-change--lines-deleted? ()
   "Have lines been deleted?"
@@ -46,41 +47,34 @@
   (let ((count (- (line-number-at-pos (point-max)) (length nt-masks))))
     (and (< 0 count) count)))
 
-;;; Insertion
-
-;; This function I would like to make clearer
-;; The two separate syntax-ppss checks to get the start of the region
-;; is two handle difference in behavior in balanced vs. unbalanced regions
+;;;; Outer Regions
 
 (defun nt-change--pos->outer-region (pos)
   "Get region of the outermost form's start/end containing POS."
   (save-excursion
-    (goto-char pos)
-
-    (while (null (sp-end-of-next-sexp)))
-
-    (let ((end (point))
-          (start (nt-syntax--goto-inner-sexp (syntax-ppss))))
-
-      (if (nt-syntax--goto-inner-sexp (syntax-ppss (1+ end)))
-          (list (-min `(,start ,(point))) end)
-        (list start end)))))
+    (-when-let* ((syntax (syntax-ppss pos))
+                 ((outer-parens-start) (nth 9 syntax)))
+      (goto-char outer-parens-start)
+      (list outer-parens-start
+            (progn (forward-char)
+                   (and (sp-up-sexp)  ; Goes to point-max if no closing pair
+                        (point)))))))
 
 (defun nt-change--region->outer-region (start end)
   "Get region of outermost forms containing START to containing END."
   (-let (((outer-start) (nt-change--pos->outer-region start))
          ((_ outer-end) (nt-change--pos->outer-region end)))
-    (list (or outer-start start)
-          (or outer-end end))))
+    (list (or outer-start (point-min))
+          (or outer-end (point-max)))))
 
-;; XXX If this function is making things harder to reason about it can safely
-;; be replaced (but will be potentially much slower) with:
-;;   (nt-notes--update-bounded-buffer)
 (defun nt-change--update-bounded-outer-region (start end)
   "Perform `nt-notes--update-bounded-region' on the maximal outer-region."
+  ;; This function can be replaced (but will be potentially much slower) with:
   ;; (nt-notes--update-bounded-buffer)
   (let ((outer-region (nt-change--region->outer-region start end)))
     (apply #'nt-notes--update-bounded-region outer-region)))
+
+;;; Insertion
 
 (defun nt-change--insertion (start end)
   "Change func specialized for insertion, in START and END."
@@ -108,8 +102,9 @@
 
 Note that the 'modification-hook text property handles deletion of notes
 and masks themselves."
-  (apply #'nt-notes--update-bounded-region
-         (nt-change--pos->outer-region pos))
+  ;; Not optimized atm
+  (nt-change--update-bounded-outer-region pos pos)
+
   ;; (when (nt-change--lines-deleted?)
   ;;   (nt-change--update-bounded-outer-region start end))
   )
