@@ -91,11 +91,6 @@
 
 ;;; Init
 
-;; The 'no-setup context won't instantiate `nt-masks', allowing testing
-;; insertion of masks upon initiation. We cannot add assertions that use
-;; accessors like `nt-mask<-line' as they require `nt-masks' to be fully
-;; instantiated. Could be done manually via `nt-ov' methods, but not ideal.
-
 (nt-describe "Mask initiation"
   :var ((text "
 1 foo
@@ -110,27 +105,47 @@
   (it "makes a single mask"
     (expect nt-masks :nil)
     (nt-mask--init 2)
-    (expect nt-masks :size 1))
+
+    (expect (nt-mask<-line-raw 1) :nil)
+    (expect (nt-mask<-line-raw 2))
+    (expect (nt-mask<-line-raw 3) :nil)
+    (expect (nt-mask<-line-raw 4) :nil))
 
   (it "makes masks for buffer"
     (expect nt-masks :nil)
     (nt-masks--init)
-    (expect nt-masks :size 4))
+
+    (expect (nt-mask<-line-raw 1))
+    (expect (nt-mask<-line-raw 2))
+    (expect (nt-mask<-line-raw 3))
+    (expect (nt-mask<-line-raw 4)))
 
   (it "makes masks past a given line"
     (expect nt-masks :nil)
     (let ((start 2) end)
       (nt-masks--init start end))
-    (expect nt-masks :size (- 4 1)))
+
+    (expect (nt-mask<-line-raw 1) :nil)
+    (expect (nt-mask<-line-raw 2))
+    (expect (nt-mask<-line-raw 3))
+    (expect (nt-mask<-line-raw 4)))
 
   (it "makes masks limited by a given line"
     (expect nt-masks :nil)
     (let (start (end 4))
       (nt-masks--init start end))
-    (expect nt-masks :size (- 4 1)))
+
+    (expect (nt-mask<-line-raw 1))
+    (expect (nt-mask<-line-raw 2))
+    (expect (nt-mask<-line-raw 3))
+    (expect (nt-mask<-line-raw 4) :nil))
 
   (it "makes masks within a given line range"
     (expect nt-masks :nil)
     (let ((start 2) (end 4))
       (nt-masks--init start end))
-    (expect nt-masks :size (- 4 1 1))))
+
+    (expect (nt-mask<-line-raw 1) :nil)
+    (expect (nt-mask<-line-raw 2))
+    (expect (nt-mask<-line-raw 3))
+    (expect (nt-mask<-line-raw 4) :nil)))

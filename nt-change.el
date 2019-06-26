@@ -73,9 +73,10 @@
 (defun nt-change--update-bounded-outer-region (start end)
   "Perform `nt-notes--update-bounded-region' on the maximal outer-region."
   ;; This function can be replaced (but will be potentially much slower) with:
-  ;; (nt-notes--update-bounded-buffer)
-  (let ((outer-region (nt-change--region->outer-region start end)))
-    (apply #'nt-notes--update-bounded-region outer-region)))
+  (nt-notes--update-bounded-buffer)
+  ;; (let ((outer-region (nt-change--region->outer-region start end)))
+  ;;   (apply #'nt-notes--update-bounded-region outer-region))
+  )
 
 ;;; Mask Interaction
 
@@ -104,13 +105,10 @@
 (defun nt-change--deletion (pos chars-deleted)
   "Change function specialized for deletion, number CHARS-DELETED at POS.
 
-Note that the 'modification-hook text property handles deletion of notes
-and masks themselves."
-  ;; Not optimized atm
-  (nt-change--update-bounded-outer-region pos pos)
-
-  ;; (when (nt-change--lines-deleted?)
-  ;;   (nt-change--update-bounded-outer-region start end))
+Note that the 'modification-hook text property handles decomposing note and mask
+overlays. Change functions update mask lengths and rendering status."
+  (nt-notes--update-bounded-buffer)
+  ;; (nt-change--update-bounded-outer-region pos pos)
   )
 
 ;;; Provide

@@ -5,11 +5,10 @@
 ;; Covered:
 ;; - General
 ;;   - comments/strings
-;; - Lisps
-;;   - Form opener?
+;; - Elisp-specialized implementation
 
 ;; Not Covered:
-;; - Alot (restricting to simple cases atm until change functions finished)
+;; - Visual-line based implementation
 
 ;;; Load Files
 
