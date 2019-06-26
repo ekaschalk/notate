@@ -302,38 +302,26 @@
   (after-all (nt-test--teardown))
 
   (it "sets up masks correctly to start"
-    (expect (-> 1 nt-mask<-line nt-mask->notes)
-            :nil)
-    (expect (-> 2 nt-mask<-line nt-mask->notes)
-            :size 2)
-    (expect (-> 3 nt-mask<-line nt-mask->notes)
-            :size 3)
-    (expect (-> 4 nt-mask<-line nt-mask->notes)
-            :size 1))
+    (expect (-> 1 nt-mask<-line nt-mask->notes) :nil)
+    (expect (-> 2 nt-mask<-line nt-mask->notes) :size 2)
+    (expect (-> 3 nt-mask<-line nt-mask->notes) :size 3)
+    (expect (-> 4 nt-mask<-line nt-mask->notes) :size 1))
 
   (it "refreshes masks on first deletion"
     (nt-note--delete mocked-note-1)
 
-    (expect (-> 1 nt-mask<-line nt-mask->notes)
-            :nil)
-    (expect (-> 2 nt-mask<-line nt-mask->notes)
-            :size 1)
-    (expect (-> 3 nt-mask<-line nt-mask->notes)
-            :size 2)
-    (expect (-> 4 nt-mask<-line nt-mask->notes)
-            :size 1))
+    (expect (-> 1 nt-mask<-line nt-mask->notes) :nil)
+    (expect (-> 2 nt-mask<-line nt-mask->notes) :size 1)
+    (expect (-> 3 nt-mask<-line nt-mask->notes) :size 2)
+    (expect (-> 4 nt-mask<-line nt-mask->notes) :size 1))
 
   (it "refreshes masks on second deletion"
     (nt-note--delete mocked-note-2)
 
-    (expect (-> 1 nt-mask<-line nt-mask->notes)
-            :nil)
-    (expect (-> 2 nt-mask<-line nt-mask->notes)
-            :nil)
-    (expect (-> 3 nt-mask<-line nt-mask->notes)
-            :size 1)
-    (expect (-> 4 nt-mask<-line nt-mask->notes)
-            :size 1))
+    (expect (-> 1 nt-mask<-line nt-mask->notes) :nil)
+    (expect (-> 2 nt-mask<-line nt-mask->notes) :nil)
+    (expect (-> 3 nt-mask<-line nt-mask->notes) :size 1)
+    (expect (-> 4 nt-mask<-line nt-mask->notes) :size 1))
 
   (it "has masks empty upon final deletion"
     (nt-note--delete mocked-note-3)

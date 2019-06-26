@@ -76,18 +76,26 @@
   (before-all (nt-test--setup 'simple-2 text notes))
   (after-all (nt-test--teardown))
 
-  (it "no contribution to same line as note"
-    (expect (-> 1 nt-mask<-line nt-mask--empty?)))
+  (describe "lie within bounds"
+    (it "at start"
+      (expect (-> 1 nt-mask<-line nt-mask--empty?)))
+    (it "at end"
+      (expect (-> 5 nt-mask<-line nt-mask--empty?))))
+
   (it "line takes contributions from many notes from one line"
     (expect (-> 2 nt-mask<-line nt-mask->width)
-            :to-be (+ note-1-width note-2-width)))
+            :to-be
+            (+ note-1-width note-2-width)))
+
   (it "line takes contributions from many notes from many lines"
     (expect (-> 3 nt-mask<-line nt-mask->width)
-            :to-be (+ note-1-width note-2-width note-1-width)))
-  (it "don't extend past bounds"
+            :to-be
+            (+ note-1-width note-2-width note-1-width)))
+
+  (it "line takes contributions from one note from one line"
     (expect (-> 4 nt-mask<-line nt-mask->width)
-            :to-be note-1-width)
-    (expect (-> 5 nt-mask<-line nt-mask--empty?))))
+            :to-be
+            note-1-width)))
 
 ;;; Init
 
