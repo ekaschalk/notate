@@ -3,6 +3,27 @@
 ;; slup-unbalanced - deleting a (
 ;; barf-unbalanced - deleting a )
 
+
+;;; Insertion
+
+;; (note bar
+;;       (foo bar ; <- the insertion
+;;       foo
+;;       (foo bar)
+;;       foo)
+;; (foo bar)
+;; =>
+;; (note bar
+;;       (foo bar
+;;            foo
+;;            (foo bar)
+;;            foo)
+;;       (foo bar)
+
+;; note bound extended 1 for new-line
+;; note bound extended 1 more because now captures the next (foo bar)
+
+
 ;;; Deletion (single-line)
 ;;;; Slurp-Unbalanced
 

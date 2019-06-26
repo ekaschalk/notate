@@ -1,0 +1,59 @@
+#+TITLE: After-change algorithm
+
+* Rough Draft
+** v1
+
+Algorithm (Insertion, Balanced):
+1. Extend any bounds within covered region by number of new lines inserted.
+   1. Get root/subtree containing point and extend each.
+      1. (apply #'nt-notes<-region (maximal interval containing point))
+      2. for each note (cl-incf (overlay-get 'nt-last-bound) num-new-lines)
+   2. (or maybe just extend bound of all notes past start in buffer?)
+2. Recalc bound? for all notes within the innermost form containing the insertion.
+   1. inner-paren = (-last-item (nth 9 (parse-partial-sexp start end)))
+   2. (nt-bound? (nt-notes<-region inner-paren (see outer-region for closer)))
+
+** v2
+
+What if I attach to each note ov: (nth 9 (syntax-ppss note-region)) ???
+Then when doing a modification, I compare the "lists of currently open parens"?
+
+What would this allow?
+- Maybe easy checking if we just captured a note in a new form?
+- If we see the list is longer than before for a given note ""nearby"" then
+  we can recalculate its stuff?
+
+(foo bar
+     (note foo
+           bar))
+=>
+(foo bar
+     note foo
+          bar))
+
+The list decreased for note -> know it was slurped -> reset render
+
+(foo bar
+     note foo
+          bar))
+=>
+(foo bar
+     (note foo
+           bar))
+
+The list increased for note -> know it was barfed -> reset render
+
+* Current Draft
+
+Algorithm - Insertion, Balanced:
+1. Extend 'nt-last-bound for all notes past start in buffer
+2. Update the notes subtree containing point:
+   1. Get first note prior to point (maintaining the roots can optimize/limit
+      this search to avoid some problematic pathological cases)
+   2. If 'nt-last-bound contains point:
+      1. Extend its last-bound
+      2. Recalculate render status
+      3. Recurse
+
+Algorithm - Insertion, Descending (opening a sexp):
+1.
