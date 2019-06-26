@@ -48,8 +48,14 @@ simple as a toggle.
 ** FAQ
 
 - Why? :: [[http://modernemacs.com][I've found a hobby]] in confusing over-the-shoulder onlookers. I got a
-          math degree purely to draw pretty symbols all day. I want to continue
-          the same productivity.
+          math degree purely to draw pretty symbols all day and wanted to
+          continue the same productivity.
+
+          I believe there is a desire for personalized, symbol-based
+          programming. But the downsides have been too substantial, requiring
+          consensus on symbols and contributors to be able to input them. I want
+          to enable emoji-based programming without the typically accompanied
+          deep shame.
 
 - Does Notate support all programming languages? :: Mostly.
   - /Details/: I do not see a reasonably performant, major-mode-agnostic way to
