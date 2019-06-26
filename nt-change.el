@@ -17,6 +17,7 @@
 
 (defun nt-change--after-change-function (start end chars-deleted)
   "See `after-change-functions', dispatches on insertion or deletion."
+  ;; (let ((inhibit-modification-hooks t))  ; Don't believe I will need this
   (if (= 0 chars-deleted)
       (nt-change--insertion start end)
     (nt-change--deletion start chars-deleted)))
@@ -38,13 +39,15 @@
 ;;;; Lines
 
 (defun nt-change--lines-deleted? ()
-  "Have lines been deleted?"
-  (let ((count (- (length nt-masks) (line-number-at-pos (point-max)))))
+  "Have lines been deleted (since last time updating masks)?"
+  (let ((count (- (length nt-masks)
+                  (line-number-at-pos (point-max)))))
     (and (< 0 count) count)))
 
 (defun nt-change--lines-added? ()
-  "Have lines been deleted?"
-  (let ((count (- (line-number-at-pos (point-max)) (length nt-masks))))
+  "Have lines been added (since last time updating masks)?"
+  (let ((count (- (line-number-at-pos (point-max))
+                  (length nt-masks))))
     (and (< 0 count) count)))
 
 ;;;; Outer Regions
@@ -74,26 +77,27 @@
   (let ((outer-region (nt-change--region->outer-region start end)))
     (apply #'nt-notes--update-bounded-region outer-region)))
 
+;;; Mask Interaction
+
+(defun nt-change--init-masks-in-region (start end)
+  "Init masks for newly made lines within START and END."
+  (let* ((start-line (line-number-at-pos start))
+         (end-line (line-number-at-pos end))
+         (mask-at-start? (nt-mask<-line-raw start-line))
+         (mask-at-end? (nt-mask<-line-raw end-line)))
+    (when mask-at-start?
+      (cl-incf start-line))
+    (when mask-at-end?
+      (cl-decf end-line))
+
+    (-each (number-sequence start-line end-line) #'nt-mask--init)))
+
 ;;; Insertion
 
 (defun nt-change--insertion (start end)
   "Change func specialized for insertion, in START and END."
-  (let ((inhibit-modification-hooks t))
-
-    ;; Build masks for the newlines if needed
-    (-when-let (new-lines (nt-change--lines-added?))
-      (let ((start-line (line-number-at-pos start))
-            (end-line (line-number-at-pos end)))
-
-        (when (nt-mask<-line-raw start-line)
-          (cl-incf start-line))
-        (when (nt-mask<-line-raw end-line)
-          (cl-decf end-line))
-
-        (-each (number-sequence start-line end-line) #'nt-mask--init)))
-
-    ;; Update all masks, possibly but not just including the above masks
-    (nt-change--update-bounded-outer-region start end)))
+  (nt-change--init-masks-in-region start end)
+  (nt-change--update-bounded-outer-region start end))
 
 ;;; Deletion
 
