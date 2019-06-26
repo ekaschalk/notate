@@ -51,6 +51,7 @@ simple as a toggle.
           math degree purely to draw pretty symbols all day and wanted to
           continue the same productivity.
 
+
           I believe there is a desire for personalized, symbol-based
           programming. But the downsides have been too substantial, requiring
           consensus on symbols and contributors to be able to input them. I want
