@@ -54,6 +54,11 @@
     (list (line-number-at-pos start)
           (1+ (line-number-at-pos end)))))
 
+(defun nt-line-count<-region (start end)
+  "Get number of lines containing region in START and END."
+  (-let (((start-line end-line) (nt-lines<-region start end)))
+    (- end-line start-line)))
+
 ;;;;; Columns
 
 (defun nt-line->end-col (line)

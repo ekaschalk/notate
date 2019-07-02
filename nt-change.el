@@ -93,10 +93,10 @@
 
 ;;; Insertion
 
-(defun nt-change--insertion (start end)
-  "Change func specialized for insertion, in START and END."
-  (nt-change--init-masks-in-region start end)
-  (nt-change--update-bounded-outer-region start end))
+;; (defun nt-change--insertion (start end)
+;;   "Change func specialized for insertion, in START and END."
+;;   (nt-change--init-masks-in-region start end)
+;;   (nt-change--update-bounded-outer-region start end))
 
 ;;; Deletion
 
@@ -111,11 +111,29 @@ overlays. Change functions update mask lengths and rendering status."
 
 ;;; NEW - Insertion
 
-(defun nt-change--insertion-balanced (start end)
-  "Change func specialized for insertion, in START and END."
-  (nt-note--extend-bounds-past end)
+;; Follows docs/alg implementation sketch
 
-  )
+(defun nt-change--insertion (start end)
+  (nt-change--init-masks-in-region start end)
+
+  ;; I /think/ this should always be 1- but must guarantee that
+  (let ((newlines (1- (nt-line-count<-region start end))))
+    (nt-note--extend-bounds-past end newlines)
+    (nt-change--insertion-balanced start)))
+
+(defun nt-change--insertion-balanced-1 (notes line)
+  "Internal, recursively updates the closest, next-closest... bound until escape."
+  (-let* (((note . rest) notes)
+          (bound (nt-note->last-bound note)))
+    (when (and note (< line bound))
+      (nt-note--update-bounded note)
+      (nt-change--insertion-balanced-1 rest line))))
+
+(defun nt-change--insertion-balanced (pos)
+  "Recalculate bounds and update masks for notes bounding POS."
+  (let ((notes (reverse (nt-notes<-region (point-min) pos)))
+        (line (line-number-at-pos pos)))
+    (nt-change--insertion-balanced-1 notes line)))
 
 ;;; Provide
 

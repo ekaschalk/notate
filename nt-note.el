@@ -251,11 +251,13 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
   "Extend NOTE's 'nt-last-bound by COUNT."
   (cl-incf (overlay-get note 'nt-last-bound) count))
 
-(defun nt-note--extend-bounds-past (pos count)
-  "Extend 'nt-last-bound by COUNT for all notes past POS."
+(defun nt-notes--extend-bounds-past (pos count)
+  "Extend 'nt-last-bound by COUNT for all notes past POS and refresh masks."
   (let* ((start (save-excursion (goto-char pos) (forward-line) (point)))
          (notes (nt-notes<-region start (point-max))))
-    (--each notes (nt-note--extend-bound it count))))
+    (--each notes (nt-note--extend-bound it count)))
+
+  (nt-masks--refresh-region pos (point-max)))
 
 ;;;;; Indeterminate
 
