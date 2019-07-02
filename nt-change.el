@@ -86,10 +86,8 @@
          (end-line (line-number-at-pos end))
          (mask-at-start? (nt-mask<-line-raw start-line))
          (mask-at-end? (nt-mask<-line-raw end-line)))
-    (when mask-at-start?
-      (cl-incf start-line))
-    (when mask-at-end?
-      (cl-decf end-line))
+    (when mask-at-start? (cl-incf start-line))
+    (when mask-at-end? (cl-decf end-line))
 
     (-each (number-sequence start-line end-line) #'nt-mask--init)))
 
@@ -109,6 +107,14 @@ Note that the 'modification-hook text property handles decomposing note and mask
 overlays. Change functions update mask lengths and rendering status."
   (nt-notes--update-bounded-buffer)
   ;; (nt-change--update-bounded-outer-region pos pos)
+  )
+
+;;; NEW - Insertion
+
+(defun nt-change--insertion-balanced (start end)
+  "Change func specialized for insertion, in START and END."
+  (nt-note--extend-bounds-past end)
+
   )
 
 ;;; Provide

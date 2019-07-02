@@ -245,6 +245,19 @@ If 2+ roots have equiv. bounds, the first by buffer position is the only root."
   (nt-notes--doto-bound notes #'nt-note--remove-bounded))
 
 ;;;; Boundary Updates
+;;;;; Fixed
+
+(defun nt-note--extend-bound (note count)
+  "Extend NOTE's 'nt-last-bound by COUNT."
+  (cl-incf (overlay-get note 'nt-last-bound) count))
+
+(defun nt-note--extend-bounds-past (pos count)
+  "Extend 'nt-last-bound by COUNT for all notes past POS."
+  (let* ((start (save-excursion (goto-char pos) (forward-line) (point)))
+         (notes (nt-notes<-region start (point-max))))
+    (--each notes (nt-note--extend-bound it count))))
+
+;;;;; Indeterminate
 
 (defun nt-note--update-bounded (note)
   "Recalculate bound-based properties and update masks based on the difference."
