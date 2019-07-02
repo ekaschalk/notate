@@ -55,6 +55,13 @@ Algorithm - Insertion, Balanced:
       1. Extend its last-bound
       2. Recalculate render status
       3. Recurse
+   3. Above is slightly wrong! Have to go backwards to the first ROOT occurring
+      before point. Then I drill down the notes subtree containing point. For
+      now to keep it simpler:
+      - Look at all roots, find first root before point.
+      - Get all notes from (and including) root up until point with bound
+        containing point
+      - update-bounded each of them.
 
 Algorithm - Insertion, Descending (opening a sexp):
 1.
