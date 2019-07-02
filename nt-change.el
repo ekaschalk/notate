@@ -122,18 +122,28 @@ overlays. Change functions update mask lengths and rendering status."
     (nt-change--insertion-balanced start)))
 
 (defun nt-change--insertion-balanced-1 (notes line)
-  "Internal, recursively updates the closest, next-closest... bound until escape."
   (-let* (((note . rest) notes)
           (bound (nt-note->last-bound note)))
-    (when (and note (< line bound))
-      (nt-note--update-bounded note)
+    (when note
+      (when (< line bound)
+        (nt-note--update-bounded note))
+
       (nt-change--insertion-balanced-1 rest line))))
 
 (defun nt-change--insertion-balanced (pos)
   "Recalculate bounds and update masks for notes bounding POS."
-  (let ((notes (reverse (nt-notes<-region (point-min) pos)))
-        (line (line-number-at-pos pos)))
-    (nt-change--insertion-balanced-1 notes line)))
+  (let* ((notes (nt-notes<-region (point-min) pos))
+         (roots (nt-notes->roots notes))
+         (line (line-number-at-pos pos)))
+
+    ;; Get first ROOT bounding POS (should go through notes in reverse for speed)
+    (-when-let (root (-first (lambda (note)
+                               (< line (nt-note->last-bound note)))
+                             roots))
+
+      ;; Update notes subtree under ROOT
+      (let ((notes-subtree (--drop-while (not (equal root it)) notes)))
+        (nt-change--insertion-balanced-1 notes-subtree line)))))
 
 ;;; Provide
 
