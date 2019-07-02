@@ -75,10 +75,10 @@ Has NOTE contributing to indentation masks even though it is not a form opener."
     (nt-ov--goto note)
 
     (let ((line-start (line-number-at-pos))
-          (depth (nt-syntax--depth-at-point)))
+          (depth (nt-syntax--depth-at)))
       (sp-down-sexp)
 
-      (and (> (nt-syntax--depth-at-point) depth)
+      (and (> (nt-syntax--depth-at) depth)
            (= (line-number-at-pos) line-start)))))
 
 (defun nt-bounds?--lisps-form-opener? (note)

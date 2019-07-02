@@ -137,9 +137,13 @@ If `nt--move-up?' is non-nil, move upwards in buffer instead.
 
 ;;; Syntax
 
-(defun nt-syntax--depth-at-point ()
-  "Get parenthetical depth at point."
-  (car (syntax-ppss)))
+(defun nt-syntax--depth-at (&optional pos)
+  "Get parenthetical depth at POS."
+  (car (syntax-ppss pos)))
+
+(defun nt-syntax--parens-at (&optional pos)
+  "Get list of points of opening parens containing POS, outermost first."
+  (nth 9 (syntax-ppss pos)))
 
 (defun nt-syntax->string-or-comment (state)
   "Is syntax STATE identifiy a string or comment?"

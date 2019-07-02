@@ -14,7 +14,6 @@
 (require 'nt-mask)
 (require 'nt-ov)
 
-
 ;;; Configuration
 ;;;; Managed
 
@@ -57,6 +56,10 @@
   "Access NOTE's width."
   (-some-> note (overlay-get 'nt-width)))
 
+(defun nt-note->parens (note)
+  "Access NOTE's parens."
+  (-some-> note (overlay-get 'nt-parens)))
+
 (defun nt-note->last-bound (note)
   "Access NOTE's last calculated bound."
   (-some-> note (overlay-get 'nt-last-bound)))
@@ -86,6 +89,10 @@
 (defun nt-notes->width (notes)
   "Sum NOTES' widths."
   (->> notes (-map #'nt-note->width) -sum))
+
+(defun nt-note->depth (note)
+  "Get parenthetical depth of NOTE."
+  (-some-> note nt-note->parens length))
 
 (defun nt-note->idx (note)
   "Get index of insertion of new NOTE into `nt-notes'."
@@ -285,6 +292,7 @@ Notate Text Properties
   'nt?:           A notate overlay.
   'nt-note?:      A note overlay.
   'nt-width:      Difference of true and rendered string sizes.
+  'nt-parens:     Positions of open parens containing note, outermost first.
   'nt-last-bound: The last calculated value of bound for the note.
   'nt-in-effect?: The last calculated value of bound? for the note.
 "
@@ -292,6 +300,7 @@ Notate Text Properties
     (overlay-put 'nt?      t)
     (overlay-put 'nt-note? t)
     (overlay-put 'nt-width (- (length string) (length replacement)))
+    (overlay-put 'nt-parens (nt-syntax--parens-at))
 
     ;; TODO Investigate effects of 'intangible (emacs docs says be careful)
     (overlay-put 'display replacement)

@@ -49,7 +49,8 @@ Algorithm - Insertion, Balanced:
 1. Extend 'nt-last-bound for all notes past start in buffer
 2. Update the notes subtree containing point:
    1. Get first note prior to point (maintaining the roots can optimize/limit
-      this search to avoid some problematic pathological cases)
+      this search to avoid some problematic pathological cases ie. notes before
+      point are far)
    2. If 'nt-last-bound contains point:
       1. Extend its last-bound
       2. Recalculate render status
