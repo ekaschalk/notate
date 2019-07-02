@@ -339,6 +339,33 @@ Notate Text Properties
   (setq nt-notes (reverse nt-notes))
   (nt-masks--refresh-buffer))
 
+;;; Subtrees
+
+;; Initial attempt to simplify/optimize insertion--roots interop
+
+(defun nt-notes->tree-1 (notes roots)
+  (-let* (((root . roots-rest)
+           roots)
+          ((next-root)
+           roots-rest)
+          ((children notes-rest)
+           (-split-on next-root notes))
+          (branch
+           (cons root children)))
+    (if roots-rest
+        (cons branch
+              (nt-notes->tree-1 notes-rest roots-rest))
+      branch)))
+
+(defun nt-notes->tree (notes)
+  "Builds atm: ((root children) (root-next children-next) ...)"
+  (let* ((roots (nt-notes->roots notes))
+         (tree (nt-notes->tree-1 notes roots)))
+    tree))
+
+(defun nt-tree ()
+  (nt-notes->tree nt-notes))
+
 ;;; Provide
 
 (provide 'nt-note)
