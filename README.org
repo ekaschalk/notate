@@ -54,17 +54,13 @@ simple as a toggle.
 
           I believe there is a desire for personalized, symbol-based
           programming. But the downsides have been too substantial, requiring
-          consensus on symbols and contributors to be able to input them. I want
-          to enable emoji-based programming without the typically accompanied
-          deep shame.
+          consensus on symbols and contributors to input them. I want to enable
+          emoji-based programming without the typically accompanied deep shame.
 
 - Does Notate support all programming languages? :: Mostly.
-  - /Details/: I do not see a reasonably performant, major-mode-agnostic way to
-    handle special indent rules. So a predicate must be defined for each
-    language to identify whether a replacement actually modifies indent or not.
-
-    How far the indent modification spans /is/ major-mode-agnostic. See
-    ~nt-bounds.el~ for details.
+  - /Details/: While there is a general approach, I suspect it will be slow. At
+    the moment, a predicate identifying if a visual replacement contributes to
+    indentation must be defined. Currently done for lisps.
 
 - How does it work? :: By (ab)using particular properties of emacs's ~display~
      and ~modification-hooks~ text properties.
@@ -78,8 +74,8 @@ simple as a toggle.
     engine with indentation metrics smarter than fixed-width columns).
 
     To the point - overlays at the start of each line render the difference of
-    indentation as a single space. Visual replacements are (necessarily)
-    overlays with 'display set, not composition based like prior work.
+    indentation as a single space. Visual replacements are overlays with a
+    'display set rather than composition based, like prior work.
 
 - Similar work? :: Notate is a novel extension of the concept of
                    ~prettify-symbols~, which itself has only a counterpart in
@@ -87,7 +83,7 @@ simple as a toggle.
                    prior work around the concept of prettifying.
 
 - Contributing? :: Would be greatly appreciated! Non-coding materials like
-                   images, screencasts, and other examples are useful and very
+                   images, screencasts, and other examples are useful and
                    welcome. For contributing code and raising issues, see
                    CONTRIBUTING.
 
