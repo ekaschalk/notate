@@ -367,8 +367,9 @@ Notate Text Properties
     (-let* (((node left right) tree)
             (lt-pos? (nt-notes--lt note node))
             (lt-bound? (nt-notes--bound-lt note node))
-            (hungry? (and lt-pos?
-                          (not lt-bound?))))
+            (rebalance? (and lt-pos?
+                             (not lt-bound?))))
+
       ;; This case means the note was "eaten" by a new larger-spanning note
       ;; Note that if we build-up the tree sorted by buffer position,
       ;; this case never happens.
@@ -379,6 +380,17 @@ Notate Text Properties
 
       ;; Note it is possible that we eat 2+ rights!
       ;; In that case what happens?
+
+      ;; Up until we have a non-eaten right node, is set as the LEFT
+      ;; the non-eaten node, is set as the RIGHT
+
+      ;; SO HOW IT WORKS:
+      ;; 1. We see we are eating (rebalance? = true)
+      ;; 2. The new node is now the right of the parent
+      ;; 3. The new nodes right := first far-right node s.t. not eaten
+      ;;    (think just need to find first lt-bound? = true)
+      ;; 4. The new nodes left := first far-right node up until 3.s node
+      ;;    (if no such node then right will be empty as desired)
 
       (cond ((and lt-bound? left)
              (nt-tree--insert left note))
