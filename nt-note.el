@@ -103,8 +103,12 @@
 ;;;; Comparisons
 
 (defun nt-notes--lt (self other)
-  "Compare lt two notes."
+  "Compare lt two notes buffer positions."
   (funcall (-on #'< #'overlay-start) self other))
+
+(defun nt-notes--bound-lt (self other)
+  "Compare lt two note's bounds."
+  (funcall (-on #'< #'nt-note->last-bound) self other))
 
 (defun nt-notes--sort (notes)
   "Return NOTES sorted according to start position."
@@ -339,32 +343,52 @@ Notate Text Properties
   (setq nt-notes (reverse nt-notes))
   (nt-masks--refresh-buffer))
 
-;;; Subtrees
+;;; True Tree impl
 
-;; Initial attempt to simplify/optimize insertion--roots interop
+;; EXAMPLE NOTES TREE
+;; 1      2           3   4     5
+;; (2 1   5 3 3 4 4   6   8 8   9)
 
-(defun nt-notes->tree-1 (notes roots)
-  (-let* (((root . roots-rest)
-           roots)
-          ((next-root)
-           roots-rest)
-          ((children notes-rest)
-           (-split-on next-root notes))
-          (branch
-           (cons root children)))
-    (if roots-rest
-        (cons branch
-              (nt-notes->tree-1 notes-rest roots-rest))
-      branch)))
+(defun nt-tree->note (tree) (car tree))
+(defun nt-tree->left (tree) (cadr tree))
+(defun nt-tree->right (tree) (caddr tree))
 
-(defun nt-notes->tree (notes)
-  "Builds atm: ((root children) (root-next children-next) ...)"
-  (let* ((roots (nt-notes->roots notes))
-         (tree (nt-notes->tree-1 notes roots)))
-    tree))
+(defun nt-tree--new-node (note &optional left right)
+  (list note left right))
+(defun nt-tree--set-left (tree note &optional left right)
+  (setf (cadr tree) (nt-tree--new-node note left right)))
+(defun nt-tree--set-right (tree note &optional left right)
+  (setf (caddr tree) (nt-tree--new-node note left right)))
 
-(defun nt-tree ()
-  (nt-notes->tree nt-notes))
+(defun nt-tree--insert (tree note)
+  (if (not tree)
+      (nt-tree--new-node)
+
+    (-let* (((node left right) tree)
+            (lt-pos? (nt-notes--lt note node))
+            (lt-bound? (nt-notes--bound-lt note node))
+            (hungry? (and lt-pos?
+                          (not lt-bound?))))
+      ;; This case means the note was "eaten" by a new larger-spanning note
+      ;; Note that if we build-up the tree sorted by buffer position,
+      ;; this case never happens.
+      ((and lt-pos?
+            (not lt-bound?))
+       ;; This left/right on the new note here needs to be thought through harder
+       (nt-tree--set-left parent note nil right))
+
+      ;; Note it is possible that we eat 2+ rights!
+      ;; In that case what happens?
+
+      (cond ((and lt-bound? left)
+             (nt-tree--insert left note))
+            (lt-bound?
+             (nt-tree--set-left tree note))
+            (right
+             (nt-tree--insert right note))
+            (t
+             (nt-tree--set-right tree note)))
+      tree)))
 
 ;;; Provide
 
