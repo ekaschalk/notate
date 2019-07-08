@@ -54,8 +54,14 @@ simple as a toggle.
 
           I believe there is a desire for personalized, symbol-based
           programming. But the downsides have been too substantial, requiring
-          consensus on symbols and contributors to input them. I want to enable
-          emoji-based programming without the typically accompanied deep shame.
+          consensus on symbols and contributors to input them.
+
+          Scientists should be able to program with the greek alphabet.
+
+          Mathematicians should be able to program with notation no different
+          than their pen and paper.
+
+          And hipsters should have every emoji at their disposal.
 
 - Does Notate support all programming languages? :: Mostly.
   - /Details/: While there is a general approach, I suspect it will be slow. At
