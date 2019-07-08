@@ -382,13 +382,15 @@ captures all right branches until that is no longer the case.
 
 Notice we need not consider any left branch. If a right branch is
 not covered, then its entire left subtree will not be covered, as
-the left subtree has all its nodes bounds lt than the parent."
+the left subtree has all its nodes bounds lt and positions
+greater than the parent."
   (-let* (((node _ right) tree)
           (pos<? (nt-notes--lt note node))
           (bound<? (nt-notes--bound-lt note node))
-          (pivot? (and right pos<? (not bound<?))))
-    (if pivot?
-        (nt-tree--find-pivot right note tree)
+          (descend? (and pos<? (not bound<?))))
+    (if descend?
+        ;; If no right yet descending, then we are eating the entire RHS
+        (when right (nt-tree--find-pivot right note tree))
 
       (nt-tree--null-right parent)
       tree)))
@@ -401,20 +403,24 @@ A NOTE should be inserted:
 2. Right if its bound is greater /or equal to/ the current node.
 
 If NOTE's indent-interval captures an existing subtree, we
-rebalance. See `nt-tree--find-pivot' for details."
+rebalance. See `nt-tree--find-pivot' for details.
+
+Observe if we build up the initial tree by ascending buffer
+position of notes, during the buildup we never rebalance."
   (if (not tree)
       (nt-tree--new-node note)
 
     (-let* (((node left right) tree)
             (pos<? (nt-notes--lt note node))
             (bound<? (nt-notes--bound-lt note node))
-            (pivot? (and right pos<? (not bound<?))))
+            (pivot? (and pos<? (not bound<?))))
       (cond
+       ((and pivot? (not parent))  ; Eating head
+        (nt-tree--new-node note tree))
+
        (pivot?
-        (if (not parent)
-            (nt-tree--new-node note tree)  ; Eating the head
-          (let ((pivot (nt-tree--find-pivot tree note parent)))
-            (nt-tree--set-right parent note tree pivot))))
+        (let ((pivot (nt-tree--find-pivot tree note parent)))
+          (nt-tree--set-right parent note tree pivot)))
 
        ((and bound<? left)
         (nt-tree--insert left note))

@@ -144,8 +144,9 @@ This section is subject to change while under development.
 *** Whats Being Worked On
 
 - Buffer modification that adds or removes lines.
-  - Working in tons of cases but still possible to get notes where they
-    shouldn't be with enough messing around in the buffer.
+  - Rough solution implemented, works in most cases but won't scale.
+  - Currently implementing an experimental tree-based algorithm which should
+    scale to arbitrary buffer sizes/numbers of replacements in a buffer.
 
 *** What Doesn't Work Yet
 
