@@ -343,7 +343,7 @@ Notate Text Properties
   (setq nt-notes (reverse nt-notes))
   (nt-masks--refresh-buffer))
 
-;;; True Tree impl
+;;; NOTE TREE IMPLEMENTATION
 
 ;; THIS SECTION IS UNDER DEVELOPMENT AS A SCALABLE SOLUTION.
 
@@ -434,12 +434,17 @@ position of notes, during the buildup we never rebalance."
        (t
         (nt-tree--set-right tree note))))))
 
-(defun nt-tree--delete (tree note)
-  ;; Cases:
-  ;; 1. Sexp hierarchy is unchanged
-  ;; 2.
+;; ~ DELETION ~
+;; The LEFT of deletion replaces the deletion
+;; The RIGHT of deletion is set as the RIGHT of the RIGHTMOST leaf of the
+;;   replacement
 
+(defun nt-tree--delete (tree note)
   )
+
+
+;; TBD Think through merging
+(defun nt-tree--merge ())
 
 ;;; Provide
 
