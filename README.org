@@ -137,29 +137,23 @@ This section is subject to change while under development.
 *** What Works
 
 - The core idea! Toggling on/off works as expected.
-- Unrendering a note updates indentation on-the-fly.
-- Deleting near the beginning of masked lines behaves as if not masked.
-- Lisps is appearing to look functional but needs confirming.
+- (un)rendering a note updates indentation on-the-fly.
+- Deleting around the invisible spaces (masked indent) doesn't break things.
 
 *** Whats Being Worked On
 
-- Buffer modification that adds or removes lines.
-  - Rough solution implemented, works in most cases but won't scale.
-  - Currently implementing an experimental tree-based algorithm which should
-    scale to arbitrary buffer sizes/numbers of replacements in a buffer.
+- Buffer modification updates visual indentation.
+  - Proof-of-concept implementation working in most cases but won't scale.
+  - Currently implementing an experimental tree-based algorithm. Should scale to
+    arbitrary buffer sizes and numbers of replacements in a buffer.
 
 *** What Doesn't Work Yet
 
-- The whether to mask indent calculations is not major-mode agnostic.
-  - Will write support for Python myself.
-  - Contributors with deeper knowledge of various languages would help greatly
-    in expanding language support (when the project is sufficiently mature).
-- How far a masked indent spans for arbitrary, non lisps, modes only working
-  without buffer-modification currently.
-
-*** What We Might Have to Deal With
-
-- Visual replacements xor masked indent not necessarily monospaced depending on
-  fonts for replacements.
-  - Compare the two progress-2 images in [[./img]]. See the ~nt-normalize-height?~
-    variable for commentary.
+- Whether a visual replacement modifies indent depends on the major-mode.
+  - Lisps implemented.
+  - Will implement for Python.
+  - For other languages, contributors with knowledge of them would help greatly
+    (once this project is sufficiently mature).
+- How far a visual replacement modifies indent depends on the major-mode.
+  - Lisps implemented
+  - Generalized implemented but not compatabile with buffer modification yet.
