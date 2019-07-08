@@ -361,15 +361,25 @@ Notate Text Properties
 ;; (defun nt-tree->left (tree) (cadr tree))
 ;; (defun nt-tree->right (tree) (caddr tree))
 
+;; Core
 (defun nt-tree--new-node (note &optional left right)
   (list note left right))
 (defun nt-tree--set-left (tree note &optional left right)
   (setf (cadr tree) (nt-tree--new-node note left right)))
 (defun nt-tree--set-right (tree note &optional left right)
   (setf (caddr tree) (nt-tree--new-node note left right)))
+                                        ;
+;; Helpers
 (defun nt-tree--null-right (tree)
   (setf (caddr tree) nil))
+(defun nt-tree--rightmost (tree)
+  ;; (-last #'identity (-iterate #'nt-tree->right tree))  ; If only it was lazy
+  (let ((rightmost tree))
+    (while (nt-tree->right rightmost)
+      (setq rightmost (nt-tree->right tree)))
+    rightmost))
 
+;; Algorithm
 (defun nt-tree--find-pivot (tree note &optional parent)
   "Follow TREE's right until first node not eaten by NOTE and separate them.
 
@@ -396,7 +406,7 @@ greater than the parent."
       tree)))
 
 (defun nt-tree--insert (tree note &optional parent)
-  "Insert NOTE into TREE, maintaining the nested-indent-interval structure.
+  "Insert NOTE into TREE, maintaining the nested-indent structure.
 
 A NOTE should be inserted:
 1. Left if its bound is less than the current node.
@@ -423,27 +433,42 @@ position of notes, during the buildup we never rebalance."
           (nt-tree--set-right parent note tree pivot)))
 
        ((and bound<? left)
-        (nt-tree--insert left note))
+        (nt-tree--insert left note tree))
 
        (bound<?
         (nt-tree--set-left tree note))
 
        (right
-        (nt-tree--insert right note))
+        (nt-tree--insert right note tree))
 
        (t
         (nt-tree--set-right tree note))))))
 
-;; ~ DELETION ~
-;; The LEFT of deletion replaces the deletion
-;; The RIGHT of deletion is set as the RIGHT of the RIGHTMOST leaf of the
-;;   replacement
+(defun nt-tree--delete (tree note &optional parent)
+  "Delete a single NOTE from TREE, maintaining the nested-indent structure.
 
-(defun nt-tree--delete (tree note)
-  )
+Deleting a NOTE:
+1. Replace its position with the LEFT subtree of the deletion.
+2. Set the RIGHT of the RIGHTMOST leaf of above with the RIGHT subtree
+   of the deletion."
+  (-let* (((node left right) tree)
+          (bound<? (nt-notes--bound-lt note node)))
+    (cond ((eq note node)
+           (progn
+             (if (eq note (nt-tree->left parent))
+                 (nt-tree--set-left parent left)
+               (nt-tree--set-right parent left))
 
+             (nt-tree--set-right (nt-tree--rightmost left) right)))
 
-;; TBD Think through merging
+          (bound<?
+           (nt-tree--delete left note tree))
+          (t
+           (nt-tree--delete right note tree)))))
+
+;; Now we can get our hands dirty with the fundamentals setup
+(defun nt-tree--delete-region ())
+(defun nt-tree--find ())
 (defun nt-tree--merge ())
 
 ;;; Provide
