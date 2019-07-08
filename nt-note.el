@@ -344,38 +344,22 @@ Notate Text Properties
   (nt-masks--refresh-buffer))
 
 ;;; True Tree impl
-;;;; Notes
 
-;; REBALANCING
-;; This case means the note was "eaten" by a new larger-spanning note
-;; Note that if we build-up the tree sorted by buffer position,
-;; this case never happens.
+;; THIS SECTION IS UNDER DEVELOPMENT AS A SCALABLE SOLUTION.
 
-;; Note it is possible that we eat 2+ rights!
-;; In that case what happens?
+;; The requirements of a proof-of-concept and works-without-slowing-everything
+;; solution (while modifying the buffer) are vastly different.
 
-;; Up until we have a non-eaten right node, is set as the LEFT
-;; the non-eaten node, is set as the RIGHT
-
-;; SO HOW IT WORKS:
-;; 1. We see we are eating (rebalance? = true)
-;; 2. The new node is now the right of the parent
-;; 3. The new nodes right := first far-right node s.t. not eaten
-;;    (think just need to find first bound<? = true)
-;; 4. The new nodes left := first far-right node up until 3.s node
-;;    (if no such node then right will be empty as desired)
-
-;; EXAMPLE NOTES TREE
-;; 1      2           3   4     5
-;; (2 1   5 3 3 4 4   6   8 8   9)
+;; Building a tree of notes with a particular structure has more complexity
+;; and cost in terms of implementing - but as a result, many operations become
+;; much more straightforward and have to search very little to find
+;; the appropriate notes to look at for when modifying the buffer.
 
 ;;;; Code
 
 ;; (defun nt-tree->note (tree) (car tree))
 ;; (defun nt-tree->left (tree) (cadr tree))
 ;; (defun nt-tree->right (tree) (caddr tree))
-;; (defun nt-tree--null-left (tree)
-;;   (setf (cadr tree) nil))
 
 (defun nt-tree--new-node (note &optional left right)
   (list note left right))
@@ -387,6 +371,18 @@ Notate Text Properties
   (setf (caddr tree) nil))
 
 (defun nt-tree--find-pivot (tree note &optional parent)
+  "Follow TREE's right until first node not eaten by NOTE and separate them.
+
+This node is called the pivot.
+The start of the search is NOTE's left and the pivot is NOTE's right.
+
+Eaten is when a new NOTE is found earlier in the buffer but its
+bound extends further. The NOTE's indentation boundary then
+captures all right branches until that is no longer the case.
+
+Notice we need not consider any left branch. If a right branch is
+not covered, then its entire left subtree will not be covered, as
+the left subtree has all its nodes bounds lt than the parent."
   (-let* (((node _ right) tree)
           (pos<? (nt-notes--lt note node))
           (bound<? (nt-notes--bound-lt note node))
@@ -398,6 +394,14 @@ Notate Text Properties
       tree)))
 
 (defun nt-tree--insert (tree note &optional parent)
+  "Insert NOTE into TREE, maintaining the nested-indent-interval structure.
+
+A NOTE should be inserted:
+1. Left if its bound is less than the current node.
+2. Right if its bound is greater /or equal to/ the current node.
+
+If NOTE's indent-interval captures an existing subtree, we
+rebalance. See `nt-tree--find-pivot' for details."
   (if (not tree)
       (nt-tree--new-node note)
 
@@ -405,18 +409,24 @@ Notate Text Properties
             (pos<? (nt-notes--lt note node))
             (bound<? (nt-notes--bound-lt note node))
             (pivot? (and right pos<? (not bound<?))))
-      (cond (pivot?
-             (let ((pivot (nt-tree--find-pivot tree note parent)))
-               (nt-tree--set-right parent note tree pivot)))
-            ((and bound<? left)
-             (nt-tree--insert left note))
-            (bound<?
-             (nt-tree--set-left tree note))
-            (right
-             (nt-tree--insert right note))
-            (t
-             (nt-tree--set-right tree note)))
-      tree)))
+      (cond
+       (pivot?
+        (if (not parent)
+            (nt-tree--new-node note tree)  ; Eating the head
+          (let ((pivot (nt-tree--find-pivot tree note parent)))
+            (nt-tree--set-right parent note tree pivot))))
+
+       ((and bound<? left)
+        (nt-tree--insert left note))
+
+       (bound<?
+        (nt-tree--set-left tree note))
+
+       (right
+        (nt-tree--insert right note))
+
+       (t
+        (nt-tree--set-right tree note))))))
 
 (defun nt-tree--delete (tree note)
   ;; Cases:
